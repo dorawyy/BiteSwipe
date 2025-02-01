@@ -20,7 +20,7 @@ In today’s busy world, people value convenience and efficiency. BiteSwipe is d
 
 ### **3.1. Use-Case Diagram**
 
-![Use Case Diagram](./documentation/images/usecasedia.png)
+![Use Case Diagram](./images/usecasedia.png)
 
 ### **3.2. Actors Description**
 
@@ -196,24 +196,24 @@ In today’s busy world, people value convenience and efficiency. BiteSwipe is d
     - **Interfaces:** Notification Manager, Frontend
 
 ### **4.5. Dependencies Diagram**
-![Dependencies Diagram](./documentation/images/Dependecny_Dia1.png)
+![Dependencies Diagram](./images/Dependecny_Dia1.png)
 
 ### **4.6. Functional Requirements Sequence Diagram**
 
 1.  **Sequence Diagram for Login  <br>**
-![Login](./documentation/images/login.png)
+![Login](./images/login.png)
 2. **Sequence Diagram for Swipe to Select Restaurant  <br>**
-![Swipe](./documentation/images/swipe.png)
+![Swipe](./images/swipe.png)
 3. **Sequence Diagram for View Restaurant Details  <br>**
-![Restaurant](./documentation/images/restaurant.png)
+![Restaurant](./images/restaurant.png)
 4. **Sequence Diagram for Joining a Session as a User  <br>**
-![SSCU](./documentation/images/sessionCreation_User.png)
+![SSCU](./images/sessionCreation_User.png)
 5. **Sequence Diagram for Session Creation as a Creator  <br>**
-![SSCC](./documentation/images/sessionCreatoin_creator.png)
+![SSCC](./images/sessionCreatoin_creator.png)
 6. **Sequence Diagram for Group Matching as a User  <br>**
-![GPU](./documentation/images/groupMatching_User%20(2).png)
+![GPU](./images/groupMatching_User%20(2).png)
 7. **Sequence Diagram for Group Matching as a Creator  <br>**
-![GPC](./documentation/images/groupMatching_Creator.png)
+![GPC](./images/groupMatching_Creator.png)
 
 ### **4.7. Non-Functional Requirements Design**
 
