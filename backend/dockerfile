@@ -1,0 +1,32 @@
+FROM node:20.6.0-alpine
+
+# Add curl for healthcheck
+RUN apk add --no-cache curl
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm install
+
+# Copy source
+COPY . .
+
+# Build TypeScript
+RUN npm run build
+
+# Environment variables
+ENV NODE_ENV=production \
+    NPM_CONFIG_LOGLEVEL=warn
+
+# Expose port from build arg
+ARG PORT
+ENV PORT=$PORT
+EXPOSE $PORT
+
+# Start the application
+CMD ["node", "dist/index.js"]
