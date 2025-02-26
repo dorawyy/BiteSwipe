@@ -14,5 +14,9 @@
     <string name="members">Members:</string>
     <string name="ready">Ready!</string>
     <string name="base_url"> https://jsonplaceholder.typicode.com</string>
+    <string name="waiting_on_leader_to_start_matching">Waiting on Leader to start matching</string>
+    <string name="biteswipe">BiteSwipe</string>
+    <string name="tagline">A new way to dine</string>
+    <string name="sign_in_string">Sign In With Google</string>
 
 </resources>

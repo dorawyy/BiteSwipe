@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         android:text="@string/group_id_text"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textStyle="bold|italic"
         app:layout_constraintBottom_toTopOf="@+id/imageButton"
         app:layout_constraintEnd_toStartOf="@+id/placeholderText"
         app:layout_constraintHorizontal_bias="0.845"
