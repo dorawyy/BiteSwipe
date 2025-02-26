@@ -19,7 +19,8 @@
         app:tint="@color/purple_500"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintMargin="16dp" />
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp" />
 
     <!-- Title -->
     <TextView
@@ -30,31 +31,31 @@
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@color/black"
-        app:layout_constraintTop_toBottomOf="@+id/backButton"
+        app:layout_constraintTop_toBottomOf="@id/backButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintMarginTop="32dp" />
+        android:layout_marginTop="32dp" />
 
     <!-- Group ID Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/groupIdInputLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="@string/group_id"
-        android:boxBackgroundMode="filled"
-        android:boxStrokeColor="@color/purple_500"
+        app:boxBackgroundMode="filled"
+        app:boxStrokeColor="@color/purple_500"
         app:endIconMode="clear_text"
-        app:layout_constraintTop_toBottomOf="@+id/titleText"
+        app:layout_constraintTop_toBottomOf="@id/titleText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintMarginTop="24dp"
-        app:layout_constraintMarginStart="32dp"
-        app:layout_constraintMarginEnd="32dp">
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/groupIdInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:hint="@string/group_id"
             android:textColor="@color/black"
             android:textSize="16sp" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -68,9 +69,9 @@
         android:text="@string/join"
         android:textColor="@color/white"
         android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@+id/groupIdInputLayout"
+        app:layout_constraintTop_toBottomOf="@id/groupIdInputLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintMarginTop="32dp" />
+        android:layout_marginTop="32dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
