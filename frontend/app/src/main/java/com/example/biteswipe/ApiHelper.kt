@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
 
@@ -45,7 +46,7 @@ interface ApiHelper {
         val url = getBaseUrl(context) + endpoint
 
         val requestBody = jsonBody?.let {
-            RequestBody.create("application/json; charset=utf-8".toMediaType(), it.toString())
+            it.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
         }
 
         val requestBuilder = Request.Builder().url(url)
@@ -57,10 +58,10 @@ interface ApiHelper {
 
         // Apply method-specific handling
         when (method.uppercase()) {
-            "POST" -> requestBuilder.post(requestBody ?: RequestBody.create(null, ""))
-            "PUT" -> requestBuilder.put(requestBody ?: RequestBody.create(null, ""))
+            "POST" -> requestBuilder.post(requestBody ?: "".toRequestBody(null))
+            "PUT" -> requestBuilder.put(requestBody ?: "".toRequestBody(null))
             "DELETE" -> requestBuilder.delete(requestBody)
-            "PATCH" -> requestBuilder.patch(requestBody ?: RequestBody.create(null, ""))
+            "PATCH" -> requestBuilder.patch(requestBody ?: "".toRequestBody(null))
         }
 
         val request = requestBuilder.build()

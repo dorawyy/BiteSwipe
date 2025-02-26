@@ -1,12 +1,9 @@
 package com.example.biteswipe
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.biteswipe.ApiHelper
-import org.json.JSONObject
 
 class LoginPage : AppCompatActivity(), ApiHelper {
     private var currentTodoId = 1
@@ -26,7 +23,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                 onSuccess = { response ->
                     val title = response.optString("title", "No Title Found")
                     Toast.makeText(this, "Todo #$currentTodoId: $title", Toast.LENGTH_SHORT).show()
-                    currentTodoId++ // ✅ Increment after successful request
+                    currentTodoId++
                 }
             )
         }
