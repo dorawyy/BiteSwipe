@@ -1,10 +1,13 @@
 import mongoose from 'mongoose';
-import { ObjectId } from 'mongoose';
+
+import { ObjectId, Types } from 'mongoose';
+
 
 export interface sessionSchema {
     creator: ObjectId,
     participants: {
-        userId: ObjectId,
+        userId: Types.ObjectId,
+
         preferences: {
             restaurantId: string,
             liked: Boolean,
@@ -25,13 +28,16 @@ export interface sessionSchema {
         // Possiblly add more stuff like cuisine, price range, etc.
     },
     restaurants: {
-        restaurantId: string,
+        restaurantId: Types.ObjectId,
+
         score: Number,
         totalVotes: Number,
         positiveVotes: Number
     }[],
     finalSelection: {
-        restaurantId: string,
+
+        restaurantId: Types.ObjectId,
+
         selectedAt: Date
     }
     createdAt: Date,
@@ -40,13 +46,15 @@ export interface sessionSchema {
 
 const SessionSchema = new mongoose.Schema<sessionSchema>({
     creator: { 
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Types.ObjectId,
         ref: 'User',
         require: true
     },
     participants: [{
         userId: {
-            type: mongoose.Schema.Types.ObjectId,
+
+            type: mongoose.Types.ObjectId,
+
             ref: 'User'
         },
         preferences: [{
@@ -68,13 +76,17 @@ const SessionSchema = new mongoose.Schema<sessionSchema>({
         }
     },
     restaurants: [{
-        restaurantId: String,
+
+        restaurantId: { type: mongoose.Types.ObjectId, ref: 'Restaurant' },
+
         score: Number,
         totalVotes: Number,
         positiveVotes: Number
     }],
     finalSelection: {
-        restaurantId: String,
+
+        restaurantId: { type: mongoose.Types.ObjectId, ref: 'Restaurant' },
+
         selectedAt: Date
     },
     createdAt: Date,
