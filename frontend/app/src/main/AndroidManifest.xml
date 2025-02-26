@@ -15,6 +15,24 @@
         android:theme="@style/Theme.BiteSwipe"
         tools:targetApi="31">
         <activity
+            android:name=".ResultsPage"
+            android:exported="false" />
+        <activity
+            android:name=".ChosenRestaurantPage"
+            android:exported="false" />
+        <activity
+            android:name=".MatchingPage"
+            android:exported="false" />
+        <activity
+            android:name=".ViewGroupPage"
+            android:exported="false" />
+        <activity
+            android:name=".ModerateGroupPage"
+            android:exported="false" />
+        <activity
+            android:name=".CreateGroupPage"
+            android:exported="false" />
+        <activity
             android:name=".JoinGroupPage"
             android:exported="false" />
         <activity
