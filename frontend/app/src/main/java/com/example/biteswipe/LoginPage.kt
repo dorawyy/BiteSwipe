@@ -8,7 +8,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.biteswipe.ApiHelper
 import org.json.JSONObject
 
-class LoginPage : AppCompatActivity(), ApiHelper { // Implements APIHelper
+class LoginPage : AppCompatActivity(), ApiHelper {
+    private var currentTodoId = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -17,16 +18,15 @@ class LoginPage : AppCompatActivity(), ApiHelper { // Implements APIHelper
         val signInButton = findViewById<Button>(R.id.sign_in_button)
 
         signInButton.setOnClickListener {
+            val endpoint = "/todos/$currentTodoId"
             apiRequest(
                 context = this,
-                endpoint = "/todos/1",
+                endpoint = endpoint,
                 method = "GET",
                 onSuccess = { response ->
                     val title = response.optString("title", "No Title Found")
-                    Toast.makeText(this, title, Toast.LENGTH_SHORT).show()
-                },
-                onError = { code, message ->
-                    Log.e("API_ERROR", "Error Code: $code, Message: $message")
+                    Toast.makeText(this, "Todo #$currentTodoId: $title", Toast.LENGTH_SHORT).show()
+                    currentTodoId++ // ✅ Increment after successful request
                 }
             )
         }

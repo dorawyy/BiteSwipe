@@ -21,6 +21,16 @@ interface ApiHelper {
     }
 
     /**
+     * Default error handler: Shows a toast and logs the error.
+     */
+    fun defaultOnError(context: Context, code: Int?, message: String?) {
+        (context as? AppCompatActivity)?.runOnUiThread {
+            Toast.makeText(context, "API Error", Toast.LENGTH_SHORT).show()
+        }
+        Log.e("API_ERROR", "Error Code: $code, Message: $message")
+    }
+
+    /**
      * Makes a general API request with support for all HTTP methods, headers, and JSON body.
      */
     fun apiRequest(
@@ -28,9 +38,9 @@ interface ApiHelper {
         endpoint: String,
         method: String = "GET",
         jsonBody: JSONObject? = null,
-        headers: Map<String, String> = emptyMap(), // Allows custom headers
+        headers: Map<String, String> = emptyMap(),
         onSuccess: (JSONObject) -> Unit,
-        onError: (Int?, String?) -> Unit // Allows custom error handling
+        onError: ((Int?, String?) -> Unit)? = null // Optional, defaults to `defaultOnError`
     ) {
         val url = getBaseUrl(context) + endpoint
 
@@ -58,8 +68,8 @@ interface ApiHelper {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 (context as? AppCompatActivity)?.runOnUiThread {
-                    onError(null, "Network error: ${e.message}")
-                    Toast.makeText(context, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    onError?.invoke(null, "Network error: ${e.message}")
+                        ?: defaultOnError(context, null, "Network error: ${e.message}")
                 }
                 Log.e("NETWORK_ERROR", e.toString())
             }
@@ -74,15 +84,15 @@ interface ApiHelper {
                         }
                     } else {
                         (context as? AppCompatActivity)?.runOnUiThread {
-                            onError(response.code, responseBody)
-                            Toast.makeText(context, "Error: ${response.code}", Toast.LENGTH_SHORT).show()
+                            onError?.invoke(response.code, responseBody)
+                                ?: defaultOnError(context, response.code, responseBody)
                         }
-                        Log.e("API_ERROR", "Response Code: ${response.code}")
+                        Log.e("API_ERROR", "Response Code: ${response.code}, Response: $responseBody")
                     }
                 } catch (e: Exception) {
                     (context as? AppCompatActivity)?.runOnUiThread {
-                        onError(response.code, "Parsing error")
-                        Toast.makeText(context, "Parsing error", Toast.LENGTH_SHORT).show()
+                        onError?.invoke(response.code, "Parsing error")
+                            ?: defaultOnError(context, response.code, "Parsing error")
                     }
                     Log.e("API_ERROR", e.toString())
                 }
