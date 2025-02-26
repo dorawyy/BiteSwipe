@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">BiteSwipe</string>
     <string name="title_activity_home_page">HomePage</string>
+    <string name="enter_group_id">Enter Group ID:</string>
+    <string name="group_id">Group ID</string>
+    <string name="join">Join</string>
+    <string name="back_button_desc">Back button</string>
+
 </resources>
