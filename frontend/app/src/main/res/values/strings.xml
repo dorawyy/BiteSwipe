@@ -13,5 +13,6 @@
     <string name="grup">GRUP</string>
     <string name="members">Members:</string>
     <string name="ready">Ready!</string>
+    <string name="base_url"> https://jsonplaceholder.typicode.com</string>
 
 </resources>
