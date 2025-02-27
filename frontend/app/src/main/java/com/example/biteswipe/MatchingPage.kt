@@ -4,6 +4,7 @@ import RestaurantCard
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.os.Bundle
+import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import androidx.activity.enableEdgeToEdge
@@ -18,7 +19,7 @@ class MatchingPage : AppCompatActivity() {
     private lateinit var adapter: SwipeAdapter
     private lateinit var cards: MutableList<RestaurantCard>
     private var currentCardIndex = 0
-
+    private var TAG = "MatchingPage"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -40,44 +41,49 @@ class MatchingPage : AppCompatActivity() {
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         adapter = SwipeAdapter(this, cards)
         recyclerView.adapter = adapter
-
+        Log.d(TAG, "Set up cards")
         setupSwipeListener()
     }
-
+    private var isSwiping = false
     private fun setupSwipeListener() {
         val gestureDetector =
             GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
 
                 override fun onDown(e: MotionEvent): Boolean {
-                    return true
+                    return !isSwiping
                 }
 
-                override fun onScroll(
-                    e1: MotionEvent?,
-                    e2: MotionEvent,
-                    distanceX: Float,
-                    distanceY: Float
-                ): Boolean {
+                override fun onScroll(e1: MotionEvent?,e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+                    if(isSwiping) return true
+
                     // Detect left or right swipe
-                    val deltaX = e2.x.minus(e1?.x ?: 0f) ?: 0f
-                    if (Math.abs(deltaX) > 100) {
+                    val deltaX = e2.x.minus(e1?.x ?: 0f)
+                    if (Math.abs(deltaX) > 200) {
+                        isSwiping = true
                         if (deltaX > 0) {
-                            // Swiped Right
                             swipeCardRight()
                         } else {
-                            // Swiped Left
                             swipeCardLeft()
                         }
+                        Log.d(TAG, "Swipe detected")
                         return true
                     }
-                    return super.onScroll(e1, e2, distanceX, distanceY)
+                    return false
                 }
             })
 
         recyclerView.setOnTouchListener { v, event ->
             gestureDetector.onTouchEvent(event)
+
+            // Reset the flag when the touch event is finished (e.g., user lifts finger)
+            if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
+                isSwiping = false
+            }
+
             true
         }
+
+
 
 
     }
@@ -104,10 +110,12 @@ class MatchingPage : AppCompatActivity() {
                     override fun onAnimationEnd(animation: Animator) {
                         cards.removeAt(currentCardIndex)
                         adapter.notifyItemRemoved(currentCardIndex)
+                        Log.d(TAG, "Card Removed")
                     }
                 })
             }
         }
+
     }
 
     private fun swipeCardLeft() {
@@ -132,6 +140,7 @@ class MatchingPage : AppCompatActivity() {
                     override fun onAnimationEnd(animation: Animator) {
                         cards.removeAt(currentCardIndex)
                         adapter.notifyItemRemoved(currentCardIndex)
+                        Log.d(TAG, "Card Removed")
                     }
                 })
             }
