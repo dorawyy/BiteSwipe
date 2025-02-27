@@ -7,15 +7,12 @@
     android:layout_height="match_parent"
     tools:context=".MatchingPage">
 
-    <RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
-        android:layout_width="391dp"
-        android:layout_height="391dp"
-        android:layout_alignParentTop="true"
-        android:orientation="horizontal"
+        android:layout_width="379dp"
+        android:layout_height="394dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

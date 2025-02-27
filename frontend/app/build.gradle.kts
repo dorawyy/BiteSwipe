@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.androidx.recyclerview.v121)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.animation.graphics.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
