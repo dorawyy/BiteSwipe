@@ -31,7 +31,7 @@ class HomePage : AppCompatActivity() {
             val intent = Intent(this, SettingsPage::class.java)
             startActivity(intent)
         }
-        
+
         val joinButton = findViewById<Button>(R.id.main_join_group_button)
         joinButton.setOnClickListener {
             val intent = Intent(this, JoinGroupPage::class.java)

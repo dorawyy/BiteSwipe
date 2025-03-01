@@ -24,5 +24,7 @@
     <string name="join_a_group">Join a Group</string>
     <string name="welcome_n_user_name">Welcome,\n{User Name}</string>
     <string name="edit_group_settings">Edit Group Settings</string>
+    <string name="add_friend">Add Friend:</string>
+    <string name="my_friends">My Friends:</string>
 
 </resources>
