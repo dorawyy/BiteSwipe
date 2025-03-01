@@ -2,6 +2,7 @@ package com.example.biteswipe
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -35,11 +36,21 @@ class ModerateGroupPage : AppCompatActivity() {
 //        TODO: Implement Dynamic Rendering of Users
         recyclerView = findViewById(R.id.user_moderate_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        adapter = UserAdapter(this, users)
+        adapter = UserAdapter(this, users) { user -> handleKickUser(user) }
         recyclerView.adapter = adapter
         Log.d(TAG, "Set up users")
 //        TODO: Start Matching Button
 //        TODO: Kick User Button
 //        TODO: Delete Group Button
+    }
+
+    private fun handleKickUser(user: UserCard) {
+        // TODO: Send a request to kick the user from the group
+
+//        On confirmation, remove user from the list
+        users.remove(user)
+        adapter.notifyDataSetChanged()
+
+        Toast.makeText(this, "${user.userName} has been kicked from the group.", Toast.LENGTH_SHORT).show()
     }
 }

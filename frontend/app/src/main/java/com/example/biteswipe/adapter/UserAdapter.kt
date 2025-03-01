@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.R
 import com.example.biteswipe.UserCard
 
-class UserAdapter(private val context: Context, private val users: MutableList<UserCard>) :
+class UserAdapter(private val context: Context, private val users: MutableList<UserCard>, private val onKickUser: (UserCard) -> Unit) :
     RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
     // ViewHolder class to hold each item view
@@ -35,8 +35,8 @@ class UserAdapter(private val context: Context, private val users: MutableList<U
 
         // Handle click for the kick button (you can add a listener here)
         holder.kickButton.setOnClickListener {
-            // For now, just log or add action to kick user
-            println("${user.userName} kicked")
+
+            onKickUser(user)
         }
     }
 
