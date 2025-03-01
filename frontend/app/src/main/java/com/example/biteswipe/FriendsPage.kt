@@ -95,9 +95,9 @@ class FriendsPage : AppCompatActivity() {
             }
 
             // Setup RecyclerView and Adapter
-            val recyclerView: RecyclerView = dialogView.findViewById(R.id.friend_request_recycler_view)
+            recyclerView = dialogView.findViewById(R.id.friend_request_recycler_view)
             recyclerView.layoutManager = LinearLayoutManager(this)
-            val adapter = UserAdapterFriends(this, users, friendRequestActions)
+            adapter = UserAdapterFriends(this, users, friendRequestActions)
             recyclerView.adapter = adapter
 
             // Show the dialog

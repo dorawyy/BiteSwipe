@@ -23,7 +23,7 @@ class UserAdapterFriends(private val context: Context, private val users: Mutabl
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.user_card, parent, false)
+        val view = LayoutInflater.from(context).inflate(R.layout.user_card_request, parent, false)
         return UserViewHolder(view)
     }
 
