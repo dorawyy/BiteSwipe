@@ -7,7 +7,7 @@
     <string name="back_button_desc">Back button</string>
     <string name="create_group">Create Group</string>
     <string name="select_cuisine_preference">Select Cuisine Preference</string>
-    <string name="set_search_radius">Set Search Radius</string>
+    <string name="set_search_radius">Set Search Radius (in KM)</string>
     <string name="enter_here">Enter here</string>
     <string name="group_id_text">Group ID:</string>
     <string name="grup">GRUP</string>
