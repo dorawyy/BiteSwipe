@@ -28,9 +28,9 @@ class ModerateGroupPage : AppCompatActivity() {
         }
 //        TODO: Replace current users with data fetched from backend
         users = mutableListOf(
-            UserCard("John Doe", R.drawable.ic_settings, true),
-            UserCard("Jane Doe", R.drawable.ic_settings, true),
-            UserCard("Mike Tyson", R.drawable.ic_launcher_background, true)
+            UserCard("John Doe", R.drawable.ic_settings),
+            UserCard("Jane Doe", R.drawable.ic_settings),
+            UserCard("Mike Tyson", R.drawable.ic_launcher_background)
         )
 //        TODO: Implement Dynamic Rendering of Users
         recyclerView = findViewById(R.id.user_moderate_recycler_view)

@@ -11,19 +11,18 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.R
 import com.example.biteswipe.UserCard
 
-class UserAdapter(private val context: Context, private val users: MutableList<UserCard>) :
-    RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
+class UserAdapterNoKick(private val context: Context, private val users: MutableList<UserCard>) :
+    RecyclerView.Adapter<UserAdapterNoKick.UserViewHolder>() {
 
     // ViewHolder class to hold each item view
     class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val userName: TextView = itemView.findViewById(R.id.nk_user_name_box)
         val profilePicture: ImageView = itemView.findViewById(R.id.nk_profile_picture_list_view)
-        val kickButton:ImageButton = itemView.findViewById(R.id.kick_user_button)
     }
 
     // Create a new view holder and inflate the card layout
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.user_card, parent, false)
+        val view = LayoutInflater.from(context).inflate(R.layout.user_card_nokick, parent, false)
         return UserViewHolder(view)
     }
 
@@ -32,12 +31,6 @@ class UserAdapter(private val context: Context, private val users: MutableList<U
         val user = users[position]
         holder.userName.text = user.userName
         holder.profilePicture.setImageResource(user.imageRes)
-
-        // Handle click for the kick button (you can add a listener here)
-        holder.kickButton.setOnClickListener {
-            // For now, just log or add action to kick user
-            println("${user.userName} kicked")
-        }
     }
 
     // Return the size of the list
