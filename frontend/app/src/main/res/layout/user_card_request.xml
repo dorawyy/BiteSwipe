@@ -6,7 +6,7 @@
     android:elevation="6dp">
 
     <RelativeLayout
-        android:layout_width="match_parent"
+        android:layout_width="337dp"
         android:layout_height="match_parent"
         android:layout_gravity="center">
 
@@ -15,8 +15,8 @@
             android:id="@+id/req_user_name_box"
             android:layout_width="171dp"
             android:layout_height="36dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="0dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="5dp"
             android:layout_toStartOf="@+id/accept_friend_button"
             android:layout_toEndOf="@+id/req_profile_picture"
             android:text="@string/username"
@@ -25,27 +25,37 @@
 
         <ImageView
             android:id="@+id/req_profile_picture"
-            android:layout_width="60dp"
-            android:layout_height="match_parent"
+            android:layout_width="53dp"
+            android:layout_height="45dp"
             android:layout_alignParentStart="true"
-            android:layout_marginStart="0dp"
+            android:layout_marginStart="3dp"
             app:srcCompat="@drawable/ic_group" />
 
         <ImageButton
             android:id="@+id/reject_friend_button"
-            android:layout_width="58dp"
-            android:layout_height="match_parent"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginEnd="3dp"
-            android:background="#FDFBFB"
+            android:layout_alignParentBottom="true"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="45dp"
+            android:layout_marginBottom="11dp"
+            android:background="#EBEBEB"
+            android:backgroundTint="#00FFFFFF"
+            android:tint="#00C15858"
             app:srcCompat="@android:drawable/btn_dialog" />
 
         <ImageButton
             android:id="@+id/accept_friend_button"
-            android:layout_width="67dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
             android:layout_toStartOf="@+id/reject_friend_button"
+            android:backgroundTint="#00FFFFFF"
+            android:scaleX="2"
+            android:scaleY="2"
+            android:tint="#673AB7"
             app:srcCompat="@android:drawable/ic_input_add" />
     </RelativeLayout>
 

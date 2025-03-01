@@ -16,8 +16,8 @@ class UserAdapter(private val context: Context, private val users: MutableList<U
 
     // ViewHolder class to hold each item view
     class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val userName: TextView = itemView.findViewById(R.id.nk_user_name_box)
-        val profilePicture: ImageView = itemView.findViewById(R.id.nk_profile_picture_list_view)
+        val userName: TextView = itemView.findViewById(R.id.user_name_box)
+        val profilePicture: ImageView = itemView.findViewById(R.id.profile_picture_list_view)
         val kickButton:ImageButton = itemView.findViewById(R.id.kick_user_button)
     }
 

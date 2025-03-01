@@ -23,7 +23,7 @@ class ViewGroupPage : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-//        TODO: Fetch Group Details from Backend
+//        TODO: API Call to fetch users from backend (PERSISTENT)
         users = mutableListOf(
             UserCard("John Doe", R.drawable.ic_settings),
             UserCard("Jane Doe", R.drawable.ic_settings),
@@ -37,5 +37,6 @@ class ViewGroupPage : AppCompatActivity() {
         recyclerView.adapter = adapter
 
     //        TODO: Implement logic to indicate matching started, and open activity
+//        TODO: API Call to start matching
     }
 }

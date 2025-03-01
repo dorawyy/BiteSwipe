@@ -1,6 +1,7 @@
 package com.example.biteswipe
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -14,16 +15,21 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.adapter.UserAdapter
 import com.example.biteswipe.adapter.UserAdapterFriends
 import com.example.biteswipe.cards.UserCard
 
 class FriendsPage : AppCompatActivity() {
     private lateinit var adapter: UserAdapterFriends
     private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter2: UserAdapter
+    private lateinit var recyclerView2: RecyclerView
+    private lateinit var friends: MutableList<UserCard>
     interface FriendRequestActions {
         fun handleAcceptFriend(user: UserCard)
         fun handleRejectFriend(user: UserCard)
     }
+    private var TAG = "FriendsPage"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -52,7 +58,7 @@ class FriendsPage : AppCompatActivity() {
                 val username = userName.text.toString().trim()
                 // Add friend logic here
                 if(username.isNotEmpty()){
-//                    TODO: API Call to add friend
+//                    TODO: API Call to send friend request
                     Toast.makeText(this, "Friend Request sent to $username", Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
                 }
@@ -72,7 +78,7 @@ class FriendsPage : AppCompatActivity() {
                 .setView(dialogView)
                 .setCancelable(true)
                 .create()
-
+//            TODO: API Call to get friend requests
             // Dummy list of friend requests
             val users = mutableListOf(
                 UserCard("John Doe", R.drawable.ic_settings),
@@ -82,13 +88,13 @@ class FriendsPage : AppCompatActivity() {
 
             val friendRequestActions = object : FriendRequestActions {
                 override fun handleAcceptFriend(user: UserCard) {
-                    // Send request to accept friend (API call)
+                    // TODO: API call to accept friend
                     users.remove(user)
                     adapter.notifyDataSetChanged()
                 }
 
                 override fun handleRejectFriend(user: UserCard) {
-                    // Send request to reject friend (API call)
+                    // TODO: API Call to reject friend
                     users.remove(user)
                     adapter.notifyDataSetChanged()
                 }
@@ -104,10 +110,27 @@ class FriendsPage : AppCompatActivity() {
             dialog.show()
         }
 
-
+//        TODO: API Call to get friends
+        friends = mutableListOf(
+            UserCard("person1", R.drawable.ic_settings),
+            UserCard("person2", R.drawable.ic_settings),
+            UserCard("person3", R.drawable.ic_launcher_background)
+        )
+        recyclerView2 = findViewById(R.id.friends_recycler_view)
+        recyclerView2.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        adapter2 = UserAdapter(this, friends) { user -> handleKickUser(user) }
+        recyclerView2.adapter = adapter2
+        Log.d(TAG, "Set up users")
 
 
     }
+    fun handleKickUser(user: UserCard) {
+//        TODO: API Call to remove friends
+        friends.remove(user)
+        adapter2.notifyDataSetChanged()
+        Toast.makeText(this, "${user.userName} was removed as a friend", Toast.LENGTH_SHORT).show()
+    }
+
 
 
 }

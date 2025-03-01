@@ -27,7 +27,7 @@ class ModerateGroupPage : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-//        TODO: Replace current users with data fetched from backend
+//        TODO: API Call to fetch users from backend (PERSISTENT)
         users = mutableListOf(
             UserCard("John Doe", R.drawable.ic_settings),
             UserCard("Jane Doe", R.drawable.ic_settings),
@@ -40,12 +40,11 @@ class ModerateGroupPage : AppCompatActivity() {
         recyclerView.adapter = adapter
         Log.d(TAG, "Set up users")
 //        TODO: Start Matching Button
-//        TODO: Kick User Button
 //        TODO: Delete Group Button
     }
 
     private fun handleKickUser(user: UserCard) {
-        // TODO: Send a request to kick the user from the group
+        // TODO: API Call to kick user from group
 
 //        On confirmation, remove user from the list
         users.remove(user)

@@ -31,7 +31,7 @@ class MatchingPage : AppCompatActivity() {
             insets
         }
 
-//        TODO: Replace current cards with data fetched from backend
+//        TODO: API Call to get Restaurants
         cards = mutableListOf(
             RestaurantCard("John Doe", R.drawable.ic_settings),
             RestaurantCard("Jane Doe", R.drawable.ic_settings),
@@ -85,7 +85,7 @@ class MatchingPage : AppCompatActivity() {
             true
         }
 
-//        TODO: Implement match found logic
+//        TODO: Implement match found logic (API CALL?)
 //        IF match found and everyone agrees: goto chosenRestaurantPage
 //        IF no more matches: goto ResultsPage
 

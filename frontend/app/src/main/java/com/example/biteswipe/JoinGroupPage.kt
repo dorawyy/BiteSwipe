@@ -24,7 +24,7 @@ class JoinGroupPage : AppCompatActivity() {
         val joinButton = findViewById<Button>(id.join_button)
         joinButton.setOnClickListener {
             // TODO: API Call to Join Group
-//            TODO: On success, Open view group activity. Pass
+//            TODO: On success, Open view group activity. Pass groupid into intent
             val intent = Intent(this, ViewGroupPage::class.java)
 //              SAMPLE WAY TO PASS GROUP INTO ACTIVITY
 //            intent.putExtra("groupId", "12345")
