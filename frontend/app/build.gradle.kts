@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.androidx.recyclerview.v121)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.animation.graphics.android)
+    implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
+    implementation("com.google.firebase:firebase-messaging-ktx")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
