@@ -3,6 +3,7 @@ package com.example.biteswipe
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -18,10 +19,21 @@ class HomePage : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-//        TODO: Link Buttons to Respective Activities
+
+        val friendsButton: ImageButton = findViewById(R.id.main_friends_button)
+        friendsButton.setOnClickListener {
+            val intent = Intent(this, FriendsPage::class.java)
+            startActivity(intent)
+        }
+
+        val settingsButton: ImageButton = findViewById(R.id.main_settings_button)
+        settingsButton.setOnClickListener {
+            val intent = Intent(this, SettingsPage::class.java)
+            startActivity(intent)
+        }
+        
         val joinButton = findViewById<Button>(R.id.main_join_group_button)
         joinButton.setOnClickListener {
-            // Handle button click
             val intent = Intent(this, JoinGroupPage::class.java)
             startActivity(intent)
         }
@@ -32,5 +44,7 @@ class HomePage : AppCompatActivity() {
             startActivity(intent)
         }
 
+
+//        TODO: Your Previous Eats
     }
 }
