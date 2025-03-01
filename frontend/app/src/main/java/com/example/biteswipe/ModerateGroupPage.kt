@@ -16,5 +16,10 @@ class ModerateGroupPage : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+//        TODO: Render Users on List View
+//        TODO: Start Matching Button
+//        TODO: Kick User Button
+//        TODO: Delete Group Button
     }
 }

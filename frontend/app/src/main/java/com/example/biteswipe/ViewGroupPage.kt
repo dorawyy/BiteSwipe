@@ -16,5 +16,7 @@ class ViewGroupPage : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+//        TODO: Fetch Group Details from Backend
+//        TODO: Implement logic to indicate matching started, and open activity
     }
 }

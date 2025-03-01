@@ -30,6 +30,7 @@ class MatchingPage : AppCompatActivity() {
             insets
         }
 
+//        TODO: Replace current cards with data fetched from backend
         cards = mutableListOf(
             RestaurantCard("John Doe", R.drawable.ic_settings),
             RestaurantCard("Jane Doe", R.drawable.ic_settings),
@@ -71,7 +72,7 @@ class MatchingPage : AppCompatActivity() {
                     return false
                 }
             })
-
+//        TODO: Set up swipe up and down for more details (reviews, menu, etc...?)
         recyclerView.setOnTouchListener { v, event ->
             gestureDetector.onTouchEvent(event)
 
@@ -83,7 +84,9 @@ class MatchingPage : AppCompatActivity() {
             true
         }
 
-
+//        TODO: Implement match found logic
+//        IF match found and everyone agrees: goto chosenRestaurantPage
+//        IF no more matches: goto ResultsPage
 
 
     }
@@ -114,6 +117,7 @@ class MatchingPage : AppCompatActivity() {
                     }
                 })
             }
+//            TODO: API Call to indicate swipe right
         }
 
     }
@@ -144,6 +148,7 @@ class MatchingPage : AppCompatActivity() {
                     }
                 })
             }
+//            TODO: API Call to indicate swipe left
         }
     }
 }

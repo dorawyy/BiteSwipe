@@ -16,5 +16,6 @@ class HomePage : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+//        TODO: Link Buttons to Respective Activities
     }
 }

@@ -15,6 +15,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
         val signInButton = findViewById<Button>(R.id.sign_in_button)
 
         signInButton.setOnClickListener {
+//            TODO: Handle Login Correctly, sync with backend
             val endpoint = "/todos/$currentTodoId"
             apiRequest(
                 context = this,
