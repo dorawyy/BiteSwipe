@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.adapter.SwipeAdapter
 
 class MatchingPage : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView

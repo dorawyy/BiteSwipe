@@ -1,4 +1,4 @@
-package com.example.biteswipe
+package com.example.biteswipe.adapter
 
 import RestaurantCard
 import android.content.Context
@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.R
 
 class SwipeAdapter(private val context: Context, private val cards: List<RestaurantCard>) : RecyclerView.Adapter<SwipeAdapter.SwipeViewHolder>() {
 

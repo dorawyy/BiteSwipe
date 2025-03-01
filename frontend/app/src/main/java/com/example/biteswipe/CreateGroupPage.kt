@@ -25,6 +25,5 @@ class CreateGroupPage : AppCompatActivity() {
 //            TODO: Send Group Creator to Backend
 //            TODO: Open ModerateGroupPage Activity
         }
-        }
     }
 }

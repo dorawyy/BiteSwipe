@@ -1,12 +1,22 @@
 package com.example.biteswipe
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.adapter.SwipeAdapter
+import com.example.biteswipe.adapter.UserAdapter
 
 class ModerateGroupPage : AppCompatActivity() {
+    private lateinit var users: MutableList<UserCard>
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: UserAdapter
+    private var TAG = "ModerateGroupPage"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -16,11 +26,17 @@ class ModerateGroupPage : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-//        TODO: Fetch Users from Backend
-
+//        TODO: Replace current users with data fetched from backend
+        users = mutableListOf(
+            UserCard("John Doe", R.drawable.ic_settings, true),
+            UserCard("Jane Doe", R.drawable.ic_settings, true),
+            UserCard("Mike Tyson", R.drawable.ic_launcher_background, true)
+        )
 //        TODO: Render Users on List View
-
-
+        recyclerView = findViewById(R.id.user_moderate_recycler_view)
+        recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        adapter = UserAdapter(this, users)
+        Log.d(TAG, "Set up users")
 //        TODO: Start Matching Button
 //        TODO: Kick User Button
 //        TODO: Delete Group Button

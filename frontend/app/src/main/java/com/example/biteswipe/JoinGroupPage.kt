@@ -19,7 +19,7 @@ class JoinGroupPage : AppCompatActivity() {
             insets
         }
 
-        val joinButton = findViewById<Button>(id.join_button));
+        val joinButton = findViewById<Button>(id.join_button)
         joinButton.setOnClickListener {
             // TODO: API Call to Join Group
 //            TODO: Open view group activity
