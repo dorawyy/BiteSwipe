@@ -1,7 +1,9 @@
 package com.example.biteswipe
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -22,7 +24,16 @@ class JoinGroupPage : AppCompatActivity() {
         val joinButton = findViewById<Button>(id.join_button)
         joinButton.setOnClickListener {
             // TODO: API Call to Join Group
-//            TODO: Open view group activity
+//            TODO: On success, Open view group activity. Pass
+            val intent = Intent(this, ViewGroupPage::class.java)
+//              SAMPLE WAY TO PASS GROUP INTO ACTIVITY
+//            intent.putExtra("groupId", "12345")
+            startActivity(Intent(this, ViewGroupPage::class.java))
+        }
+
+        val backButton: ImageButton = findViewById(id.join_back_button)
+        backButton.setOnClickListener {
+            finish()
         }
 
 

@@ -19,5 +19,10 @@
     <string name="tagline">A new way to dine</string>
     <string name="sign_in_string">Sign In With Google</string>
     <string name="username">Username</string>
+    <string name="your_previous_eats">Your Previous Eats:</string>
+    <string name="create_a_group">Create a Group</string>
+    <string name="join_a_group">Join a Group</string>
+    <string name="welcome_n_user_name">Welcome,\n{User Name}</string>
+    <string name="edit_group_settings">Edit Group Settings</string>
 
 </resources>

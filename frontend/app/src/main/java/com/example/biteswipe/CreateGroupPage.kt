@@ -1,7 +1,9 @@
 package com.example.biteswipe
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -24,6 +26,13 @@ class CreateGroupPage : AppCompatActivity() {
 //            TODO: API call to Create Group
 //            TODO: Send Group Creator to Backend
 //            TODO: Open ModerateGroupPage Activity
+            val intent = Intent(this, ModerateGroupPage::class.java)
+            startActivity(intent)
+        }
+
+        val backButton: ImageButton = findViewById(R.id.create_back_button)
+        backButton.setOnClickListener {
+            finish()
         }
     }
 }
