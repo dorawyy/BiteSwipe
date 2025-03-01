@@ -17,6 +17,10 @@ class ViewGroupPage : AppCompatActivity() {
             insets
         }
 //        TODO: Fetch Group Details from Backend
-//        TODO: Implement logic to indicate matching started, and open activity
+
+//        TODO: Render Group List in List View
+
+
+    //        TODO: Implement logic to indicate matching started, and open activity
     }
 }

@@ -18,5 +18,6 @@
     <string name="biteswipe">BiteSwipe</string>
     <string name="tagline">A new way to dine</string>
     <string name="sign_in_string">Sign In With Google</string>
+    <string name="username">Username</string>
 
 </resources>
