@@ -12,8 +12,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.adapter.UserAdapterFriends
+import com.example.biteswipe.cards.UserCard
 
 class FriendsPage : AppCompatActivity() {
+    private lateinit var adapter: UserAdapterFriends
+    private lateinit var recyclerView: RecyclerView
+    interface FriendRequestActions {
+        fun handleAcceptFriend(user: UserCard)
+        fun handleRejectFriend(user: UserCard)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -56,8 +66,48 @@ class FriendsPage : AppCompatActivity() {
 
         val requestButton = findViewById<ImageButton>(R.id.friend_request_button)
         requestButton.setOnClickListener {
+            val inflater = LayoutInflater.from(this)
+            val dialogView: View = inflater.inflate(R.layout.dialog_friend_requests, null)
+            val dialog = AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create()
 
+            // Dummy list of friend requests
+            val users = mutableListOf(
+                UserCard("John Doe", R.drawable.ic_settings),
+                UserCard("Jane Doe", R.drawable.ic_settings),
+                UserCard("Mike Tyson", R.drawable.ic_launcher_background)
+            )
+
+            val friendRequestActions = object : FriendRequestActions {
+                override fun handleAcceptFriend(user: UserCard) {
+                    // Send request to accept friend (API call)
+                    users.remove(user)
+                    adapter.notifyDataSetChanged()
+                }
+
+                override fun handleRejectFriend(user: UserCard) {
+                    // Send request to reject friend (API call)
+                    users.remove(user)
+                    adapter.notifyDataSetChanged()
+                }
+            }
+
+            // Setup RecyclerView and Adapter
+            val recyclerView: RecyclerView = dialogView.findViewById(R.id.friend_request_recycler_view)
+            recyclerView.layoutManager = LinearLayoutManager(this)
+            val adapter = UserAdapterFriends(this, users, friendRequestActions)
+            recyclerView.adapter = adapter
+
+            // Show the dialog
+            dialog.show()
         }
 
+
+
+
     }
+
+
 }

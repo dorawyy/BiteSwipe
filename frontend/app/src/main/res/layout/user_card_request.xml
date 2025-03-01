@@ -1,6 +1,52 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="375dp"
+    android:layout_height="60dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="16dp"
+    android:elevation="6dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center">
+
+
+        <TextView
+            android:id="@+id/req_user_name_box"
+            android:layout_width="171dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="0dp"
+            android:layout_toStartOf="@+id/accept_friend_button"
+            android:layout_toEndOf="@+id/req_profile_picture"
+            android:text="@string/username"
+            android:textAlignment="textStart"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+        <ImageView
+            android:id="@+id/req_profile_picture"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="0dp"
+            app:srcCompat="@drawable/ic_group" />
+
+        <ImageButton
+            android:id="@+id/reject_friend_button"
+            android:layout_width="58dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="3dp"
+            android:background="#FDFBFB"
+            app:srcCompat="@android:drawable/btn_dialog" />
+
+        <ImageButton
+            android:id="@+id/accept_friend_button"
+            android:layout_width="67dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="0dp"
+            android:layout_toStartOf="@+id/reject_friend_button"
+            app:srcCompat="@android:drawable/ic_input_add" />
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>
