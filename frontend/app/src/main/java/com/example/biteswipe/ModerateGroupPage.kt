@@ -32,10 +32,11 @@ class ModerateGroupPage : AppCompatActivity() {
             UserCard("Jane Doe", R.drawable.ic_settings, true),
             UserCard("Mike Tyson", R.drawable.ic_launcher_background, true)
         )
-//        TODO: Render Users on List View
+//        TODO: Implement Dynamic Rendering of Users
         recyclerView = findViewById(R.id.user_moderate_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         adapter = UserAdapter(this, users)
+        recyclerView.adapter = adapter
         Log.d(TAG, "Set up users")
 //        TODO: Start Matching Button
 //        TODO: Kick User Button
