@@ -9,8 +9,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.biteswipe.adapter.SwipeAdapter
 import com.example.biteswipe.adapter.UserAdapter
+import com.example.biteswipe.cards.UserCard
 
 class ModerateGroupPage : AppCompatActivity() {
     private lateinit var users: MutableList<UserCard>

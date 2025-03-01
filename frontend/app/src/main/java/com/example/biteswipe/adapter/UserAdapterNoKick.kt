@@ -4,12 +4,11 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.R
-import com.example.biteswipe.UserCard
+import com.example.biteswipe.cards.UserCard
 
 class UserAdapterNoKick(private val context: Context, private val users: MutableList<UserCard>) :
     RecyclerView.Adapter<UserAdapterNoKick.UserViewHolder>() {

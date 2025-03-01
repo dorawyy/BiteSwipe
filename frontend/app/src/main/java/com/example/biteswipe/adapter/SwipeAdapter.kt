@@ -1,6 +1,6 @@
 package com.example.biteswipe.adapter
 
-import RestaurantCard
+import com.example.biteswipe.cards.RestaurantCard
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View

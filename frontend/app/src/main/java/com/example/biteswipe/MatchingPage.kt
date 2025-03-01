@@ -1,6 +1,6 @@
 package com.example.biteswipe
 
-import RestaurantCard
+import com.example.biteswipe.cards.RestaurantCard
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.os.Bundle

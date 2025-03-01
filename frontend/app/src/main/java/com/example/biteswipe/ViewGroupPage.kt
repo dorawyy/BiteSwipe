@@ -8,6 +8,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.adapter.UserAdapterNoKick
+import com.example.biteswipe.cards.UserCard
 
 class ViewGroupPage : AppCompatActivity() {
     private lateinit var users: MutableList<UserCard>

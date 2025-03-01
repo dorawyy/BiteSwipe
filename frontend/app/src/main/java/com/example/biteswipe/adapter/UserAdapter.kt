@@ -9,7 +9,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.R
-import com.example.biteswipe.UserCard
+import com.example.biteswipe.cards.UserCard
 
 class UserAdapter(private val context: Context, private val users: MutableList<UserCard>, private val onKickUser: (UserCard) -> Unit) :
     RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
