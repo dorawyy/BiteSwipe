@@ -90,7 +90,6 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
     }
 
     private fun handleKickUser(user: UserCard) {
-        // TODO: API Call to kick user from group
 //        On confirmation, remove user from the list
         val endpoint = "/sessions/$sessionId/participants/${user.userId}"
         apiRequest(
