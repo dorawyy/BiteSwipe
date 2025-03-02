@@ -58,7 +58,7 @@
         app:layout_constraintTop_toBottomOf="@+id/imageButton" />
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/start_matching_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/ready"
@@ -70,7 +70,7 @@
         android:id="@+id/user_moderate_recycler_view"
         android:layout_width="369dp"
         android:layout_height="274dp"
-        app:layout_constraintBottom_toTopOf="@+id/button3"
+        app:layout_constraintBottom_toTopOf="@+id/start_matching_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageButton"

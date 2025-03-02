@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.RatingBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.R
@@ -14,8 +15,12 @@ class SwipeAdapter(private val context: Context, private val cards: List<Restaur
 
     // ViewHolder that binds the views in the layout file
     class SwipeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val cardImage: ImageView = itemView.findViewById(R.id.card_image)
-        val cardName: TextView = itemView.findViewById(R.id.card_name)
+        val cardImage: ImageView = itemView.findViewById(R.id.restaurant_image)
+        val cardName: TextView = itemView.findViewById(R.id.restaurant_name)
+        val cardAddress: TextView = itemView.findViewById(R.id.restaurant_address)
+        val cardContact: TextView = itemView.findViewById(R.id.restaurant_contact)
+        val cardPrice: TextView = itemView.findViewById(R.id.restaurant_price)
+        val cardRating: RatingBar = itemView.findViewById(R.id.restaurant_rating)
     }
 
     // Called when the RecyclerView needs a new ViewHolder
@@ -28,8 +33,17 @@ class SwipeAdapter(private val context: Context, private val cards: List<Restaur
     // Called to bind the data to the views in each item (each card)
     override fun onBindViewHolder(holder: SwipeViewHolder, position: Int) {
         val card = cards[position]
-        holder.cardName.text = card.name
+        holder.cardName.text = card.restaurantName
         holder.cardImage.setImageResource(card.imageRes)
+        holder.cardAddress.text = card.address
+        holder.cardContact.text = card.contact
+        holder.cardPrice.text = when (card.price) {
+            1 -> "$"
+            2 -> "$$"
+            3 -> "$$$"
+            else -> ""
+        }
+        holder.cardRating.rating = card.rating
     }
 
     // Return the total number of items in the dataset
