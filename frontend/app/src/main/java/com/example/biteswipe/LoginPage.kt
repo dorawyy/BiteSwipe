@@ -25,15 +25,18 @@ class LoginPage : AppCompatActivity() {
 
     companion object {
         private const val TAG = "LoginPage"
-        private const val WEB_CLIENT_ID = "check_discord"
+        const val WEB_CLIENT_ID: String =
+            "DISCORD"
     }
+
+
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_page)
-
+        Log.d(TAG, "Web client ID: ${BuildConfig.BUILD_TYPE}")
         val signInButton = findViewById<Button>(R.id.sign_in_button)
 
         signInButton.setOnClickListener {
@@ -53,6 +56,7 @@ class LoginPage : AppCompatActivity() {
 
             coroutineScope.launch {
                 try {
+                    Log.d(TAG, "Requesting credential")
                     val result = credentialManager.getCredential(
                         request = request,
                         context = this@LoginPage,
@@ -80,7 +84,7 @@ class LoginPage : AppCompatActivity() {
                         // Log the ID Token for verification
                         Log.d(TAG, "ID Token: ${googleIdTokenCredential.idToken}")
 
-                        val intent = Intent(this, MainActivity::class.java).apply {
+                        val intent = Intent(this, HomePage::class.java).apply {
                             putExtra("USER_NAME", googleIdTokenCredential.displayName.toString())
                         }
                         startActivity(intent)

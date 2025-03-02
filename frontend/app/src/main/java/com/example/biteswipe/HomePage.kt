@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -19,6 +20,10 @@ class HomePage : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        val tvLoggedInUser = findViewById<TextView>(R.id.welcomeText)
+
+        val userName = intent.getStringExtra("USER_NAME") ?: "Unknown User"
+        tvLoggedInUser.text = "Welcome,\n$userName!"
 
         val friendsButton: ImageButton = findViewById(R.id.main_friends_button)
         friendsButton.setOnClickListener {
