@@ -40,10 +40,12 @@ interface ApiHelper {
         method: String = "GET",
         jsonBody: JSONObject? = null,
         headers: Map<String, String> = emptyMap(),
+        isFullUrl: Boolean = false,
         onSuccess: (JSONObject) -> Unit,
-        onError: ((Int?, String?) -> Unit)? = null // Optional, defaults to `defaultOnError`
+        onError: ((Int?, String?) -> Unit)? = null,
     ) {
-        val url = getBaseUrl(context) + endpoint
+
+        val url = if (isFullUrl) endpoint else getBaseUrl(context) + endpoint
 
         val requestBody = jsonBody?.let {
             it.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
