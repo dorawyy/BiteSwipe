@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import java.security.MessageDigest
 import java.util.UUID
 
-class LoginPage : AppCompatActivity() {
+class LoginPage : AppCompatActivity(), ApiHelper {
 
     companion object {
         private const val TAG = "LoginPage"
@@ -66,6 +66,20 @@ class LoginPage : AppCompatActivity() {
                     handleFailure(e)
                 }
             }
+        }
+        val button = findViewById<Button>(R.id.button)
+        button.setOnClickListener {
+//            TODO: Handle Login Correctly, sync with backend
+            val endpoint = "/users/67c400e5ee72006b2515468e"
+            apiRequest(
+                context = this,
+                endpoint = endpoint,
+                method = "GET",
+                onSuccess = { response ->
+                    val title = response.optString("email", "No Email Found")
+                    Toast.makeText(this, "Email: $title", Toast.LENGTH_SHORT).show()
+                }
+            )
         }
     }
 
