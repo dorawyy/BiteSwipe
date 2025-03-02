@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -12,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.biteswipe.R.*
 import com.example.biteswipe.jsonFormats.sessionDetails
+import org.json.JSONObject
 
 class JoinGroupPage : AppCompatActivity(), ApiHelper {
     private lateinit var sessionId: String
@@ -33,14 +35,19 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
 
         val joinButton = findViewById<Button>(id.join_button)
         joinButton.setOnClickListener {
-            // TODO: API Call to Join Group
-            val endpoint = "/sessions/$sessionId/participants"
+            val sessionToJoin = findViewById<EditText>(id.group_id_input).text.toString()
+            val endpoint = "/sessions/$sessionToJoin/participants"
+            val body = JSONObject().apply {
+                    put("userId", userId)
+            }
             apiRequest(
                 context = this,
                 endpoint = endpoint,
                 method = "POST",
+                jsonBody = body,
                 onSuccess = { response ->
                     session = parseSessionData(response)
+                    sessionId = session._id
                     val intent = Intent(this, ViewGroupPage::class.java)
                     intent.putExtra("sessionId", sessionId)
                     intent.putExtra("userId", userId)
