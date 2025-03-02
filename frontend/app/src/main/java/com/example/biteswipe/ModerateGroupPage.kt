@@ -55,7 +55,7 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
                 Log.d(TAG, "Session Details: $session")
             }
         )
-        if(session.participants.isNotEmpty()){
+        if(::session.isInitialized){
             users.clear()
             for (participant in session.participants) {
                 val userName = participant.userId.displayName // Access the displayName of the user
