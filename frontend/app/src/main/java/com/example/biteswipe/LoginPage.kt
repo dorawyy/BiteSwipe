@@ -26,7 +26,7 @@ class LoginPage : AppCompatActivity() {
     companion object {
         private const val TAG = "LoginPage"
         const val WEB_CLIENT_ID: String =
-            "DISCORD"
+            "11247540626-jbs4la17144fd171r5imml1kikg6c5t5.apps.googleusercontent.com"
     }
 
 
@@ -36,7 +36,6 @@ class LoginPage : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_page)
-        Log.d(TAG, "Web client ID: ${BuildConfig.BUILD_TYPE}")
         val signInButton = findViewById<Button>(R.id.sign_in_button)
 
         signInButton.setOnClickListener {
