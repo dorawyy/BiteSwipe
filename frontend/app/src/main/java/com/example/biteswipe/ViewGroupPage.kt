@@ -46,7 +46,7 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
         }
 
 //        TODO: API Call to fetch users from backend (PERSISTENT)
-//        TODO: Make this call repeat over intervals to get a clear list of users
+//        TODO: Make this call repeat over intervals to get a clear list of users (thread?)
         val endpoint = "/sessions/$sessionId"
         apiRequest(
             context = this,
@@ -84,9 +84,20 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
 
         val leaveGroupButton = findViewById<ImageButton>(R.id.leave_group_button)
         leaveGroupButton.setOnClickListener {
-            //        TODO: API Call to leave group
-
-            finish()
+            val epoint = "/sessions/$sessionId/participants/$userId"
+            apiRequest(
+                context = this,
+                endpoint = epoint,
+                method = "DELETE",
+                onSuccess = { response ->
+                    Log.d("ViewGroupPage", "Removing user $userId from Session $sessionId")
+                    finish()
+                },
+                onError = { code, message ->
+                    Log.d("ViewGroupPage", "Error removing User $userId from Session $sessionId: \n $message")
+                    Toast.makeText(this, "Could not remove user", Toast.LENGTH_SHORT).show()
+                }
+            )
         }
 
 

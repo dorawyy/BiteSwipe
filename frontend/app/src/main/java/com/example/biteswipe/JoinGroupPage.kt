@@ -11,6 +11,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.biteswipe.R.*
 
 class JoinGroupPage : AppCompatActivity() {
+    private lateinit var sessionId: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -27,8 +28,8 @@ class JoinGroupPage : AppCompatActivity() {
 //            TODO: On success, Open view group activity. Pass groupid into intent
             val intent = Intent(this, ViewGroupPage::class.java)
 //              SAMPLE WAY TO PASS GROUP INTO ACTIVITY
-//            intent.putExtra("groupId", "12345")
-            startActivity(Intent(this, ViewGroupPage::class.java))
+//            intent.putExtra("sessionId", sessionId)
+            startActivity(intent)
         }
 
         val backButton: ImageButton = findViewById(id.join_back_button)
