@@ -33,9 +33,9 @@ class MatchingPage : AppCompatActivity() {
 
 //        TODO: API Call to get Restaurants
         cards = mutableListOf(
-            RestaurantCard("John Doe", R.drawable.ic_settings),
-            RestaurantCard("Jane Doe", R.drawable.ic_settings),
-            RestaurantCard("Mike Tyson", R.drawable.ic_launcher_background)
+            RestaurantCard("John Doe", R.drawable.ic_settings, "123 Main St, City", "+1 234 567 890", 3, 4.5f),
+            RestaurantCard("Jane Doe", R.drawable.ic_settings, "456 Elm St, Town", "+1 987 654 321", 2, 3.8f),
+            RestaurantCard("Mike Tyson", R.drawable.ic_launcher_background, "789 Oak St, Village", "+1 555 123 456", 4, 1.1f)
         )
 
         recyclerView = findViewById(R.id.recycler_view)

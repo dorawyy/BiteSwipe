@@ -1,7 +1,9 @@
 package com.example.biteswipe
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -40,6 +42,11 @@ class ModerateGroupPage : AppCompatActivity() {
         recyclerView.adapter = adapter
         Log.d(TAG, "Set up users")
 //        TODO: Start Matching Button
+        val startMatchingButton = findViewById<Button>(R.id.start_matching_button)
+        startMatchingButton.setOnClickListener {
+            val intent = Intent(this, MatchingPage::class.java)
+            startActivity(intent)
+        }
 //        TODO: Delete Group Button
     }
 
