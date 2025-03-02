@@ -64,14 +64,14 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                 val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
 
                 // Add the UserCard to the list
-                users.add(UserCard(userName, profilePicResId))
+                users.add(UserCard(userName, profilePicResId, participant.userId._id) )
             }
         }
         else {
             users = mutableListOf(
-                UserCard("John Doe", R.drawable.ic_settings),
-                UserCard("Jane Doe", R.drawable.ic_settings),
-                UserCard("Mike Tyson", R.drawable.ic_launcher_background)
+                UserCard("John Doe", R.drawable.ic_settings, "1234567890"),
+                UserCard("Jane Doe", R.drawable.ic_settings, "0987654321"),
+                UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111")
             )
         }
 
