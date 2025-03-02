@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.security.MessageDigest
 import java.util.UUID
 
@@ -26,7 +27,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
     companion object {
         private const val TAG = "LoginPage"
         const val WEB_CLIENT_ID: String =
-            "11247540626-jbs4la17144fd171r5imml1kikg6c5t5.apps.googleusercontent.com"
+            "DISCORD"
     }
 
 
@@ -67,20 +68,6 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                 }
             }
         }
-        val button = findViewById<Button>(R.id.button)
-        button.setOnClickListener {
-//            TODO: Handle Login Correctly, sync with backend
-            val endpoint = "/users/67c400e5ee72006b2515468e"
-            apiRequest(
-                context = this,
-                endpoint = endpoint,
-                method = "GET",
-                onSuccess = { response ->
-                    val title = response.optString("email", "No Email Found")
-                    Toast.makeText(this, "Email: $title", Toast.LENGTH_SHORT).show()
-                }
-            )
-        }
     }
 
     private fun handleSignIn(result: GetCredentialResponse) {
@@ -95,13 +82,58 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                             .createFrom(credential.data)
 
                         // Log the ID Token for verification
+                        val email = googleIdTokenCredential.id
                         Log.d(TAG, "ID Token: ${googleIdTokenCredential.idToken}")
-
-                        val intent = Intent(this, HomePage::class.java).apply {
-                            putExtra("USER_NAME", googleIdTokenCredential.displayName.toString())
+                        Log.d(TAG, "User Email: ${email}")
+                        val endpoint = "/users/"
+                        val body = JSONObject().apply {
+                            put("email", email)
+                            put("displayName", googleIdTokenCredential.displayName)
                         }
-                        startActivity(intent)
-                        Toast.makeText(this, "Welcome, ${googleIdTokenCredential.displayName}", Toast.LENGTH_SHORT).show()
+                        apiRequest(
+                            context = this,
+                            endpoint = endpoint,
+                            method = "POST",
+                            jsonBody = body,
+                            onSuccess = { response ->
+                                Log.d(TAG, "Response: $response")
+                                val intent = Intent(this, HomePage::class.java).apply {
+                                    putExtra("displayName", googleIdTokenCredential.displayName)
+                                    putExtra("userId", response.getString("_id"))
+                                }
+                                Log.d(TAG, "New User: ${googleIdTokenCredential.displayName}")
+                                Toast.makeText(this, "Welcome, ${googleIdTokenCredential.displayName}", Toast.LENGTH_SHORT).show()
+                                startActivity(intent)
+                            },
+                            onError = { code, message ->
+
+                                val endpoint2 = "/users/emails/$email"
+                                apiRequest(
+                                    context = this,
+                                    endpoint = endpoint2,
+                                    method = "GET",
+                                    onSuccess = { response ->
+                                        Log.d(TAG, "Response: $response")
+                                        val intent = Intent(this, HomePage::class.java).apply {
+                                            putExtra(
+                                                "displayName",
+                                                response.getString("displayName")
+                                            )
+                                            putExtra("userId", response.getString("_id"))
+                                        }
+                                        Log.d(TAG, "Returning User: ${googleIdTokenCredential.displayName}")
+                                        Toast.makeText(this, "Welcome Back, ${googleIdTokenCredential.displayName}", Toast.LENGTH_SHORT).show()
+                                        startActivity(intent)
+                                    },
+                                    onError = { code, message ->
+                                        Log.d(TAG, "Error: ${message}")
+                                        Toast.makeText(this, "Error: Invalid User", Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+
+                            }
+                        )
+
                     } catch (e: GoogleIdTokenParsingException) {
                         Log.e(TAG, "Received an invalid Google ID token response", e)
                     }
@@ -117,7 +149,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
 
     private fun handleFailure(e: GetCredentialException) {
         Log.e(TAG, "Failed to return credential", e)
-        Toast.makeText(this, "Failed to return credential", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Login Failure, Try Again", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroy() {

@@ -22,7 +22,7 @@ class HomePage : AppCompatActivity() {
         }
         val tvLoggedInUser = findViewById<TextView>(R.id.welcomeText)
 
-        val userName = intent.getStringExtra("USER_NAME") ?: "Unknown User"
+        val userName = intent.getStringExtra("displayName") ?: "Unknown User"
         tvLoggedInUser.text = "Welcome,\n$userName!"
 
         val friendsButton: ImageButton = findViewById(R.id.main_friends_button)
