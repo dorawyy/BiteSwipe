@@ -81,9 +81,9 @@ class FriendsPage : AppCompatActivity() {
 //            TODO: API Call to get friend requests
             // Dummy list of friend requests
             val users = mutableListOf(
-                UserCard("John Doe", R.drawable.ic_settings),
-                UserCard("Jane Doe", R.drawable.ic_settings),
-                UserCard("Mike Tyson", R.drawable.ic_launcher_background)
+                UserCard("John Doe", R.drawable.ic_settings, "1234567890"),
+                UserCard("Jane Doe", R.drawable.ic_settings, "0987654321"),
+                UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111")
             )
 
             val friendRequestActions = object : FriendRequestActions {
@@ -112,9 +112,9 @@ class FriendsPage : AppCompatActivity() {
 
 //        TODO: API Call to get friends
         friends = mutableListOf(
-            UserCard("person1", R.drawable.ic_settings),
-            UserCard("person2", R.drawable.ic_settings),
-            UserCard("person3", R.drawable.ic_launcher_background)
+            UserCard("person1", R.drawable.ic_settings, "1234567890"),
+            UserCard("person2", R.drawable.ic_settings, "testing"),
+            UserCard("person3", R.drawable.ic_launcher_background, "1111111111")
         )
         recyclerView2 = findViewById(R.id.friends_recycler_view)
         recyclerView2.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
