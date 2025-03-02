@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.animation.graphics.android)
     implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
     implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.code.gson:gson:2.8.7")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

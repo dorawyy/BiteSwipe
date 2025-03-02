@@ -4,6 +4,15 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.biteswipe.jsonFormats.Creator
+import com.example.biteswipe.jsonFormats.Location
+import com.example.biteswipe.jsonFormats.Participant
+import com.example.biteswipe.jsonFormats.Preference
+import com.example.biteswipe.jsonFormats.Restaurant
+import com.example.biteswipe.jsonFormats.Settings
+import com.example.biteswipe.jsonFormats.sessionDetails
+import com.example.biteswipe.jsonFormats.UserId
+
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -101,5 +110,66 @@ interface ApiHelper {
                 }
             }
         })
+    }
+
+    fun parseSessionData(json: JSONObject): sessionDetails {
+        val creatorJson = json.getJSONObject("creator")
+        val creator = Creator(
+            _id = creatorJson.getString("_id"),
+            displayName = creatorJson.getString("displayName")
+        )
+
+        val settingsJson = json.getJSONObject("settings")
+        val locationJson = settingsJson.getJSONObject("location")
+        val location = Location(
+            latitude = locationJson.getDouble("latitude"),
+            longitude = locationJson.getDouble("longitude"),
+            radius = locationJson.getDouble("radius")
+        )
+
+        val participantsJson = json.getJSONArray("participants")
+        val participants = mutableListOf<Participant>()
+        for (i in 0 until participantsJson.length()) {
+            val participantJson = participantsJson.getJSONObject(i)
+            val userJson = participantJson.getJSONObject("userId")
+            val user = UserId(
+                _id = userJson.getString("_id"),
+                displayName = userJson.getString("displayName")
+            )
+            val preferencesJson = participantJson.getJSONArray("preferences")
+            val preferences = mutableListOf<Preference>()
+            for (j in 0 until preferencesJson.length()) {
+                val prefJson = preferencesJson.getJSONObject(j)
+                preferences.add(Preference(
+                    restaurantId = prefJson.getString("restaurantId"),
+                    liked = prefJson.getBoolean("liked"),
+                    timestamp = prefJson.getString("timestamp")
+                ))
+            }
+            participants.add(Participant(user, preferences))
+        }
+
+        val restaurantsJson = json.getJSONArray("restaurants")
+        val restaurants = mutableListOf<Restaurant>()
+        for (i in 0 until restaurantsJson.length()) {
+            val restaurantJson = restaurantsJson.getJSONObject(i)
+            restaurants.add(Restaurant(
+                restaurantId = restaurantJson.getString("restaurantId"),
+                score = restaurantJson.getInt("score"),
+                totalVotes = restaurantJson.getInt("totalVotes"),
+                positiveVotes = restaurantJson.getInt("positiveVotes")
+            ))
+        }
+
+        return sessionDetails(
+            _id = json.getString("_id"),
+            creator = creator,
+            settings = Settings(location),
+            participants = participants,
+            restaurants = restaurants,
+            status = json.getString("status"),
+            createdAt = json.getString("createdAt"),
+            expiresAt = json.getString("expiresAt")
+        )
     }
 }
