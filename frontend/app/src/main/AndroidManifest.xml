@@ -42,10 +42,8 @@
             android:name=".JoinGroupPage"
             android:exported="false" />
         <activity
-            android:name=".HomePage"
-            android:exported="true"
-            android:label="@string/title_activity_home_page"
-            android:theme="@style/Theme.BiteSwipe">
+            android:name=".LoginPage"
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -56,8 +54,11 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginPage"
-            android:exported="true" />
+            android:name=".HomePage"
+            android:exported="true"
+            android:label="@string/title_activity_home_page"
+            android:theme="@style/Theme.BiteSwipe" />
+
     </application>
 
 </manifest>
