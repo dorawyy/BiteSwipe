@@ -1,5 +1,5 @@
 import { Restaurant } from '../models/Restaurant';
-import { FilterQuery } from 'mongoose';
+import { Types } from 'mongoose';
 import { GooglePlacesService } from './externalAPIs/googleMaps';
 
 export class RestaurantService {
@@ -43,6 +43,12 @@ export class RestaurantService {
                             primary: primaryImage,
                             gallery: galleryImages
                         },
+                        priceLevel: details.price_level || 0,
+                        rating: details.rating || 0,
+                        openingHours: details.opening_hours ? {
+                            openNow: details.opening_hours.open_now,
+                            weekdayText: details.opening_hours.weekday_text
+                        } : undefined,
                         sourceData: {
                             googlePlaceId: place.place_id,
                             lastUpdated: new Date()
@@ -63,4 +69,15 @@ export class RestaurantService {
             throw new Error('Failed to create restaurants');
         }
     }
+
+
+    async getRestaurants(restaurantIds: Types.ObjectId[]) {
+        try {
+            return await Restaurant.find({ _id: { $in: restaurantIds }});
+        } catch (error) {
+            console.error(error);
+            throw new Error('Failed to get restaurants');
+        }
+    }
+
 }

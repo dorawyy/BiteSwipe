@@ -28,6 +28,12 @@ export interface IRestaurant {
         primary: string;
         gallery: string[];
     };
+    priceLevel: number,
+    rating: number,
+    openingHours?: {
+        openNow?: boolean,
+        weekdayText: string[]
+    },
     sourceData: {
         googlePlaceId?: string;
         yelpId?: string;
@@ -63,13 +69,17 @@ const RestaurantSchema = new mongoose.Schema<IRestaurant>({
         primary: { type: String },
         gallery: [{ type: String}]
     },
+    priceLevel: { type: Number },
+    rating: { type: Number },
+    openingHours: {
+        openNow: { type: Boolean },
+        weekdayText: [{ type: String }]
+    },
     sourceData: {
         googlePlaceId: { type: String },
         yelpId: { type: String },
         lastUpdated: { type: Date, default: Date.now }
     },
 });
-
-//RestaurantSchema.index({ 'location.coordinates': '2dsphere' });
 
 export const Restaurant = mongoose.model<IRestaurant>('Restaurant', RestaurantSchema);

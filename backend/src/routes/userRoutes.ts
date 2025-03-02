@@ -40,6 +40,14 @@ export const userRoutes = (userService: UserService, sessionManager: SessionMana
             validation: [
                 param('userId').notEmpty().withMessage('User ID is required')
             ]
+        },
+        {
+            method: 'get',
+            route: '/users/emails/:email',
+            action: userController.getUserByEmail,
+            validation: [
+                param('email').isEmail()
+            ]
         }
     ];
 };

@@ -61,7 +61,7 @@ const SessionSchema = new mongoose.Schema<ISession>({
     }],
     status: {
         type: String,
-        enum: ['CREATED', 'ACTIVE', 'MATCHING', 'COMPLETED'],
+        enum: ['CREATED', 'MATCHING', 'COMPLETED'],
         default: 'CREATED'
     },
     settings: {

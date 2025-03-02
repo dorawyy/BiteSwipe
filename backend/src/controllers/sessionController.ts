@@ -17,8 +17,14 @@ export class SessionController {
         this.createSession = this.createSession.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
         this.joinSession = this.joinSession.bind(this);
+
+        this.getRestaurantsInSession = this.getRestaurantsInSession.bind(this);
+        this.sessionSwiped = this.sessionSwiped.bind(this);
+        this.startSession = this.startSession.bind(this);
+
         this.rejectInvitation = this.rejectInvitation.bind(this);
         this.leaveSession = this.leaveSession.bind(this);
+
     }
 
     async getSession(req: Request, res: Response) {
@@ -183,6 +189,49 @@ export class SessionController {
                 }
             }
             res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
+    async getRestaurantsInSession(req, res: Response) {
+        try {
+            const { sessionId } = req.params;
+            const restaurants = await this.sessionManager.getRestaurantsInSession(new Types.ObjectId(sessionId), req.body.userId);
+
+            res.json({ success: true, restaurants });
+        } catch (error) {
+            console.log(error);
+
+            res.status(500).json({ error: error });
+        }
+    }
+
+    async sessionSwiped(req, res: Response) {
+        try {
+            const { sessionId } = req.params;
+            const { userId, restaurantId, swipe} = req.body;
+
+            const session = await this.sessionManager.sessionSwiped(new Types.ObjectId(sessionId), userId, restaurantId, swipe);
+
+            res.json({ success: true, session: session._id });
+        } catch (error) {
+            console.log(error);
+
+            res.status(500).json({ error: error }); 
+        }
+    }
+
+    async startSession(req, res: Response) {
+        try {
+            const { sessionId } = req.params;
+            const { userId } = req.body;
+
+            const session = await this.sessionManager.startSession(new Types.ObjectId(sessionId), userId);
+
+            res.json({ success: true, session: session._id });
+        } catch (error) {
+            console.log(error);
+
+            res.status(500).json({ error: error });
         }
     }
 }
