@@ -32,7 +32,7 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
         }
 
         userId = intent.getStringExtra("userId") ?: ""
-
+        Log.d(TAG, "User ID: $userId")
         val joinButton = findViewById<Button>(id.join_button)
         joinButton.setOnClickListener {
             val sessionToJoin = findViewById<EditText>(id.group_id_input).text.toString()

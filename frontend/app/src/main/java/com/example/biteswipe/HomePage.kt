@@ -11,6 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 class HomePage : AppCompatActivity() {
+    private lateinit var userId: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -23,8 +24,9 @@ class HomePage : AppCompatActivity() {
         val tvLoggedInUser = findViewById<TextView>(R.id.welcomeText)
 
         val userName = intent.getStringExtra("displayName") ?: "Unknown User"
-        tvLoggedInUser.text = "Welcome,\n$userName!"
+        userId = intent.getStringExtra("userId") ?: ""
 
+        tvLoggedInUser.text = "Welcome,\n$userName!"
         val friendsButton: ImageButton = findViewById(R.id.main_friends_button)
         friendsButton.setOnClickListener {
             val intent = Intent(this, FriendsPage::class.java)
@@ -40,6 +42,7 @@ class HomePage : AppCompatActivity() {
         val joinButton = findViewById<Button>(R.id.main_join_group_button)
         joinButton.setOnClickListener {
             val intent = Intent(this, JoinGroupPage::class.java)
+            intent.putExtra("userId", userId)
             startActivity(intent)
         }
 

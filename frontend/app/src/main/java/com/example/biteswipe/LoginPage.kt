@@ -27,7 +27,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
     companion object {
         private const val TAG = "LoginPage"
         const val WEB_CLIENT_ID: String =
-            "DISCORD"
+            "11247540626-jbs4la17144fd171r5imml1kikg6c5t5.apps.googleusercontent.com"
     }
 
 
