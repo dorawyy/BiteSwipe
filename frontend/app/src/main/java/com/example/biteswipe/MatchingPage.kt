@@ -4,9 +4,12 @@ import com.example.biteswipe.cards.RestaurantCard
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -14,13 +17,62 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.adapter.SwipeAdapter
+import com.example.biteswipe.cards.UserCard
+import com.example.biteswipe.jsonFormats.RestaurantData
+import com.example.biteswipe.jsonFormats.sessionDetails
+import org.json.JSONObject
 
-class MatchingPage : AppCompatActivity() {
+class MatchingPage : AppCompatActivity(), ApiHelper {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: SwipeAdapter
     private lateinit var cards: MutableList<RestaurantCard>
+    private lateinit var RestaurantList: MutableList<RestaurantData>
     private var currentCardIndex = 0
+    private lateinit var sessionId: String
+    private lateinit var userId: String
+    private val handler = Handler(Looper.getMainLooper())
     private var TAG = "MatchingPage"
+
+    private val updateRestaurant = object: Runnable {
+        override fun run() {
+            val endpoint = "/sessions/$sessionId/restaurants"
+            val body = JSONObject().apply {
+                put("userId", userId)
+            }
+            Log.d(TAG, "Body: $body, Endpoint: $endpoint, sessionId: $sessionId, userId: $userId")
+            apiRequest(
+                context = this@MatchingPage,
+                endpoint = endpoint,
+                method = "GET",
+                jsonBody = body,
+                onSuccess = { response ->
+                    RestaurantList  = parseRestaurants(response.toString())
+                    cards.clear()
+                    for (restaurant in RestaurantList) {
+                        Log.d(TAG, "Restaurant: $restaurant")
+
+                        val restaurantName = restaurant.name
+                        val imageResId = 0
+                        val address = restaurant.address
+                        val contact = restaurant.contactNumber
+                        val price = restaurant.price
+                        val rating = restaurant.rating
+
+                        // Add the UserCard to the list
+                        cards.add(RestaurantCard(restaurantName, imageResId, address, contact, price, rating),)
+                    }
+                    adapter.notifyDataSetChanged()
+                },
+                onError = { code, message ->
+                    Log.d(TAG, "Error: $code, $message")
+                    Toast.makeText(this@MatchingPage, "Error: $code, $message", Toast.LENGTH_SHORT).show()
+                }
+            )
+            handler.postDelayed(this, 5000)
+        }
+
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -30,13 +82,14 @@ class MatchingPage : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
+        sessionId = intent.getStringExtra("sessionId") ?: ""
+        userId = intent.getStringExtra("userId") ?: ""
+        Log.d(TAG, "Session ID: $sessionId, User ID: $userId")
 //        TODO: API Call to get Restaurants
-        cards = mutableListOf(
-            RestaurantCard("John Doe", R.drawable.ic_settings, "123 Main St, City", "+1 234 567 890", 3, 4.5f),
-            RestaurantCard("Jane Doe", R.drawable.ic_settings, "456 Elm St, Town", "+1 987 654 321", 2, 3.8f),
-            RestaurantCard("Mike Tyson", R.drawable.ic_launcher_background, "789 Oak St, Village", "+1 555 123 456", 4, 1.1f)
-        )
+        cards = mutableListOf()
+        RestaurantList = mutableListOf()
+
+        updateRestaurant.run()
 
         recyclerView = findViewById(R.id.recycler_view)
         recyclerView.layoutManager =

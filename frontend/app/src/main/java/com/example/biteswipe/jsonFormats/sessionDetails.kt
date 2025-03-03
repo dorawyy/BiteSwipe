@@ -48,3 +48,12 @@ data class Restaurant(
     val totalVotes: Int,
     val positiveVotes: Int
 )
+
+data class RestaurantData(
+    val name: String,
+    val address: String,
+    val contactNumber: String,
+    val price: Int,
+    val rating: Float,
+    val picture: String
+)

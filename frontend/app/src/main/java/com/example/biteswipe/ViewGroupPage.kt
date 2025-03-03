@@ -45,6 +45,7 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                         val intent = Intent(this@ViewGroupPage, MatchingPage::class.java)
                         intent.putExtra("userId", userId)
                         intent.putExtra("sessionId", sessionId)
+                        Log.d(TAG, "Starting Matching with userId: $userId and sessionId: $sessionId")
                         startActivity(intent)
                         finish()
                     }

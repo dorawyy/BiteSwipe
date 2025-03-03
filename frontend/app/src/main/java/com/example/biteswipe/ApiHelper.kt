@@ -4,11 +4,13 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.biteswipe.cards.RestaurantCard
 import com.example.biteswipe.jsonFormats.Creator
 import com.example.biteswipe.jsonFormats.Location
 import com.example.biteswipe.jsonFormats.Participant
 import com.example.biteswipe.jsonFormats.Preference
 import com.example.biteswipe.jsonFormats.Restaurant
+import com.example.biteswipe.jsonFormats.RestaurantData
 import com.example.biteswipe.jsonFormats.Settings
 import com.example.biteswipe.jsonFormats.sessionDetails
 import com.example.biteswipe.jsonFormats.UserId
@@ -176,4 +178,34 @@ interface ApiHelper {
             expiresAt = json.getString("expiresAt")
         )
     }
+
+    fun parseRestaurants(jsonString: String): MutableList<RestaurantData> {
+        val restaurantList = mutableListOf<RestaurantData>()
+
+        val jsonObject = JSONObject(jsonString)
+        val restaurantsArray = jsonObject.optJSONArray("restaurants") ?: return restaurantList
+
+        for (i in 0 until restaurantsArray.length()) {
+            val restaurantJson = restaurantsArray.getJSONObject(i)
+
+            val name = restaurantJson.optString("name", "Unknown")
+            val address = restaurantJson.optJSONObject("location")?.optString("address", "Unknown") ?: "Unknown"
+            val contactNumber = restaurantJson.optJSONObject("contact")?.optString("phone", "No Contact") ?: "No Contact"
+            val price = restaurantJson.optInt("priceLevel", 0) // Defaulting to 0 if missing
+            val rating = restaurantJson.opt("rating")?.let { (it as Number).toFloat() } ?: 0.0f // Ensure Float type
+
+            // Get the first image from the gallery if available
+            val imageGallery = restaurantJson.optJSONObject("images")?.optJSONArray("gallery")
+            val picture = if (imageGallery != null && imageGallery.length() > 0) {
+                imageGallery.optString(0)
+            } else {
+                "0"
+            }
+
+            restaurantList.add(RestaurantData(name, address, contactNumber, price, rating, picture))
+        }
+
+        return restaurantList
+    }
+
 }
