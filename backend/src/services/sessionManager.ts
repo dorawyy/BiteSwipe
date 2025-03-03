@@ -391,6 +391,11 @@ export class SessionManager {
             throw new Error('Session does not exists or user is not in session or user has already swiped');
         }
 
+        if (session.doneSwiping.length === 0) {
+            session.status = 'COMPLETED';
+            await session.save();
+        }
+
         return session;
     }
 
