@@ -46,6 +46,8 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
                 method = "POST",
                 jsonBody = body,
                 onSuccess = { response ->
+                    Log.d(TAG, "Response: $response")
+                    Log.d(TAG, "Creator: ${response.getString("creator")}")
                     session = parseSessionData(response)
                     sessionId = session._id
                     val intent = Intent(this, ViewGroupPage::class.java)

@@ -113,12 +113,16 @@ interface ApiHelper {
     }
 
     fun parseSessionData(json: JSONObject): sessionDetails {
-        val creatorJson = json.getJSONObject("creator")
+        Log.d("JoinGroupPage", "Parsing session data: $json")
+
+        // Parse the creator, which is just a string ID (not a full object)
+        val creatorId = json.getString("creator")
         val creator = Creator(
-            _id = creatorJson.getString("_id"),
-            displayName = creatorJson.getString("displayName")
+            _id = creatorId,          // Assuming the creator's ID is the string itself
+            displayName = creatorId   // You can replace this with the actual display name if it's available elsewhere
         )
 
+        // Parse the settings and location objects
         val settingsJson = json.getJSONObject("settings")
         val locationJson = settingsJson.getJSONObject("location")
         val location = Location(
@@ -127,15 +131,12 @@ interface ApiHelper {
             radius = locationJson.getDouble("radius")
         )
 
+        // Parse the participants list
         val participantsJson = json.getJSONArray("participants")
         val participants = mutableListOf<Participant>()
         for (i in 0 until participantsJson.length()) {
             val participantJson = participantsJson.getJSONObject(i)
-            val userJson = participantJson.getJSONObject("userId")
-            val user = UserId(
-                _id = userJson.getString("_id"),
-                displayName = userJson.getString("displayName")
-            )
+            val userIdJson = participantJson.getString("userId")  // It's just a string ID here
             val preferencesJson = participantJson.getJSONArray("preferences")
             val preferences = mutableListOf<Preference>()
             for (j in 0 until preferencesJson.length()) {
@@ -146,9 +147,11 @@ interface ApiHelper {
                     timestamp = prefJson.getString("timestamp")
                 ))
             }
-            participants.add(Participant(user, preferences))
+            // Add the participant to the list
+            participants.add(Participant(UserId(userIdJson, userIdJson), preferences))  // Assuming no display name here
         }
 
+        // Parse the restaurants list
         val restaurantsJson = json.getJSONArray("restaurants")
         val restaurants = mutableListOf<Restaurant>()
         for (i in 0 until restaurantsJson.length()) {
@@ -161,9 +164,10 @@ interface ApiHelper {
             ))
         }
 
+        // Create the sessionDetails object
         return sessionDetails(
             _id = json.getString("_id"),
-            creator = creator,
+            creator = creator,        // Pass the creator object (ID and name)
             settings = Settings(location),
             participants = participants,
             restaurants = restaurants,

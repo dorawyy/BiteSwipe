@@ -22,6 +22,7 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
     private lateinit var sessionId: String
     private lateinit var userId: String
     private lateinit var session: sessionDetails
+    private var sessionInitialized = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +33,6 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
         sessionId = intent.getStringExtra("sessionId") ?: ""
         if(sessionId == ""){
             Toast.makeText(this, "Error: SessionID Invalid", Toast.LENGTH_SHORT).show()
@@ -54,27 +54,36 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
             method = "GET",
             onSuccess = { response ->
                 session  = parseSessionData(response)
+                sessionInitialized = true
                 Log.d("ViewGroupPage", "Session Details: $session")
             }
         )
-        if(!session.participants.isEmpty()){
-            users.clear()
-            for (participant in session.participants) {
-                val userName = participant.userId.displayName // Access the displayName of the user
-                val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
+        if(sessionInitialized) {
+            if (session.participants.isNotEmpty()) {
+                users.clear()
+                for (participant in session.participants) {
+                    val userName =
+                        participant.userId.displayName // Access the displayName of the user
+                    val profilePicResId =
+                        R.drawable.ic_settings // Assuming you have a default image here
 
-                // Add the UserCard to the list
-                users.add(UserCard(userName, profilePicResId, participant.userId._id) )
+                    // Add the UserCard to the list
+                    users.add(UserCard(userName, profilePicResId, participant.userId._id))
+                }
+            } else {
+                users = mutableListOf(
+                    UserCard("John Doe", R.drawable.ic_settings, "1234567890"),
+                    UserCard("Jane Doe", R.drawable.ic_settings, "0987654321"),
+                    UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111")
+                )
             }
-        }
-        else {
+        } else {
             users = mutableListOf(
                 UserCard("John Doe", R.drawable.ic_settings, "1234567890"),
                 UserCard("Jane Doe", R.drawable.ic_settings, "0987654321"),
                 UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111")
             )
         }
-
 //        TODO: Implement Dynamic Render
         recyclerView = findViewById(R.id.view_users_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -91,6 +100,7 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                 method = "DELETE",
                 onSuccess = { response ->
                     Log.d("ViewGroupPage", "Removing user $userId from Session $sessionId")
+                    Toast.makeText(this, "Left Group", Toast.LENGTH_SHORT).show()
                     finish()
                 },
                 onError = { code, message ->
