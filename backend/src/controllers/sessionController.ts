@@ -26,6 +26,7 @@ export class SessionController {
         this.leaveSession = this.leaveSession.bind(this);
 
         this.getResultForSession = this.getResultForSession.bind(this);
+        this.userDoneSwiping = this.userDoneSwiping.bind(this);
 
     }
 
