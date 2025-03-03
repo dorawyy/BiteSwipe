@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { StringExpressionOperatorReturningArray, Types } from 'mongoose';
 import { Session, ISession, SessionStatus } from '../models/session';
 import { RestaurantService } from './restaurantService';
 import mongoose, { ObjectId } from 'mongoose';
@@ -39,6 +39,8 @@ export class SessionManager {
 
             const restaurants = await this.restaurantService.addRestaurants(settings, '');
 
+            const joinCode = await this.generateUniqueJoinCode();
+
             const session = new Session({
                 creator: userId,
                 participants: [{
@@ -55,9 +57,12 @@ export class SessionManager {
                     totalVotes: 0,
                     positiveVotes: 0
                 })),
+                joinCode: joinCode,
                 status: 'CREATED' as SessionStatus,
                 expiresAt: expiresAt
             });
+
+            session.doneSwiping = [userId];
 
             await session.save();
             return session;
@@ -65,6 +70,25 @@ export class SessionManager {
             console.error('Session creation error:', error);
             throw error;
         }
+    }
+
+    private async generateUniqueJoinCode(): Promise<string> {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let isUnique = false;
+        let joinCode = '';
+
+        while (!isUnique) {
+            joinCode = '';
+            for (let i = 0; i < 5; i++) {
+                joinCode += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+
+            const existingSession = await Session.findOne({ joinCode: joinCode, status: { $ne: 'COMPLETED'} });
+
+            isUnique = !existingSession;
+        }
+
+        return joinCode
     }
 
     
@@ -157,11 +181,11 @@ export class SessionManager {
         return updatedSession;
     }
 
-    async joinSession(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
+    async joinSession(joinCode: String, userId: Types.ObjectId): Promise<ISession> {
         // Use findOneAndUpdate for atomic operation
         const updatedSession = await Session.findOneAndUpdate(
             {
-                _id: sessionId,
+                joinCode: joinCode,
                 status: { $ne: 'COMPLETED' },
                 pendingInvitations: userId,
                 'participants.userId': { $ne: userId }
@@ -180,7 +204,7 @@ export class SessionManager {
     
         if (!updatedSession) {
             // Determine the specific reason for failure
-            const session = await Session.findById(sessionId);
+            const session = await Session.findOne({ joinCode: joinCode });
             
             if (!session) {
                 throw new Error('Session not found');
@@ -424,7 +448,7 @@ export class SessionManager {
         };
 
         await session.save();
-        
+
         return this.restaurantService.getRestaurant(new mongoose.Types.ObjectId(winnerRestaurantId));
     }
 

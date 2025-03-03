@@ -12,6 +12,7 @@ interface IParticipant {
 }
 
 interface ISession extends Document {
+    joinCode: string;
     creator: Types.ObjectId;
     participants: IParticipant[];
     pendingInvitations: Types.ObjectId[];
@@ -39,6 +40,7 @@ interface ISession extends Document {
 }
 
 const SessionSchema = new mongoose.Schema<ISession>({
+    joinCode: { type: String, unique: true, index: true },
     creator: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

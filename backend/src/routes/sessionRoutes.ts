@@ -55,10 +55,10 @@ export const sessionRoutes = (sessionManager: SessionManager) => {
         },
         {
             method: 'post',
-            route: '/sessions/:sessionId/participants',
+            route: '/sessions/:joinCode/participants',
             action: sessionController.joinSession,
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required'),
+                param('joinCode').notEmpty().withMessage('Session ID is required'),
                 body('userId').notEmpty().withMessage('User ID is required')
             ]
         },
