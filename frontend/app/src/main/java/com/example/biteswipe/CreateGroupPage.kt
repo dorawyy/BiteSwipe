@@ -14,6 +14,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -23,13 +24,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.adapter.CuisineAdapter
 import com.example.biteswipe.cards.CuisineCard
+import org.json.JSONObject
 
-class CreateGroupPage : AppCompatActivity(), LocationListener {
+class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
     private val TAG = "CreateGroupPage"
     private lateinit var recyclerView: RecyclerView
     private lateinit var cuisineAdapter: CuisineAdapter
     private lateinit var locationManager: LocationManager
     private var userLocation: Location? = null
+    private var latitude  = 0.0
+    private var longitude = 0.0
+    private lateinit var userId: String
 
     private val cuisines = mutableListOf(
         CuisineCard("Italian", false),
@@ -59,15 +64,13 @@ class CreateGroupPage : AppCompatActivity(), LocationListener {
             insets
         }
 
+//        Load global variables
+        userId = intent.getStringExtra("userId") ?: ""
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-
-
-
-
+//        Set up Cuisines
         recyclerView = findViewById(R.id.cuisine_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
-
         cuisineAdapter = CuisineAdapter(this, cuisines) { cuisine ->
             cuisine.isSelected = !cuisine.isSelected
             if (cuisine.isSelected) {
@@ -76,37 +79,50 @@ class CreateGroupPage : AppCompatActivity(), LocationListener {
                 selectedCuisines.remove(cuisine)
             }
         }
-
         recyclerView.adapter = cuisineAdapter
 
+//        check permissions
         if (ActivityCompat.checkSelfPermission(
                 this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
-            Log.d(TAG, "Permission not granted")
+            startLocationUpdates()
+        } else {
             showSettingsDialog()
-            return
         }
 
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, this)
 
         val createGroupButton = findViewById<Button>(R.id.create_group_button)
         createGroupButton.setOnClickListener {
-
-//            TODO: API call to Create Group
-//            TODO: Send Group Creator to Backend
-//            TODO: Open ModerateGroupPage Activity
-            val selectedCuisineNames = selectedCuisines.joinToString { it.name }
+//
+//            TODO: Handle Cuisines Later
             val searchRadius = findViewById<EditText>(R.id.searchRadiusText).text.toString()
-            Log.d(TAG, "Selected cuisines: $selectedCuisineNames \n Search Radius: $searchRadius")
 
-            val intent = Intent(this, ModerateGroupPage::class.java)
-            startActivity(intent)
-
+            val endpoint = "/sessions/"
+            val body = JSONObject().apply {
+                put("userId", userId)
+                put("latitude", latitude)
+                put("longitude", longitude)
+                put("radius", searchRadius)
+            }
+            apiRequest(
+                context = this,
+                endpoint = endpoint,
+                method = "POST",
+                jsonBody = body,
+                onSuccess = { response ->
+                    val intent = Intent(this, ModerateGroupPage::class.java)
+                    intent.putExtra("sessionId", response.getString("_id"))
+                    intent.putExtra("userId", userId)
+                    startActivity(intent)
+                },
+                onError = { code, message ->
+                    Toast.makeText(this, "Could not make Group, try again", Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, "Error: $message")
+                }
+            )
         }
 
         val backButton: ImageButton = findViewById(R.id.create_back_button)
@@ -115,9 +131,24 @@ class CreateGroupPage : AppCompatActivity(), LocationListener {
         }
     }
 
+    private fun startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, this)
+        } else {
+            Toast.makeText(this, "Location permission is required.", Toast.LENGTH_SHORT).show()
+            showSettingsDialog()
+        }
+    }
+
     override fun onLocationChanged(location: Location) {
         userLocation = location
-        Log.d(TAG, "Location Changed: ${location.latitude}, ${location.longitude}")
+        latitude = location.latitude
+        longitude = location.longitude
+        Log.d(TAG, "Location Changed: Latitude: $latitude, Longitude: $longitude")
     }
 
     private fun showSettingsDialog() {
@@ -138,5 +169,9 @@ class CreateGroupPage : AppCompatActivity(), LocationListener {
 
     override fun onDestroy() {
         super.onDestroy()
+        // Stop location updates when the activity is destroyed to avoid unnecessary resource usage
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationManager.removeUpdates(this)
+        }
     }
 }

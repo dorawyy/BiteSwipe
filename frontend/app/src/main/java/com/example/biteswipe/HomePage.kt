@@ -49,6 +49,7 @@ class HomePage : AppCompatActivity() {
         val createButton = findViewById<Button>(R.id.main_create_group_button)
         createButton.setOnClickListener {
             val intent = Intent(this, CreateGroupPage::class.java)
+            intent.putExtra("userId", userId)
             startActivity(intent)
         }
 
