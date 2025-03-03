@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -32,6 +33,8 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
         }
 
         userId = intent.getStringExtra("userId") ?: ""
+        val userIdText = findViewById<TextView>(id.join_user_id_text)
+        userIdText.text = userId
         Log.d(TAG, "User ID: $userId")
         val joinButton = findViewById<Button>(id.join_button)
         joinButton.setOnClickListener {

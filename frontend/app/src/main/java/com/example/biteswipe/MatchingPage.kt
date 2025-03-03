@@ -84,6 +84,7 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
         }
         sessionId = intent.getStringExtra("sessionId") ?: ""
         userId = intent.getStringExtra("userId") ?: ""
+
         Log.d(TAG, "Session ID: $sessionId, User ID: $userId")
 //        TODO: API Call to get Restaurants
         cards = mutableListOf()

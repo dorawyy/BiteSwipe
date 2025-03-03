@@ -121,7 +121,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                                                 "displayName",
                                                 response.getString("displayName")
                                             )
-                                            putExtra("userId", response.getString("_id"))
+                                            putExtra("userId", response.getString("userId"))
                                         }
                                         Log.d(TAG, "Returning User: ${googleIdTokenCredential.displayName}")
                                         Toast.makeText(this, "Welcome Back, ${googleIdTokenCredential.displayName}", Toast.LENGTH_SHORT).show()
