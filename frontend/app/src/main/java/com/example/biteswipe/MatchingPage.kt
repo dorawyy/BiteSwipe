@@ -36,15 +36,10 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
     private val updateRestaurant = object: Runnable {
         override fun run() {
             val endpoint = "/sessions/$sessionId/restaurants"
-            val body = JSONObject().apply {
-                put("userId", userId)
-            }
-            Log.d(TAG, "Body: $body, Endpoint: $endpoint, sessionId: $sessionId, userId: $userId")
             apiRequest(
                 context = this@MatchingPage,
                 endpoint = endpoint,
                 method = "GET",
-                jsonBody = body,
                 onSuccess = { response ->
                     RestaurantList  = parseRestaurants(response.toString())
                     cards.clear()

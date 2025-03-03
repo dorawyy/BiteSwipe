@@ -5,10 +5,15 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -145,6 +150,50 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
 
             )
         }
+
+        val shareButton = findViewById<ImageButton>(R.id.share_group_button)
+        shareButton.setOnClickListener {
+            val inflater = LayoutInflater.from(this)
+            val dialogView: View = inflater.inflate(R.layout.dialog_add_member, null)
+            val dialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(true).create()
+
+            val userIdView = dialogView.findViewById<EditText>(R.id.new_member_text)
+            val submitButton = dialogView.findViewById<ImageButton>(R.id.add_member_button)
+
+            submitButton.setOnClickListener {
+                val newUserId = userIdView.text.toString().trim()
+                // Add friend logic here
+                if(newUserId.isNotEmpty()){
+//                    TODO: API Call to send friend request
+                    val endpoint = "/sessions/$sessionId/invitations"
+                    val body = JSONObject().apply {
+                        put("userId", newUserId)
+                    }
+                    apiRequest(
+                        context = this,
+                        endpoint = endpoint,
+                        method = "POST",
+                        jsonBody = body,
+                        onSuccess = { response ->
+                            Log.d(TAG, "Sending invitation to $newUserId")
+                            Toast.makeText(this, "Invitation sent to $newUserId", Toast.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                        },
+                        onError = { code, message ->
+                            Log.d(TAG, "Error sending invitation: $message")
+                            Toast.makeText(this, "Could not send invitation", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                    dialog.dismiss()
+                }
+                else{
+                    Toast.makeText(this, "Please enter a username", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            dialog.show()
+        }
+
 //        TODO: Delete Group Button
     }
 
