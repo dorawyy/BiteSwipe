@@ -244,32 +244,37 @@ export class SessionManager {
     }
 
     async leaveSession(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
-        const session = await Session.findById(sessionId);
-        if (!session) {
-            throw new Error('Session not found');
+        // Use findOneAndUpdate to perform an atomic operation
+        const updatedSession = await Session.findOneAndUpdate(
+            {
+                _id: sessionId,
+                status: { $ne: 'COMPLETED' },
+                creator: { $ne: userId },
+                'participants.userId': userId
+            },
+            {
+                $pull: { participants: { userId: userId } }
+            },
+            { new: true, runValidators: true }
+        );
+    
+        // Handle failure cases
+        if (!updatedSession) {
+            // Find the session to determine the specific error
+            const session = await Session.findById(sessionId);
+            
+            if (!session) {
+                throw new Error('Session not found');
+            } else if (session.status === 'COMPLETED') {
+                throw new Error('Cannot leave a completed session');
+            } else if (session.creator.equals(userId)) {
+                throw new Error('Session creator cannot leave the session');
+            } else {
+                throw new Error('User is not a participant in this session');
+            }
         }
-
-        if (session.status === 'COMPLETED') {
-            throw new Error('Cannot leave a completed session');
-        }
-
-        // Check if user is the creator
-        if (session.creator.equals(userId)) {
-            throw new Error('Session creator cannot leave the session');
-        }
-
-        // Check if user is a participant
-        const participantIndex = session.participants.findIndex(p => p.userId.equals(userId));
-        if (participantIndex === -1) {
-            throw new Error('User is not a participant in this session');
-        }
-
-
-        // Remove from participants
-        session.participants.splice(participantIndex, 1);
-        await session.save();
-
-        return session;
+    
+        return updatedSession;
     }
 
     async getRestaurantsInSession(sessionId: Types.ObjectId, userId: string) {
