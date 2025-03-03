@@ -209,4 +209,30 @@ interface ApiHelper {
         return restaurantList
     }
 
+    fun parseRestaurant(jsonString: String): RestaurantData {
+
+        val jsonObject = JSONObject(jsonString)
+        val restaurantJson = jsonObject.getJSONObject("result")
+
+        val name = restaurantJson.optString("name", "Unknown")
+        val address = restaurantJson.optJSONObject("location")?.optString("address", "Unknown") ?: "Unknown"
+        val contactNumber = restaurantJson.optJSONObject("contact")?.optString("phone", "No Contact") ?: "No Contact"
+        val price = restaurantJson.optInt("priceLevel", 0) // Defaulting to 0 if missing
+        val rating = restaurantJson.opt("rating")?.let { (it as Number).toFloat() } ?: 0.0f // Ensure Float type
+        val restaurantId = restaurantJson.optString("_id", "")
+
+        // Get the first image from the gallery if available
+        val imageGallery = restaurantJson.optJSONObject("images")?.optJSONArray("gallery")
+        val picture = if (imageGallery != null && imageGallery.length() > 0) {
+            imageGallery.optString(0)
+        } else {
+            "0"
+        }
+
+        val restaurantData = RestaurantData(name, address, contactNumber, price, rating, picture, restaurantId)
+
+
+        return restaurantData
+    }
+
 }

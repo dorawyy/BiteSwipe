@@ -44,28 +44,25 @@ class ResultsPage : AppCompatActivity(), ApiHelper {
         adapter = SwipeAdapter(this, restaurantList)
         recyclerView.adapter = adapter
 
-        val endpoint = "/sessions/$sessionId/restaurants"
+        val endpoint = "/sessions/$sessionId/result"
         apiRequest(
             context = this,
             endpoint = endpoint,
             method = "GET",
             onSuccess = { response ->
-                val restaurants  = parseRestaurants(response.toString())
-                restaurantList.clear()
-                for (restaurant in restaurants) {
-                    Log.d(TAG, "Restaurant: $restaurant")
+                val restaurant  = parseRestaurant(response.toString())
 
-                    val restaurantName = restaurant.name
-                    val imageResId = 0
-                    val address = restaurant.address
-                    val contact = restaurant.contactNumber
-                    val price = restaurant.price
-                    val rating = restaurant.rating
-                    val restaurantId = restaurant.restaurantId
+                val restaurantName = restaurant.name
+                val imageResId = 0
+                val address = restaurant.address
+                val contact = restaurant.contactNumber
+                val price = restaurant.price
+                val rating = restaurant.rating
+                val restaurantId = restaurant.restaurantId
 
-                    // Add the UserCard to the list
-                    restaurantList.add(RestaurantCard(restaurantName, imageResId, address, contact, price, rating, restaurantId),)
-                }
+                // Add the UserCard to the list
+                restaurantList.add(RestaurantCard(restaurantName, imageResId, address, contact, price, rating, restaurantId),)
+
                 adapter.notifyDataSetChanged()
             },
             onError = { code, message ->
