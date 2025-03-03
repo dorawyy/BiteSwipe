@@ -34,6 +34,15 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
     private var TAG = "MatchingPage"
 
     private val updateRestaurant = object: Runnable {
+//        TODO: Come up with a better way to fetch ONLY NOT VIEWED restaurants
+//        TODO: KNOWN ERROR: when restaurants refresh, the first restaurant is shown again despite already having swiped on it
+
+//        TODO: Check for match found, open popup accordingly and go to results (Match found) page if everyone agrees -> Nested API Call
+
+
+//        TODO: Tell Backend we have finished swiping (remainingCards = 0), visual update
+
+//        TODO: Check for session ended, go to results (leaderboard) page
         override fun run() {
             val endpoint = "/sessions/$sessionId/restaurants"
             apiRequest(
@@ -82,7 +91,6 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
         userId = intent.getStringExtra("userId") ?: ""
 
         Log.d(TAG, "Session ID: $sessionId, User ID: $userId")
-//        TODO: API Call to get Restaurants
         cards = mutableListOf()
         RestaurantList = mutableListOf()
 
@@ -135,7 +143,6 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
             true
         }
 
-//        TODO: Implement match found logic (API CALL?)
 //        IF match found and everyone agrees: goto chosenRestaurantPage
 //        IF no more matches: goto ResultsPage
 
@@ -217,7 +224,6 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                     }
                 })
             }
-//            TODO: API Call to indicate swipe left
             val endpoint = "/sessions/$sessionId/votes"
             val body = JSONObject().apply {
                 put("userId", userId)
