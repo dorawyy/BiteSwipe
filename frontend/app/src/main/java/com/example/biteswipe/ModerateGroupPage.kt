@@ -2,8 +2,11 @@ package com.example.biteswipe
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +25,58 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
     private lateinit var sessionId: String
     private lateinit var userId: String
     private lateinit var session: sessionDetails
+    private val handler = Handler(Looper.getMainLooper())
+    private val updateUsers = object: Runnable {
+        override fun run() {
+            val endpoint = "/sessions/$sessionId"
+            apiRequest(
+                context = this@ModerateGroupPage,
+                endpoint = endpoint,
+                method = "GET",
+                onSuccess = { response ->
+                    session  = parseSessionData(response)
+                    Log.d(TAG, "Session Details: $session")
+                    users.clear()
+                    for (participant in session.participants) {
+                        Log.d(TAG, "Participant: $participant")
+                        val epoint = "/users/${participant.userId._id}"
+                        var userName = "Loading..."
+                        apiRequest(
+                            context = this@ModerateGroupPage,
+                            endpoint = epoint,
+                            method = "GET",
+                            onSuccess = { response ->
+                                Log.d(TAG, "User Details: ${response.getString("displayName")}")
+                                userName = response.getString("displayName")
+                            },
+                            onError = { code, message ->
+                                Log.d(TAG, "Error fetching user details: $message")
+                                Toast.makeText(this@ModerateGroupPage, "Could not fetch user details", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+//                        TODO: Profile Pics
+                        val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
+                        val userId = participant.userId._id
+                        // Add the UserCard to the list
+                        users.add(UserCard(userName, R.drawable.ic_group, userId))
+                    }
+                    adapter.notifyDataSetChanged()
+                },
+                onError = { code, message ->
+                    Log.d(TAG, "Error fetching users: $message")
+                    Toast.makeText(this@ModerateGroupPage, "Could not fetch users", Toast.LENGTH_SHORT).show()
+                    users = mutableListOf(
+                        UserCard("John Doe", R.drawable.ic_settings, "1234567890"),
+                        UserCard("Jane Doe", R.drawable.ic_settings, "0987654321"),
+                        UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111")
+                    )
+                    adapter.notifyDataSetChanged()
+                }
+            )
+            handler.postDelayed(this, 5000)
+        }
+
+    }
     private var TAG = "ModerateGroupPage"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +91,7 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
 //        TODO: API Call to fetch users from backend (PERSISTENT)
         sessionId = intent.getStringExtra("sessionId") ?: ""
         userId = intent.getStringExtra("userId") ?: ""
+
         if(sessionId == ""){
             Toast.makeText(this, "Error: SessionID Invalid", Toast.LENGTH_SHORT).show()
             finish()
@@ -45,41 +101,21 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
             finish()
         }
 
-        val endpoint = "/sessions/$sessionId"
-        apiRequest(
-            context = this,
-            endpoint = endpoint,
-            method = "GET",
-            onSuccess = { response ->
-                session  = parseSessionData(response)
-                Log.d(TAG, "Session Details: $session")
-            }
-        )
-        if(::session.isInitialized){
-            users.clear()
-            for (participant in session.participants) {
-                val userName = participant.userId.displayName // Access the displayName of the user
-                val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
-                val userId = participant.userId._id
-                // Add the UserCard to the list
-                users.add(UserCard(userName, profilePicResId, userId))
-            }
-        }
-        else {
-            users = mutableListOf(
-                UserCard("John Doe", R.drawable.ic_settings, "1234567890"),
-                UserCard("Jane Doe", R.drawable.ic_settings, "0987654321"),
-                UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111")
-            )
-        }
+//        Load Session ID into Text View
+        val groupIdText = findViewById<TextView>(R.id.placeholderText)
+        groupIdText.text = sessionId
+
 
 //        TODO: Implement Dynamic Rendering of Users
+        users = mutableListOf()
         recyclerView = findViewById(R.id.user_moderate_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         adapter = UserAdapter(this, users) { user -> handleKickUser(user) }
         recyclerView.adapter = adapter
-
         Log.d(TAG, "Set up users")
+
+        updateUsers()
+
         val startMatchingButton = findViewById<Button>(R.id.start_matching_button)
         startMatchingButton.setOnClickListener {
             val intent = Intent(this, MatchingPage::class.java)
@@ -108,5 +144,14 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
             }
         )
 
+    }
+
+    private fun updateUsers() {
+        handler.post(updateUsers)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(updateUsers)
     }
 }
