@@ -197,8 +197,10 @@ export class SessionController {
     async getRestaurantsInSession(req, res: Response) {
         try {
             const { sessionId } = req.params;
-            const restaurants = await this.sessionManager.getRestaurantsInSession(new Types.ObjectId(sessionId), req.body.userId);
+            console.log('Session ID from params and the body:', sessionId, req.body); 
 
+            const restaurants = await this.sessionManager.getRestaurantsInSession(new Types.ObjectId(sessionId), req.body.userId);
+            
             res.json({ success: true, restaurants });
         } catch (error) {
             console.log(error);
