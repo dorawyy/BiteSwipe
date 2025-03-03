@@ -10,6 +10,8 @@ import android.os.Looper
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -190,6 +192,8 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
 //                        TODO: Implement UI for "Waiting for friends to finish"
                         if(cards.isEmpty()){
                             userFinished = true
+                            val finishText = findViewById<TextView>(R.id.waiting_for_finish_text)
+                            finishText.visibility = View.VISIBLE
                             Log.d(TAG, "User Finished Swiping")
 //                            TODO: API call to tell backend we're done
                         }
@@ -243,9 +247,11 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                         cards.removeAt(currentCardIndex)
                         adapter.notifyItemRemoved(currentCardIndex)
                         Log.d(TAG, "Card Removed")
-//                        TODO: Implement UI for "Waiting for friends to finish"
+
                         if(cards.isEmpty()){
                             userFinished = true
+                            val finishText = findViewById<TextView>(R.id.waiting_for_finish_text)
+                            finishText.visibility = View.VISIBLE
                             Log.d(TAG, "User Finished Swiping")
 //                            TODO: API call to tell backend we're done here
                         }
@@ -272,5 +278,10 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                 }
             )
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(checkFinished)
     }
 }
