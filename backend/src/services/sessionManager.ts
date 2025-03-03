@@ -217,30 +217,37 @@ export class SessionManager {
     }
 
     async rejectInvitation(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
-        const session = await Session.findById(sessionId);
-        if (!session) {
-            throw new Error('Session not found');
+        // Use findOneAndUpdate for atomic operation
+        const updatedSession = await Session.findOneAndUpdate(
+            {
+                _id: sessionId,
+                status: { $ne: 'COMPLETED' },
+                pendingInvitations: userId,
+                'participants.userId': { $ne: userId }
+            },
+            {
+                $pull: { pendingInvitations: userId }
+            },
+            { new: true, runValidators: true }
+        );
+    
+        // Handle failure cases
+        if (!updatedSession) {
+            // Find the session to determine the specific error
+            const session = await Session.findById(sessionId);
+            
+            if (!session) {
+                throw new Error('Session not found');
+            } else if (session.status === 'COMPLETED') {
+                throw new Error('Cannot reject invitation for a completed session');
+            } else if (session.participants.some(p => p.userId.equals(userId))) {
+                throw new Error('User is already a participant');
+            } else {
+                throw new Error('User has not been invited to this session');
+            }
         }
-
-        if (session.status === 'COMPLETED') {
-            throw new Error('Cannot reject invitation for a completed session');
-        }
-
-        // Check if user is already a participant
-        if (session.participants.some(p => p.userId.equals(userId))) {
-            throw new Error('User is already a participant');
-        }
-
-        // Check if user was invited
-        const inviteIndex = session.pendingInvitations.findIndex(id => id.equals(userId));
-        if (inviteIndex === -1) {
-            throw new Error('User has not been invited to this session');
-        }
-
-        // Remove from pending invitations
-        session.pendingInvitations.splice(inviteIndex, 1);
-        await session.save();
-        return session;
+    
+        return updatedSession;
     }
 
     async leaveSession(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
@@ -327,7 +334,7 @@ export class SessionManager {
             } catch (error) {
                 console.log(`Failed to complete session: ${sessionId}`);
             }
-        }, time * 60 * 1000);
+        }, (time || 5) * 60 * 1000);
 
         return session;
     }
