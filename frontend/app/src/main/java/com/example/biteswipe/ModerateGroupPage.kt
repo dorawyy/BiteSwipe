@@ -114,7 +114,7 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
 
 //        Load Session ID into Text View
         val groupIdText = findViewById<TextView>(R.id.placeholderText)
-        groupIdText.text = sessionId
+        groupIdText.text = intent.getStringExtra("joinCode")
 
 
 //        TODO: Implement Dynamic Rendering of Users
@@ -164,10 +164,10 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
                 val newUserId = userIdView.text.toString().trim()
                 // Add friend logic here
                 if(newUserId.isNotEmpty()){
-//                    TODO: API Call to send friend request
+//                    TODO: API Call to send friend invitation
                     val endpoint = "/sessions/$sessionId/invitations"
                     val body = JSONObject().apply {
-                        put("userId", newUserId)
+                        put("email", newUserId)
                     }
                     apiRequest(
                         context = this,

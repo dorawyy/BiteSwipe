@@ -189,13 +189,23 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                     override fun onAnimationEnd(animation: Animator) {
                         cards.removeAt(currentCardIndex)
                         adapter.notifyItemRemoved(currentCardIndex)
-//                        TODO: Implement UI for "Waiting for friends to finish"
                         if(cards.isEmpty()){
-                            userFinished = true
-                            val finishText = findViewById<TextView>(R.id.waiting_for_finish_text)
-                            finishText.visibility = View.VISIBLE
-                            Log.d(TAG, "User Finished Swiping")
-//                            TODO: API call to tell backend we're done
+                            val epoint = "/sessions/$sessionId/doneSwiping"
+                            val body = JSONObject().apply {
+                                put("userId", userId)
+                            }
+                            apiRequest(
+                                context = this@MatchingPage,
+                                endpoint = epoint,
+                                method = "POST",
+                                jsonBody = body,
+                                onSuccess = { response ->
+                                    userFinished = true
+                                    val finishText = findViewById<TextView>(R.id.waiting_for_finish_text)
+                                    finishText.visibility = View.VISIBLE
+                                    Log.d(TAG, "User Finished Swiping")
+                                }
+                            )
                         }
                         Log.d(TAG, "Card Removed")
                     }
@@ -249,11 +259,22 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                         Log.d(TAG, "Card Removed")
 
                         if(cards.isEmpty()){
-                            userFinished = true
-                            val finishText = findViewById<TextView>(R.id.waiting_for_finish_text)
-                            finishText.visibility = View.VISIBLE
-                            Log.d(TAG, "User Finished Swiping")
-//                            TODO: API call to tell backend we're done here
+                            val epoint = "/sessions/$sessionId/doneSwiping"
+                            val body = JSONObject().apply {
+                                put("userId", userId)
+                            }
+                            apiRequest(
+                                context = this@MatchingPage,
+                                endpoint = epoint,
+                                method = "POST",
+                                jsonBody = body,
+                                onSuccess = { response ->
+                                    userFinished = true
+                                    val finishText = findViewById<TextView>(R.id.waiting_for_finish_text)
+                                    finishText.visibility = View.VISIBLE
+                                    Log.d(TAG, "User Finished Swiping")
+                                }
+                            )
                         }
                     }
                 })

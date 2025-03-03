@@ -20,6 +20,7 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
     private lateinit var sessionId: String
     private lateinit var userId: String
     private lateinit var session: sessionDetails
+    private lateinit var userEmail: String
     private val TAG = "JoinGroupPage"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,8 +34,11 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
         }
 
         userId = intent.getStringExtra("userId") ?: ""
+        userEmail = intent.getStringExtra("userEmail") ?: ""
+
+
         val userIdText = findViewById<TextView>(id.join_user_id_text)
-        userIdText.text = userId
+        userIdText.text = userEmail
         Log.d(TAG, "User ID: $userId")
         val joinButton = findViewById<Button>(id.join_button)
         joinButton.setOnClickListener {
@@ -43,6 +47,7 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
             val body = JSONObject().apply {
                     put("userId", userId)
             }
+            Log.d(TAG, "userId: $userId")
             apiRequest(
                 context = this,
                 endpoint = endpoint,

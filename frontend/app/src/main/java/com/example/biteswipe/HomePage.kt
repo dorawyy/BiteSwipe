@@ -2,6 +2,7 @@ package com.example.biteswipe
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
@@ -22,6 +23,7 @@ class HomePage : AppCompatActivity() {
             insets
         }
         val tvLoggedInUser = findViewById<TextView>(R.id.welcomeText)
+        val userEmail = intent.getStringExtra("userEmail") ?: ""
 
         val userName = intent.getStringExtra("displayName") ?: "Unknown User"
         userId = intent.getStringExtra("userId") ?: ""
@@ -43,6 +45,8 @@ class HomePage : AppCompatActivity() {
         joinButton.setOnClickListener {
             val intent = Intent(this, JoinGroupPage::class.java)
             intent.putExtra("userId", userId)
+            intent.putExtra("userEmail", userEmail)
+            Log.d("Home Page", "User Email: $userEmail")
             startActivity(intent)
         }
 

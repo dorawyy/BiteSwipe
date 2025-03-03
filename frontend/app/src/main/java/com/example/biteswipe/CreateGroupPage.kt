@@ -115,6 +115,7 @@ class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
                 onSuccess = { response ->
                     val intent = Intent(this, ModerateGroupPage::class.java)
                     intent.putExtra("sessionId", response.getString("_id"))
+                    intent.putExtra("joinCode", response.getString("joinCode"))
                     intent.putExtra("userId", userId)
                     startActivity(intent)
                 },
