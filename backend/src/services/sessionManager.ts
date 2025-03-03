@@ -119,28 +119,42 @@ export class SessionManager {
     }
 
     async addPendingInvitation(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
-        const session = await Session.findById(sessionId);
-        if (!session) {
-            throw new Error('Session not found');
+        // Use findOneAndUpdate for atomic operation
+        const updatedSession = await Session.findOneAndUpdate(
+            {
+                _id: sessionId,
+                status: { $ne: 'COMPLETED' },
+                'participants.userId': { $ne: userId },
+                pendingInvitations: { $ne: userId }
+            },
+            {
+                $push: { 
+                    pendingInvitations: userId,
+                    doneSwiping: userId
+                }
+            },
+            { new: true, runValidators: true }
+        );
+    
+        // Handle failure cases
+        if (!updatedSession) {
+            // Find the session to determine the specific error
+            const session = await Session.findById(sessionId);
+            
+            if (!session) {
+                throw new Error('Session not found');
+            } else if (session.status === 'COMPLETED') {
+                throw new Error('Cannot invite users to a completed session');
+            } else if (session.participants.some(p => p.userId.equals(userId))) {
+                throw new Error('User is already a participant');
+            } else if (session.pendingInvitations.some(id => id.equals(userId))) {
+                throw new Error('User has already been invited');
+            } else {
+                throw new Error('Failed to invite user to session');
+            }
         }
-
-        if (session.status === 'COMPLETED') {
-            throw new Error('Cannot invite users to a completed session');
-        }
-
-        // Check if user is already a participant
-        if (session.participants.some(p => p.userId.equals(userId))) {
-            throw new Error('User is already a participant');
-        }
-
-        // Check if user is already invited
-        if (session.pendingInvitations.some(id => id.equals(userId))) {
-            throw new Error('User has already been invited');
-        }
-
-        session.pendingInvitations.push(userId);
-        await session.save();
-        return session;
+    
+        return updatedSession;
     }
 
     async joinSession(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
@@ -334,6 +348,27 @@ export class SessionManager {
         return session;
     }
 
+    async userDoneSwiping(sessionId: Types.ObjectId, userId: string) {
+        const userObjId = new mongoose.Types.ObjectId(userId);
+
+        const session = await Session.findOneAndUpdate(
+            {
+                _id: sessionId,
+                status: 'MATCHING',
+                'participants.userId': userObjId,
+            },
+            {
+                $pull: { doneSwiping: userObjId }
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!session) {
+            throw new Error('Session does not exists or user is not in session or user has already swiped');
+        }
+
+        return session;
+    }
 
     async getResultForSession(sessionId: Types.ObjectId) {
         const session = await Session.findById(sessionId);
@@ -341,8 +376,16 @@ export class SessionManager {
             throw new Error('Session not found');
         }
 
-        if (session.status !== 'COMPLETED') {
+        // Only allow completed sessions or matching sessions where everyone is done swiping
+        if (session.status !== 'COMPLETED' && 
+            (session.status === 'MATCHING' && session.doneSwiping?.length !== 0)) {
             throw new Error('Session is not completed');
+        }
+
+        if(session.status === 'MATCHING') {
+            // Mark the session as completed
+            session.status = 'COMPLETED';
+            await session.save();
         }
 
         const participants = session.participants;
@@ -371,11 +414,17 @@ export class SessionManager {
             restaurant.score = votes / participants.length;
         }
 
-        await session.save();
 
         const winnerRestaurant = [...restaurantVotes.entries()].reduce((a, e) => e[1] > a[1] ? e : a, ['', 0]);
         const winnerRestaurantId = winnerRestaurant[0];
 
+        session.finalSelection = {
+            restaurantId: new mongoose.Types.ObjectId(winnerRestaurantId),
+            selectedAt: new Date
+        };
+
+        await session.save();
+        
         return this.restaurantService.getRestaurant(new mongoose.Types.ObjectId(winnerRestaurantId));
     }
 
