@@ -117,15 +117,15 @@ export class SessionController {
 
     async joinSession(req: Request, res: Response) {
         try {
-            const sessionId = req.params.sessionId;
+            const joinCode = req.params.joinCode;
             const { userId } = req.body;
 
-            if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
+            if (!Types.ObjectId.isValid(userId)) {
                 return res.status(400).json({ error: 'Invalid session or user ID format' });
             }
 
             const session = await this.sessionManager.joinSession(
-                new Types.ObjectId(sessionId),
+                joinCode,
                 new Types.ObjectId(userId)
             );
 
