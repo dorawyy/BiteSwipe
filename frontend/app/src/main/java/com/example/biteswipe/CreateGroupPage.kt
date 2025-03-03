@@ -118,6 +118,7 @@ class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
                     intent.putExtra("joinCode", response.getString("joinCode"))
                     intent.putExtra("userId", userId)
                     startActivity(intent)
+                    finish()
                 },
                 onError = { code, message ->
                     Toast.makeText(this, "Could not make Group, try again", Toast.LENGTH_SHORT).show()

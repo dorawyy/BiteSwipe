@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="150dp"
             android:scaleType="centerCrop"
-            android:src="@color/black" />
+            android:src="@color/purple_200" />
 
         <!-- Address -->
 
@@ -40,7 +40,7 @@
             android:layout_marginRight="8dp"
             android:text="Restaurant Name"
             android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-            android:textColor="@android:color/white"
+            android:textColor="@color/black"
             android:textSize="18sp" />
 
         <TextView
@@ -52,7 +52,7 @@
             android:layout_marginLeft="8dp"
             android:layout_marginTop="89dp"
             android:text="123 Main St, City"
-            android:textColor="@android:color/white"
+            android:textColor="@color/black"
             android:textSize="14sp" />
 
         <TextView

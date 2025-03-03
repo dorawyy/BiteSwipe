@@ -62,6 +62,7 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
                     intent.putExtra("sessionId", sessionId)
                     intent.putExtra("userId", userId)
                     startActivity(intent)
+                    finish()
                 },
                 onError = { code, message ->
                     Toast.makeText(this, "Invalid Group Code", Toast.LENGTH_SHORT).show()
