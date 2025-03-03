@@ -1,5 +1,6 @@
 package com.example.biteswipe
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -38,6 +39,16 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                 onSuccess = { response ->
                     session = parseSessionData(response)
                     Log.d(TAG, "Session Details: $session")
+                    if(session.status == "MATCHING") {
+                        Log.d(TAG, "Starting Matching")
+                        Toast.makeText(this@ViewGroupPage, "Starting Matching", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this@ViewGroupPage, MatchingPage::class.java)
+                        intent.putExtra("userId", userId)
+                        intent.putExtra("sessionId", sessionId)
+                        startActivity(intent)
+                        finish()
+                    }
+//                    update users
                     users.clear()
                     for (participant in session.participants) {
                         Log.d(TAG, "Participant: $participant")
@@ -46,9 +57,9 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                             context = this@ViewGroupPage,
                             endpoint = epoint,
                             method = "GET",
-                            onSuccess = { response ->
-                                Log.d(TAG, "User Details: ${response.getString("displayName")}")
-                                val userName = response.getString("displayName")
+                            onSuccess = { response2 ->
+                                Log.d(TAG, "User Details: ${response2.getString("displayName")}")
+                                val userName = response2.getString("displayName")
 //                                val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
                                 val userId = participant.userId._id
                                 // Add the UserCard to the list
@@ -118,7 +129,6 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
 
 
         users = mutableListOf()
-//        TODO: Implement Dynamic Render
         recyclerView = findViewById(R.id.view_users_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = UserAdapterNoKick(this, users)
@@ -144,10 +154,6 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                 }
             )
         }
-
-
-    //        TODO: Implement logic to indicate matching started, and open activity
-//        TODO: API Call to start matching
     }
 
     private fun updateUsers() {

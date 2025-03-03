@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.adapter.UserAdapter
 import com.example.biteswipe.cards.UserCard
 import com.example.biteswipe.jsonFormats.sessionDetails
+import org.json.JSONObject
 
 class ModerateGroupPage : AppCompatActivity(), ApiHelper {
     private lateinit var users: MutableList<UserCard>
@@ -123,9 +124,26 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
 
         val startMatchingButton = findViewById<Button>(R.id.start_matching_button)
         startMatchingButton.setOnClickListener {
-            val intent = Intent(this, MatchingPage::class.java)
-//            TODO: API Call to start matching
-            startActivity(intent)
+            val endpoint = "/sessions/$sessionId/start"
+            val body = JSONObject().apply {
+                put("userId",userId)
+                put("time", 5)
+            }
+            apiRequest(
+                context = this,
+                endpoint = endpoint,
+                method = "POST",
+                jsonBody = body,
+                onSuccess = { response ->
+                    Log.d(TAG, "Starting Matching")
+                    val intent = Intent(this, MatchingPage::class.java)
+                    intent.putExtra("userId", userId)
+                    intent.putExtra("sessionId", sessionId)
+                    startActivity(intent)
+                    finish()
+                },
+
+            )
         }
 //        TODO: Delete Group Button
     }
