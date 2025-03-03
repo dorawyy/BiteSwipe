@@ -14,7 +14,6 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -50,21 +49,6 @@ class CreateGroupPage : AppCompatActivity(), LocationListener {
     )
     private val selectedCuisines = mutableListOf<CuisineCard>()
 
-    private val locationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            requestDeviceLocation()
-        } else {
-            if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // If the user has denied it twice, show settings dialog
-                showSettingsDialog()
-            } else {
-                showLocationDeniedDialog()
-            }
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_group_page)
@@ -76,7 +60,10 @@ class CreateGroupPage : AppCompatActivity(), LocationListener {
         }
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        requestLocationPermission()
+
+
+
+
 
         recyclerView = findViewById(R.id.cuisine_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -89,7 +76,23 @@ class CreateGroupPage : AppCompatActivity(), LocationListener {
                 selectedCuisines.remove(cuisine)
             }
         }
+
         recyclerView.adapter = cuisineAdapter
+
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.d(TAG, "Permission not granted")
+            showSettingsDialog()
+            return
+        }
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, this)
 
         val createGroupButton = findViewById<Button>(R.id.create_group_button)
         createGroupButton.setOnClickListener {
@@ -101,12 +104,9 @@ class CreateGroupPage : AppCompatActivity(), LocationListener {
             val searchRadius = findViewById<EditText>(R.id.searchRadiusText).text.toString()
             Log.d(TAG, "Selected cuisines: $selectedCuisineNames \n Search Radius: $searchRadius")
 
-            if (userLocation == null) {
-                showLocationDeniedDialog()
-            } else {
-                val intent = Intent(this, ModerateGroupPage::class.java)
-                startActivity(intent)
-            }
+            val intent = Intent(this, ModerateGroupPage::class.java)
+            startActivity(intent)
+
         }
 
         val backButton: ImageButton = findViewById(R.id.create_back_button)
@@ -115,44 +115,9 @@ class CreateGroupPage : AppCompatActivity(), LocationListener {
         }
     }
 
-    private fun requestLocationPermission() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        } else {
-            requestDeviceLocation()
-        }
-    }
-
-    private fun requestDeviceLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            val provider = when {
-                locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) -> LocationManager.GPS_PROVIDER
-                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) -> LocationManager.NETWORK_PROVIDER
-                else -> {
-                    Log.e(TAG, "No location provider enabled")
-                    showLocationDeniedDialog()
-                    return
-                }
-            }
-
-            locationManager.requestLocationUpdates(provider, 0, 0f, this)
-        }
-    }
-
     override fun onLocationChanged(location: Location) {
         userLocation = location
-        Log.d(TAG, "User location: ${location.latitude}, ${location.longitude}")
-        locationManager.removeUpdates(this) // Stop further updates after getting the first location
-    }
-
-    private fun showLocationDeniedDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Location Required")
-            .setMessage("To create a group, you must share your current location.")
-            .setCancelable(false)
-            .setPositiveButton("Retry") { _, _ -> requestLocationPermission() }
-            .setNegativeButton("Back") { _, _ -> finish() }
-            .show()
+        Log.d(TAG, "Location Changed: ${location.latitude}, ${location.longitude}")
     }
 
     private fun showSettingsDialog() {
@@ -173,6 +138,5 @@ class CreateGroupPage : AppCompatActivity(), LocationListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        locationManager.removeUpdates(this) // Ensure updates stop when activity is destroyed
     }
 }
