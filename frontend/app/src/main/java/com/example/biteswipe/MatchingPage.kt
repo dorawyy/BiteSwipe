@@ -3,6 +3,7 @@ package com.example.biteswipe
 import com.example.biteswipe.cards.RestaurantCard
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -31,46 +32,32 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
     private lateinit var sessionId: String
     private lateinit var userId: String
     private val handler = Handler(Looper.getMainLooper())
+    private var userFinished = false
     private var TAG = "MatchingPage"
 
-    private val updateRestaurant = object: Runnable {
-//        TODO: Come up with a better way to fetch ONLY NOT VIEWED restaurants
-//        TODO: KNOWN ERROR: when restaurants refresh, the first restaurant is shown again despite already having swiped on it
+    private val checkFinished = object: Runnable {
 
 //        TODO: Check for match found, open popup accordingly and go to results (Match found) page if everyone agrees -> Nested API Call
 
 
-//        TODO: Tell Backend we have finished swiping (remainingCards = 0), visual update
+//        TODO: [IN PROGRESS] Tell Backend we have finished swiping (remainingCards = 0), visual update
 
-//        TODO: Check for session ended, go to results (leaderboard) page
         override fun run() {
-            val endpoint = "/sessions/$sessionId/restaurants"
+            val endpoint = "/sessions/$sessionId/"
             apiRequest(
                 context = this@MatchingPage,
                 endpoint = endpoint,
                 method = "GET",
                 onSuccess = { response ->
-                    RestaurantList  = parseRestaurants(response.toString())
-                    cards.clear()
-                    for (restaurant in RestaurantList) {
-                        Log.d(TAG, "Restaurant: $restaurant")
-
-                        val restaurantName = restaurant.name
-                        val imageResId = 0
-                        val address = restaurant.address
-                        val contact = restaurant.contactNumber
-                        val price = restaurant.price
-                        val rating = restaurant.rating
-                        val restaurantId = restaurant.restaurantId
-
-                        // Add the UserCard to the list
-                        cards.add(RestaurantCard(restaurantName, imageResId, address, contact, price, rating, restaurantId),)
+                    val session  = parseSessionData(response)
+                    if(session.status != "MATCHING") {
+                        Log.d(TAG, "Session Finished")
+                        val intent = Intent(this@MatchingPage, ResultsPage::class.java)
+                        intent.putExtra("sessionId", sessionId)
+                        intent.putExtra("userId", userId)
+                        startActivity(intent)
+                        finish()
                     }
-                    adapter.notifyDataSetChanged()
-                },
-                onError = { code, message ->
-                    Log.d(TAG, "Error: $code, $message")
-                    Toast.makeText(this@MatchingPage, "Error: $code, $message", Toast.LENGTH_SHORT).show()
                 }
             )
             handler.postDelayed(this, 5000)
@@ -94,7 +81,6 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
         cards = mutableListOf()
         RestaurantList = mutableListOf()
 
-        updateRestaurant.run()
 
         recyclerView = findViewById(R.id.recycler_view)
         recyclerView.layoutManager =
@@ -102,7 +88,37 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
         adapter = SwipeAdapter(this, cards)
         recyclerView.adapter = adapter
         Log.d(TAG, "Set up cards")
+        val endpoint = "/sessions/$sessionId/restaurants"
+        apiRequest(
+            context = this@MatchingPage,
+            endpoint = endpoint,
+            method = "GET",
+            onSuccess = { response ->
+                RestaurantList  = parseRestaurants(response.toString())
+                cards.clear()
+                for (restaurant in RestaurantList) {
+                    Log.d(TAG, "Restaurant: $restaurant")
+
+                    val restaurantName = restaurant.name
+                    val imageResId = 0
+                    val address = restaurant.address
+                    val contact = restaurant.contactNumber
+                    val price = restaurant.price
+                    val rating = restaurant.rating
+                    val restaurantId = restaurant.restaurantId
+
+                    // Add the UserCard to the list
+                    cards.add(RestaurantCard(restaurantName, imageResId, address, contact, price, rating, restaurantId),)
+                }
+                adapter.notifyDataSetChanged()
+            },
+            onError = { code, message ->
+                Log.d(TAG, "Error: $code, $message")
+                Toast.makeText(this@MatchingPage, "Error: $code, $message", Toast.LENGTH_SHORT).show()
+            }
+        )
         setupSwipeListener()
+        checkFinished.run()
     }
     private var isSwiping = false
     private fun setupSwipeListener() {
@@ -171,6 +187,12 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                     override fun onAnimationEnd(animation: Animator) {
                         cards.removeAt(currentCardIndex)
                         adapter.notifyItemRemoved(currentCardIndex)
+//                        TODO: Implement UI for "Waiting for friends to finish"
+                        if(cards.isEmpty()){
+                            userFinished = true
+                            Log.d(TAG, "User Finished Swiping")
+//                            TODO: API call to tell backend we're done
+                        }
                         Log.d(TAG, "Card Removed")
                     }
                 })
@@ -221,6 +243,12 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                         cards.removeAt(currentCardIndex)
                         adapter.notifyItemRemoved(currentCardIndex)
                         Log.d(TAG, "Card Removed")
+//                        TODO: Implement UI for "Waiting for friends to finish"
+                        if(cards.isEmpty()){
+                            userFinished = true
+                            Log.d(TAG, "User Finished Swiping")
+//                            TODO: API call to tell backend we're done here
+                        }
                     }
                 })
             }
