@@ -76,19 +76,25 @@ export class SessionController {
     async inviteUser(req: Request, res: Response) {
         try {
             const sessionId = req.params.sessionId;
-            const { userId } = req.body;
+            const { email } = req.body;
 
-            if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
-                return res.status(400).json({ error: 'Invalid session or user ID format' });
+            if (!Types.ObjectId.isValid(sessionId)) {
+                return res.status(400).json({ error: 'Invalid session format' });
             }
 
+            
+            const user = await UserModel.findOne({ email });
+            
+            if (!user) {
+                return res.status(404).json({ error: 'No user found with this email'});
+            }
+            
             const session = await this.sessionManager.addPendingInvitation(
                 new Types.ObjectId(sessionId),
-                new Types.ObjectId(userId)
+                user._id
             );
 
             // Send notification to invited user
-            const user = await UserModel.findById(userId);
             if (user?.fcmToken) {
                 await this.notificationService.sendNotification(
                     user.fcmToken,
@@ -230,6 +236,21 @@ export class SessionController {
             const { userId, time } = req.body;
 
             const session = await this.sessionManager.startSession(new Types.ObjectId(sessionId), userId, Number(time));
+
+            res.json({ success: true, session: session._id });
+        } catch (error) {
+            console.log(error);
+
+            res.status(500).json({ error: error });
+        }
+    }
+
+    async userDoneSwiping(req, res: Response) {
+        try {
+            const { sessionId } = req.params;
+            const { userId } = req.body;
+
+            const session = await this.sessionManager.userDoneSwiping(new Types.ObjectId(sessionId), userId);
 
             res.json({ success: true, session: session._id });
         } catch (error) {

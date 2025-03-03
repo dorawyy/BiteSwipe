@@ -33,6 +33,7 @@ interface ISession extends Document {
         restaurantId: Types.ObjectId;
         selectedAt: Date;
     };
+    doneSwiping: Types.ObjectId[];
     createdAt: Date;
     expiresAt: Date;
 }
@@ -88,6 +89,10 @@ const SessionSchema = new mongoose.Schema<ISession>({
         },
         selectedAt: Date
     },
+    doneSwiping: [{ 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User' 
+    }],
     createdAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, required: true }
 });

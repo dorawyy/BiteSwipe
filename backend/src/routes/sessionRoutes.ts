@@ -32,7 +32,7 @@ export const sessionRoutes = (sessionManager: SessionManager) => {
             action: sessionController.inviteUser,
             validation: [
                 param('sessionId').notEmpty().withMessage('Session ID is required'),
-                body('userId').notEmpty().withMessage('User ID is required')
+                body('email').notEmpty().withMessage('Email is required')
             ]
         },
         {
@@ -86,6 +86,15 @@ export const sessionRoutes = (sessionManager: SessionManager) => {
             action: sessionController.startSession,
             validation: [
                 param('sessionId').notEmpty()
+            ]
+        },
+        {
+            method: 'post',
+            route: '/sessions/:sessionId/doneSwiping',
+            action: sessionController.userDoneSwiping,
+            validation: [
+                param('sessionId').notEmpty(),
+                body('userId').notEmpty()
             ]
         },
         {
