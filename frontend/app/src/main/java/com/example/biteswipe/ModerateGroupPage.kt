@@ -40,27 +40,32 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
                     for (participant in session.participants) {
                         Log.d(TAG, "Participant: $participant")
                         val epoint = "/users/${participant.userId._id}"
-                        var userName = "Loading..."
                         apiRequest(
                             context = this@ModerateGroupPage,
                             endpoint = epoint,
                             method = "GET",
                             onSuccess = { response ->
                                 Log.d(TAG, "User Details: ${response.getString("displayName")}")
-                                userName = response.getString("displayName")
+                                val userName = response.getString("displayName")
+//                                val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
+                                val userId = participant.userId._id
+                                // Add the UserCard to the list
+                                users.add(UserCard(userName, R.drawable.ic_group, userId))
+                                adapter.notifyDataSetChanged()
                             },
                             onError = { code, message ->
                                 Log.d(TAG, "Error fetching user details: $message")
                                 Toast.makeText(this@ModerateGroupPage, "Could not fetch user details", Toast.LENGTH_SHORT).show()
+                                val userName = "Loading..."
+//                                val profilePicResId = R.drawable.ic_settings
+                                val userId = participant.userId._id
+                                // Add the UserCard to the list
+                                users.add(UserCard(userName, R.drawable.ic_settings, userId))
+                                adapter.notifyDataSetChanged()
                             }
                         )
 //                        TODO: Profile Pics
-                        val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
-                        val userId = participant.userId._id
-                        // Add the UserCard to the list
-                        users.add(UserCard(userName, R.drawable.ic_group, userId))
                     }
-                    adapter.notifyDataSetChanged()
                 },
                 onError = { code, message ->
                     Log.d(TAG, "Error fetching users: $message")
