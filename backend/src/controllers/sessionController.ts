@@ -199,7 +199,7 @@ export class SessionController {
             const { sessionId } = req.params;
             console.log('Session ID from params and the body:', sessionId, req.body); 
 
-            const restaurants = await this.sessionManager.getRestaurantsInSession(new Types.ObjectId(sessionId), req.body.userId);
+            const restaurants = await this.sessionManager.getRestaurantsInSession(new Types.ObjectId(sessionId));
             
             res.json({ success: true, restaurants });
         } catch (error) {

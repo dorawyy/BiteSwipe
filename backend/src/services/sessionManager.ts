@@ -284,15 +284,10 @@ export class SessionManager {
         return updatedSession;
     }
 
-    async getRestaurantsInSession(sessionId: Types.ObjectId, userId: string) {
-        const userObjId = new mongoose.Types.ObjectId(userId)
+    async getRestaurantsInSession(sessionId: Types.ObjectId) {
         
         const session = await Session.findOne({
-            _id: sessionId,
-            $or: [
-                { 'participants.userId': userObjId},
-                { creator: userObjId }
-            ]
+            _id: sessionId
         });
 
         if (!session) {
