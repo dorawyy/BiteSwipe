@@ -83,14 +83,14 @@ class LoginPage : AppCompatActivity(), ApiHelper {
 
                         // Log the ID Token for verification
 //                        val email = googleIdTokenCredential.id
-                        val email = "youThoughtThisWasReal@stupidasshacker.com"
+                        val email = "bob@builder.com"
                         Log.d(TAG, "ID Token: ${googleIdTokenCredential.idToken}")
                         Log.d(TAG, "User Email: ${email}")
                         val endpoint = "/users/"
                         val body = JSONObject().apply {
                             put("email", email)
 //                            put("displayName", googleIdTokenCredential.displayName)
-                            put("displayName", "Test User")
+                            put("displayName", "Bob the Builder")
                         }
                         apiRequest(
                             context = this,

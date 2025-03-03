@@ -55,5 +55,6 @@ data class RestaurantData(
     val contactNumber: String,
     val price: Int,
     val rating: Float,
-    val picture: String
+    val picture: String,
+    val restaurantId: String
 )

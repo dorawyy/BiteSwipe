@@ -52,9 +52,10 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                         val contact = restaurant.contactNumber
                         val price = restaurant.price
                         val rating = restaurant.rating
+                        val restaurantId = restaurant.restaurantId
 
                         // Add the UserCard to the list
-                        cards.add(RestaurantCard(restaurantName, imageResId, address, contact, price, rating),)
+                        cards.add(RestaurantCard(restaurantName, imageResId, address, contact, price, rating, restaurantId),)
                     }
                     adapter.notifyDataSetChanged()
                 },
@@ -167,7 +168,25 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                     }
                 })
             }
-//            TODO: API Call to indicate swipe right
+            val endpoint = "/sessions/$sessionId/votes"
+            val body = JSONObject().apply {
+                put("userId", userId)
+                put("restaurantId", cards[currentCardIndex].restaurantId)
+                put("liked", true)
+            }
+            apiRequest(
+                context = this@MatchingPage,
+                endpoint = endpoint,
+                method = "POST",
+                jsonBody = body,
+                onSuccess = { response ->
+                    Log.d(TAG, "Vote sent")
+                },
+                onError = { code, message ->
+                    Log.d(TAG, "Error: $code, $message")
+                    Toast.makeText(this@MatchingPage, "Error: Vote was not sent", Toast.LENGTH_SHORT).show()
+                }
+            )
         }
 
     }
@@ -199,6 +218,25 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                 })
             }
 //            TODO: API Call to indicate swipe left
+            val endpoint = "/sessions/$sessionId/votes"
+            val body = JSONObject().apply {
+                put("userId", userId)
+                put("restaurantId", cards[currentCardIndex].restaurantId)
+                put("liked", false)
+            }
+            apiRequest(
+                context = this@MatchingPage,
+                endpoint = endpoint,
+                method = "POST",
+                jsonBody = body,
+                onSuccess = { response ->
+                    Log.d(TAG, "Vote sent")
+                },
+                onError = { code, message ->
+                    Log.d(TAG, "Error: $code, $message")
+                    Toast.makeText(this@MatchingPage, "Error: Vote was not sent", Toast.LENGTH_SHORT).show()
+                }
+            )
         }
     }
 }

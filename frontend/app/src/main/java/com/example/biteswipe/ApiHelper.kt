@@ -193,6 +193,7 @@ interface ApiHelper {
             val contactNumber = restaurantJson.optJSONObject("contact")?.optString("phone", "No Contact") ?: "No Contact"
             val price = restaurantJson.optInt("priceLevel", 0) // Defaulting to 0 if missing
             val rating = restaurantJson.opt("rating")?.let { (it as Number).toFloat() } ?: 0.0f // Ensure Float type
+            val restaurantId = restaurantJson.optString("_id", "")
 
             // Get the first image from the gallery if available
             val imageGallery = restaurantJson.optJSONObject("images")?.optJSONArray("gallery")
@@ -202,7 +203,7 @@ interface ApiHelper {
                 "0"
             }
 
-            restaurantList.add(RestaurantData(name, address, contactNumber, price, rating, picture))
+            restaurantList.add(RestaurantData(name, address, contactNumber, price, rating, picture, restaurantId))
         }
 
         return restaurantList
