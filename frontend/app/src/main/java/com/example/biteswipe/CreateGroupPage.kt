@@ -82,17 +82,16 @@ class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
         recyclerView.adapter = cuisineAdapter
 
 //        check permissions
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
+            Log.d(TAG, "Location permissions already granted")
             startLocationUpdates()
         } else {
+            Log.d(TAG, "Requesting location permissions")
             showSettingsDialog()
         }
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, this)
 
         val createGroupButton = findViewById<Button>(R.id.create_group_button)
         createGroupButton.setOnClickListener {
@@ -154,11 +153,13 @@ class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
     }
 
     private fun showSettingsDialog() {
+        Log.d(TAG, "Location Result: ${ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)}")
         AlertDialog.Builder(this)
             .setTitle("Enable Location Permission")
             .setMessage("To create a group, please enable location permissions in settings.")
             .setCancelable(false)
             .setPositiveButton("Go to Settings") { _, _ ->
+                Log.d(TAG, "Going to settings")
                 val intent = Intent(
                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     Uri.fromParts("package", packageName, null)
@@ -168,7 +169,24 @@ class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
             .setNegativeButton("Back") { _, _ -> finish() }
             .show()
     }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
+        if (requestCode == 100) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, start location updates
+                startLocationUpdates()
+            } else {
+                // Permission denied, show a message or ask user to enable it
+                Toast.makeText(this, "Location permission is required to create a group.", Toast.LENGTH_SHORT).show()
+                showSettingsDialog()
+            }
+        }
+    }
     override fun onDestroy() {
         super.onDestroy()
         // Stop location updates when the activity is destroyed to avoid unnecessary resource usage
