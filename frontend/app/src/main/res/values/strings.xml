@@ -7,16 +7,27 @@
     <string name="back_button_desc">Back button</string>
     <string name="create_group">Create Group</string>
     <string name="select_cuisine_preference">Select Cuisine Preference</string>
-    <string name="set_search_radius">Set Search Radius</string>
+    <string name="set_search_radius">Set Search Radius (in KM)</string>
     <string name="enter_here">Enter here</string>
     <string name="group_id_text">Group ID:</string>
     <string name="grup">GRUP</string>
     <string name="members">Members:</string>
     <string name="ready">Ready!</string>
-    <string name="base_url"> https://jsonplaceholder.typicode.com</string>
+    <string name="base_url"> http://master-biteswipe.westus2.cloudapp.azure.com:3000</string>
     <string name="waiting_on_leader_to_start_matching">Waiting on Leader to start matching</string>
     <string name="biteswipe">BiteSwipe</string>
     <string name="tagline">A new way to dine</string>
     <string name="sign_in_string">Sign In With Google</string>
+    <string name="username">Username</string>
+    <string name="your_previous_eats">Your Previous Eats:</string>
+    <string name="create_a_group">Create a Group</string>
+    <string name="join_a_group">Join a Group</string>
+    <string name="welcome_n_user_name">Welcome,\n{User Name}</string>
+    <string name="edit_group_settings">Edit Group Settings</string>
+    <string name="add_friend">Add Friend:</string>
+    <string name="my_friends">My Friends:</string>
+    <string name="default_web_client_id">374847957341-tkcogajpu02o13t2nirt5tehpg6ahavb.apps.googleusercontent.com</string>
+    <string name="tester">Tester</string>
+    <string name="waiting_for_others_to_finish">Waiting for others to finish...</string>
 
 </resources>
