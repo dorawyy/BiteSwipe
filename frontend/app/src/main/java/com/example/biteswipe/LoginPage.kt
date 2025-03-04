@@ -2,6 +2,8 @@ package com.example.biteswipe
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Base64
+
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
@@ -14,6 +16,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -21,13 +24,19 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.security.MessageDigest
 import java.util.UUID
+import kotlin.reflect.typeOf
+import kotlin.text.Charsets.UTF_8
+
 
 class LoginPage : AppCompatActivity(), ApiHelper {
 
     companion object {
         private const val TAG = "LoginPage"
+
+//        Yes this is hardcoded, will be thrown after MVP
         const val WEB_CLIENT_ID: String =
-            "11247540626-e0ltc1jrde1jq5ilfks9m5aopo1csg81.apps.googleusercontent.com"
+            "11247540626-v3khra1d42f8dtcb9eeoep79h0rusamq.apps.googleusercontent.com"
+
     }
 
 
@@ -82,15 +91,28 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                             .createFrom(credential.data)
 
                         // Log the ID Token for verification
-//                        val email = googleIdTokenCredential.id
-                        val email = "mate@mate.com"
+
+                        var email = googleIdTokenCredential.id
+                        val isNumber = email.matches(Regex("\\d+"))
+
+                        // Check if the value matches an email format
+                        val isEmail = email.matches(Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"))
+
+                        when {
+                            isNumber -> email = email + "@gmail.com"
+                            isEmail -> email = email
+                            else -> Log.d(TAG, "Invalid email format")
+                        }
+                        val idToken = googleIdTokenCredential.idToken
+                        Log.d(TAG, "Google Response: ${credential}")
+//                        val email = "mate@mate.com"
                         Log.d(TAG, "ID Token: ${googleIdTokenCredential.idToken}")
                         Log.d(TAG, "User Email: $email")
                         val endpoint = "/users/"
                         val body = JSONObject().apply {
                             put("email", email)
-//                            put("displayName", googleIdTokenCredential.displayName)
-                            put("displayName", "mate")
+                            put("displayName", googleIdTokenCredential.displayName)
+//                            put("displayName", "mate")
                         }
                         apiRequest(
                             context = this,
@@ -123,6 +145,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                                                 response.getString("displayName")
                                             )
                                             putExtra("userId", response.getString("userId"))
+                                            putExtra("userEmail", email)
                                         }
                                         Log.d(TAG, "Returning User: ${googleIdTokenCredential.displayName}")
                                         Toast.makeText(this, "Welcome Back, ${googleIdTokenCredential.displayName}", Toast.LENGTH_SHORT).show()
@@ -149,6 +172,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
             }
         }
     }
+
 
     private fun handleFailure(e: GetCredentialException) {
         Log.e(TAG, "Failed to return credential", e)
