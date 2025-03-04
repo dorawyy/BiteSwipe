@@ -7,13 +7,15 @@
     <string name="back_button_desc">Back button</string>
     <string name="create_group">Create Group</string>
     <string name="select_cuisine_preference">Select Cuisine Preference</string>
-    <string name="set_search_radius">Set Search Radius (in KM)</string>
+    <string name="set_search_radius">Set Search Radius (in meters)</string>
+
     <string name="enter_here">Enter here</string>
     <string name="group_id_text">Group ID:</string>
     <string name="grup">GRUP</string>
     <string name="members">Members:</string>
     <string name="ready">Ready!</string>
-    <string name="base_url"> http://master-biteswipe.westus2.cloudapp.azure.com:3000</string>
+    <string name="base_url"> https://134.33.137.46</string>
+
     <string name="waiting_on_leader_to_start_matching">Waiting on Leader to start matching</string>
     <string name="biteswipe">BiteSwipe</string>
     <string name="tagline">A new way to dine</string>

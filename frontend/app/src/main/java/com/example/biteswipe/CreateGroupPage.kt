@@ -15,6 +15,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+
+import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -24,14 +27,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.adapter.CuisineAdapter
 import com.example.biteswipe.cards.CuisineCard
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import org.json.JSONObject
 
-class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
+class CreateGroupPage : AppCompatActivity(), ApiHelper {
     private val TAG = "CreateGroupPage"
     private lateinit var recyclerView: RecyclerView
     private lateinit var cuisineAdapter: CuisineAdapter
-    private lateinit var locationManager: LocationManager
-    private var userLocation: Location? = null
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
     private var latitude  = 0.0
     private var longitude = 0.0
     private lateinit var userId: String
@@ -66,7 +75,10 @@ class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
 
 //        Load global variables
         userId = intent.getStringExtra("userId") ?: ""
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+
 
 //        Set up Cuisines
         recyclerView = findViewById(R.id.cuisine_recycler_view)
@@ -81,15 +93,21 @@ class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
         }
         recyclerView.adapter = cuisineAdapter
 
-//        check permissions
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+
+// Request location updates
+        Log.d(TAG, "Checking permissions")
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.d(TAG, "Location permissions already granted")
-            startLocationUpdates()
+            requestLocationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         } else {
-            Log.d(TAG, "Requesting location permissions")
-            showSettingsDialog()
+            Log.d(TAG, "Starting Location Updates")
+            startLocationUpdates()
         }
 
 
@@ -100,6 +118,7 @@ class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
             val searchRadius = findViewById<EditText>(R.id.searchRadiusText).text.toString()
 
             val endpoint = "/sessions/"
+
             val body = JSONObject().apply {
                 put("userId", userId)
                 put("latitude", latitude)
@@ -133,24 +152,36 @@ class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
     }
 
     private fun startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, this)
-        } else {
-            Toast.makeText(this, "Location permission is required.", Toast.LENGTH_SHORT).show()
-            showSettingsDialog()
+        val locationRequest = LocationRequest.create().apply {
+            priority = Priority.PRIORITY_HIGH_ACCURACY
+            interval = 10000 // 10 seconds
+            fastestInterval = 5000 // 5 seconds
         }
+
+        // Location callback to handle location updates
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                locationResult.lastLocation?.let { location ->
+                    latitude = location.latitude
+                    longitude = location.longitude
+                    Log.d(TAG, "Location Changed: Latitude: $latitude, Longitude: $longitude")
+                }
+            }
+        }
+
+        Log.d(TAG, "Requesting Location Updates")
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }
 
-    override fun onLocationChanged(location: Location) {
-        userLocation = location
-        latitude = location.latitude
-        longitude = location.longitude
-        Log.d(TAG, "Location Changed: Latitude: $latitude, Longitude: $longitude")
-    }
+    private val requestLocationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                startLocationUpdates()
+            } else {
+                Toast.makeText(this, "Location permission is required.", Toast.LENGTH_SHORT).show()
+                showSettingsDialog()
+            }
+        }
 
     private fun showSettingsDialog() {
         Log.d(TAG, "Location Result: ${ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)}")
@@ -158,40 +189,23 @@ class CreateGroupPage : AppCompatActivity(), LocationListener, ApiHelper {
             .setTitle("Enable Location Permission")
             .setMessage("To create a group, please enable location permissions in settings.")
             .setCancelable(false)
-            .setPositiveButton("Go to Settings") { _, _ ->
-                Log.d(TAG, "Going to settings")
-                val intent = Intent(
-                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.fromParts("package", packageName, null)
+            .setPositiveButton("OK") { _, _ ->
+                Log.d(TAG, "Requesting Permissions")
+                requestPermissions(
+                    arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ), 0
                 )
-                startActivity(intent)
             }
-            .setNegativeButton("Back") { _, _ -> finish() }
+            .setNegativeButton("Back") { _, _ ->
+                Toast.makeText(this, "Please grant location permissions", Toast.LENGTH_SHORT).show()
+                finish() }
             .show()
     }
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == 100) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, start location updates
-                startLocationUpdates()
-            } else {
-                // Permission denied, show a message or ask user to enable it
-                Toast.makeText(this, "Location permission is required to create a group.", Toast.LENGTH_SHORT).show()
-                showSettingsDialog()
-            }
-        }
-    }
     override fun onDestroy() {
         super.onDestroy()
+        fusedLocationClient.removeLocationUpdates {}
         // Stop location updates when the activity is destroyed to avoid unnecessary resource usage
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.removeUpdates(this)
-        }
     }
 }

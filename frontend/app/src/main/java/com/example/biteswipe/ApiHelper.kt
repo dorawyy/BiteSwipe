@@ -20,10 +20,15 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
+import java.io.InputStream
+import java.security.KeyStore
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
 interface ApiHelper {
-    val client: OkHttpClient
-        get() = OkHttpClient()
 
     /**
      * Retrieves the base API URL dynamically from `strings.xml`
@@ -55,6 +60,8 @@ interface ApiHelper {
         onSuccess: (JSONObject) -> Unit,
         onError: ((Int?, String?) -> Unit)? = null,
     ) {
+
+        val client = createTrustedClient(context)
 
         val url = if (isFullUrl) endpoint else getBaseUrl(context) + endpoint
 
@@ -113,6 +120,37 @@ interface ApiHelper {
             }
         })
     }
+
+    private fun createTrustedClient(context: Context): OkHttpClient {
+        // Load the self-signed certificate from the app's raw resources
+        val certificateFactory = CertificateFactory.getInstance("X.509")
+        val certInputStream: InputStream = context.resources.openRawResource(R.raw.server) // server.crt
+        val certificate = certificateFactory.generateCertificate(certInputStream) as X509Certificate
+
+        // Create a KeyStore containing our trusted certificates
+        val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
+        keyStore.load(null, null) // Initialize with no password
+        keyStore.setCertificateEntry("server", certificate) // Load the self-signed certificate into the KeyStore
+
+        // Create a TrustManager that trusts the self-signed certificate
+        val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        trustManagerFactory.init(keyStore)
+
+        val trustManagers = trustManagerFactory.trustManagers
+        if (trustManagers.isEmpty()) {
+            throw Exception("No TrustManagers found")
+        }
+
+        val sslContext = SSLContext.getInstance("TLS")
+        sslContext.init(null, trustManagers, null)
+
+        // Create and return a custom OkHttpClient that trusts the self-signed certificate
+        return OkHttpClient.Builder()
+            .sslSocketFactory(sslContext.socketFactory, trustManagers[0] as X509TrustManager)
+            .hostnameVerifier { _, _ -> true } // Disable hostname verification (optional, but useful for development)
+            .build()
+    }
+
 
     fun parseSessionData(json: JSONObject): sessionDetails {
         Log.d("JoinGroupPage", "Parsing session data: $json")
