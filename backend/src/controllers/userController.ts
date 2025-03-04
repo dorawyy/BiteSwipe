@@ -46,11 +46,8 @@ export class UserController {
 
     async createUser(req: Request, res: Response) {
         try {
-            const user = new UserModel({
-                email: req.body.email,
-                displayName: req.body.displayName
-            });
-            await user.save();
+            const { email, displayName } = req.body;
+            const user = await this.userService.createUser(email, displayName);
             res.status(201).json(user);
         } catch (error) {
             console.error(error);
