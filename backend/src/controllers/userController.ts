@@ -12,6 +12,9 @@ export class UserController {
         this.userService = userService;
         this.sessionManager = sessionManager;
         this.createUser = this.createUser.bind(this);
+
+        this.getUserByEmail = this.getUserByEmail.bind(this);   
+
         this.updateFCMToken = this.updateFCMToken.bind(this);
         this.getUserSessions = this.getUserSessions.bind(this);
         this.getUser = this.getUser.bind(this);
@@ -38,15 +41,13 @@ export class UserController {
             console.error('Error fetching user:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
+
     }
 
     async createUser(req: Request, res: Response) {
         try {
-            const user = new UserModel({
-                email: req.body.email,
-                displayName: req.body.displayName
-            });
-            await user.save();
+            const { email, displayName } = req.body;
+            const user = await this.userService.createUser(email, displayName);
             res.status(201).json(user);
         } catch (error) {
             console.error(error);
@@ -77,4 +78,24 @@ export class UserController {
             res.status(400).json({ error: 'Unable to fetch sessions' });
         }
     }
+
+
+    async getUserByEmail(req: Request, res: Response) {
+        try {
+            const { email } = req.params;
+            console.log(email);
+            const user = await this.userService.getUserByEmail(email);
+
+            res.status(200).json({
+                userId: user._id,
+                email: user.email,
+                displayName: user.displayName
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: error });
+        }
+    }
+    
+
 }

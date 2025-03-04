@@ -62,6 +62,7 @@ interface ApiHelper {
     ) {
 
         val client = createTrustedClient(context)
+
         val url = if (isFullUrl) endpoint else getBaseUrl(context) + endpoint
 
         val requestBody = jsonBody?.let {
@@ -119,6 +120,7 @@ interface ApiHelper {
             }
         })
     }
+
     private fun createTrustedClient(context: Context): OkHttpClient {
         // Load the self-signed certificate from the app's raw resources
         val certificateFactory = CertificateFactory.getInstance("X.509")
@@ -148,6 +150,7 @@ interface ApiHelper {
             .hostnameVerifier { _, _ -> true } // Disable hostname verification (optional, but useful for development)
             .build()
     }
+
 
     fun parseSessionData(json: JSONObject): sessionDetails {
         Log.d("JoinGroupPage", "Parsing session data: $json")

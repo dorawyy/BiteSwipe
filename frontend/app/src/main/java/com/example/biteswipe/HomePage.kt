@@ -23,7 +23,6 @@ class HomePage : AppCompatActivity() {
             insets
         }
 
-
         val tvLoggedInUser = findViewById<TextView>(R.id.welcomeText)
         val userEmail = intent.getStringExtra("userEmail") ?: ""
 

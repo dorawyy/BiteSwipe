@@ -32,7 +32,7 @@ export const sessionRoutes = (sessionManager: SessionManager) => {
             action: sessionController.inviteUser,
             validation: [
                 param('sessionId').notEmpty().withMessage('Session ID is required'),
-                body('userId').notEmpty().withMessage('User ID is required')
+                body('email').notEmpty().withMessage('Email is required')
             ]
         },
         {
@@ -55,11 +55,54 @@ export const sessionRoutes = (sessionManager: SessionManager) => {
         },
         {
             method: 'post',
-            route: '/sessions/:sessionId/participants',
+            route: '/sessions/:joinCode/participants',
             action: sessionController.joinSession,
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required'),
+                param('joinCode').notEmpty().withMessage('Session ID is required'),
                 body('userId').notEmpty().withMessage('User ID is required')
+            ]
+        },
+        {
+            method: 'get',
+            route: '/sessions/:sessionId/restaurants',
+            action: sessionController.getRestaurantsInSession,
+            validation: [
+                param('sessionId').notEmpty()
+            ]
+        },
+        {
+            method: 'post',
+            route: '/sessions/:sessionId/votes',
+            action: sessionController.sessionSwiped,
+            validation: [
+                param('sessionId').notEmpty(),
+                body('restaurantId').notEmpty(),
+                body('liked').isBoolean()
+            ]
+        },
+        {
+            method: 'post',
+            route: '/sessions/:sessionId/start',
+            action: sessionController.startSession,
+            validation: [
+                param('sessionId').notEmpty()
+            ]
+        },
+        {
+            method: 'post',
+            route: '/sessions/:sessionId/doneSwiping',
+            action: sessionController.userDoneSwiping,
+            validation: [
+                param('sessionId').notEmpty(),
+                body('userId').notEmpty()
+            ]
+        },
+        {
+            method: 'get',
+            route: '/sessions/:sessionId/result',
+            action: sessionController.getResultForSession,
+            validation: [
+                param('sessionId').notEmpty()   
             ]
         }
     ];

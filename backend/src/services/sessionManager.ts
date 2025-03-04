@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { StringExpressionOperatorReturningArray, Types } from 'mongoose';
 import { Session, ISession, SessionStatus } from '../models/session';
 import { RestaurantService } from './restaurantService';
 import mongoose, { ObjectId } from 'mongoose';
@@ -39,6 +39,8 @@ export class SessionManager {
 
             const restaurants = await this.restaurantService.addRestaurants(settings, '');
 
+            const joinCode = await this.generateUniqueJoinCode();
+
             const session = new Session({
                 creator: userId,
                 participants: [{
@@ -55,9 +57,12 @@ export class SessionManager {
                     totalVotes: 0,
                     positiveVotes: 0
                 })),
+                joinCode: joinCode,
                 status: 'CREATED' as SessionStatus,
                 expiresAt: expiresAt
             });
+
+            session.doneSwiping = [userId];
 
             await session.save();
             return session;
@@ -67,61 +72,152 @@ export class SessionManager {
         }
     }
 
-    async addPendingInvitation(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
-        const session = await Session.findById(sessionId);
-        if (!session) {
-            throw new Error('Session not found');
+    private async generateUniqueJoinCode(): Promise<string> {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let isUnique = false;
+        let joinCode = '';
+
+        while (!isUnique) {
+            joinCode = '';
+            for (let i = 0; i < 5; i++) {
+                joinCode += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+
+            const existingSession = await Session.findOne({ joinCode: joinCode, status: { $ne: 'COMPLETED'} });
+
+            isUnique = !existingSession;
         }
 
-        if (session.status === 'COMPLETED') {
-            throw new Error('Cannot invite users to a completed session');
-        }
+        return joinCode
+    }
 
-        // Check if user is already a participant
-        if (session.participants.some(p => p.userId.equals(userId))) {
-            throw new Error('User is already a participant');
-        }
+    
+    async sessionSwiped(sessionId: Types.ObjectId, userId: string, restaurantId: string, swipe: boolean) {
+        const userObjId = new mongoose.Types.ObjectId(userId);
 
-        // Check if user is already invited
-        if (session.pendingInvitations.some(id => id.equals(userId))) {
-            throw new Error('User has already been invited');
-        }
+        const session = await Session.findOneAndUpdate(
+            {
+                _id: sessionId,
+                status: { $eq: 'MATCHING' },
+                'participants.userId': userObjId,
+                'participants': {
+                    // TODO: BUG AFTER MVP; user should be able to revote in case of tie
+                    $not: {
+                        $elemMatch: {
+                            userId: userObjId,
+                            'preferences.restaurantId': restaurantId
+                        }
+                    }
+                }
+            },
+            {
+                $push: {
+                    'participants.$.preferences': {
+                        restaurantId: restaurantId,
+                        liked: swipe,
+                        timestamp: new Date()
+                    }
+                }
+            },
+            { new: true, runValidators: true }
+        );
 
-        session.pendingInvitations.push(userId);
-        await session.save();
+        if (!session){
+            const existingSession = await Session.findOne({
+                _id: sessionId,
+                'participants': {
+                    $elemMatch : {
+                        userId: userObjId,
+                        'preferences.restaurantId': restaurantId
+                    }
+                }
+            });
+
+            if (existingSession) {
+                throw new Error('User already swiped on this restaurant');
+            } else {
+                throw new Error('Session does not exist or already completed or user not in session');
+            }
+        }
         return session;
     }
 
-    async joinSession(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
-        const session = await Session.findById(sessionId);
-        if (!session) {
-            throw new Error('Session not found');
+    async addPendingInvitation(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
+        // Use findOneAndUpdate for atomic operation
+        const updatedSession = await Session.findOneAndUpdate(
+            {
+                _id: sessionId,
+                status: { $ne: 'COMPLETED' },
+                'participants.userId': { $ne: userId },
+                pendingInvitations: { $ne: userId }
+            },
+            {
+                $push: { 
+                    pendingInvitations: userId,
+                    doneSwiping: userId
+                }
+            },
+            { new: true, runValidators: true }
+        );
+    
+        // Handle failure cases
+        if (!updatedSession) {
+            // Find the session to determine the specific error
+            const session = await Session.findById(sessionId);
+            
+            if (!session) {
+                throw new Error('Session not found');
+            } else if (session.status === 'COMPLETED') {
+                throw new Error('Cannot invite users to a completed session');
+            } else if (session.participants.some(p => p.userId.equals(userId))) {
+                throw new Error('User is already a participant');
+            } else if (session.pendingInvitations.some(id => id.equals(userId))) {
+                throw new Error('User has already been invited');
+            } else {
+                throw new Error('Failed to invite user to session');
+            }
         }
+    
+        return updatedSession;
+    }
 
-        if (session.status === 'COMPLETED') {
-            throw new Error('Cannot join a completed session');
+    async joinSession(joinCode: String, userId: Types.ObjectId): Promise<ISession> {
+        // Use findOneAndUpdate for atomic operation
+        const updatedSession = await Session.findOneAndUpdate(
+            {
+                joinCode: joinCode,
+                status: { $ne: 'COMPLETED' },
+                pendingInvitations: userId,
+                'participants.userId': { $ne: userId }
+            },
+            {
+                $pull: { pendingInvitations: userId },
+                $push: {
+                    participants: {
+                        userId: userId,
+                        preferences: []
+                    }
+                }
+            },
+            { new: true, runValidators: true }
+        );
+    
+        if (!updatedSession) {
+            // Determine the specific reason for failure
+            const session = await Session.findOne({ joinCode: joinCode });
+            
+            if (!session) {
+                throw new Error('Session not found');
+            } else if (session.status === 'COMPLETED') {
+                throw new Error('Cannot join a completed session');
+            } else if (session.participants.some(p => p.userId.equals(userId))) {
+                throw new Error('User is already a participant');
+            } else {
+                throw new Error('User has not been invited to this session');
+            }
         }
-
-        // Check if user is already a participant
-        if (session.participants.some(p => p.userId.equals(userId))) {
-            throw new Error('User is already a participant');
-        }
-
-        // Check if user has been invited
-        const inviteIndex = session.pendingInvitations.findIndex(id => id.equals(userId));
-        if (inviteIndex === -1) {
-            throw new Error('User has not been invited to this session');
-        }
-
-        // Remove from pending invitations and add to participants
-        session.pendingInvitations.splice(inviteIndex, 1);
-        session.participants.push({
-            userId: userId,
-            preferences: []
-        });
-
-        await session.save();
-        return session;
+    
+        return updatedSession;
     }
 
     async getUserSessions(userId: Types.ObjectId): Promise<ISession[]> {
@@ -149,6 +245,7 @@ export class SessionManager {
                 const error = new Error('Session not found') as Error & { code?: string };
                 error.code = 'SESSION_NOT_FOUND';
                 throw error;
+
             }
             return session;
         } catch (error) {
@@ -158,56 +255,206 @@ export class SessionManager {
     }
 
     async rejectInvitation(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
-        const session = await Session.findById(sessionId);
-        if (!session) {
-            throw new Error('Session not found');
+        // Use findOneAndUpdate for atomic operation
+        const updatedSession = await Session.findOneAndUpdate(
+            {
+                _id: sessionId,
+                status: { $ne: 'COMPLETED' },
+                pendingInvitations: userId,
+                'participants.userId': { $ne: userId }
+            },
+            {
+                $pull: { pendingInvitations: userId }
+            },
+            { new: true, runValidators: true }
+        );
+    
+        // Handle failure cases
+        if (!updatedSession) {
+            // Find the session to determine the specific error
+            const session = await Session.findById(sessionId);
+            
+            if (!session) {
+                throw new Error('Session not found');
+            } else if (session.status === 'COMPLETED') {
+                throw new Error('Cannot reject invitation for a completed session');
+            } else if (session.participants.some(p => p.userId.equals(userId))) {
+                throw new Error('User is already a participant');
+            } else {
+                throw new Error('User has not been invited to this session');
+            }
         }
-
-        if (session.status === 'COMPLETED') {
-            throw new Error('Cannot reject invitation for a completed session');
-        }
-
-        // Check if user is already a participant
-        if (session.participants.some(p => p.userId.equals(userId))) {
-            throw new Error('User is already a participant');
-        }
-
-        // Check if user was invited
-        const inviteIndex = session.pendingInvitations.findIndex(id => id.equals(userId));
-        if (inviteIndex === -1) {
-            throw new Error('User has not been invited to this session');
-        }
-
-        // Remove from pending invitations
-        session.pendingInvitations.splice(inviteIndex, 1);
-        await session.save();
-        return session;
+    
+        return updatedSession;
     }
 
     async leaveSession(sessionId: Types.ObjectId, userId: Types.ObjectId): Promise<ISession> {
+        // Use findOneAndUpdate to perform an atomic operation
+        const updatedSession = await Session.findOneAndUpdate(
+            {
+                _id: sessionId,
+                status: { $ne: 'COMPLETED' },
+                creator: { $ne: userId },
+                'participants.userId': userId
+            },
+            {
+                $pull: { participants: { userId: userId } }
+            },
+            { new: true, runValidators: true }
+        );
+    
+        // Handle failure cases
+        if (!updatedSession) {
+            // Find the session to determine the specific error
+            const session = await Session.findById(sessionId);
+            
+            if (!session) {
+                throw new Error('Session not found');
+            } else if (session.status === 'COMPLETED') {
+                throw new Error('Cannot leave a completed session');
+            } else if (session.creator.equals(userId)) {
+                throw new Error('Session creator cannot leave the session');
+            } else {
+                throw new Error('User is not a participant in this session');
+            }
+        }
+    
+        return updatedSession;
+    }
+
+    async getRestaurantsInSession(sessionId: Types.ObjectId) {
+        
+        const session = await Session.findOne({
+            _id: sessionId
+        });
+
+        if (!session) {
+            throw new Error('Session not found or user is not in session');
+        } else {
+            const restaurantsIds = session.restaurants.map(r => r.restaurantId);
+            return this.restaurantService.getRestaurants(restaurantsIds);
+        }
+    }
+
+    async startSession(sessionId: Types.ObjectId, userId: string, time: number) {
+        const userObjId = new mongoose.Types.ObjectId(userId);
+
+        const session = await Session.findOneAndUpdate(
+            {
+                _id: sessionId,
+                creator: userObjId,
+                status: 'CREATED'
+            },
+            {
+                status: 'MATCHING'
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!session) {
+            throw new Error('Session does not exists or user is not the creator or session does not have created status');
+        }
+
+        //Schedule the session to be marked as completed after 10 minutes
+        setTimeout(async () => {
+            try {
+                await Session.findByIdAndUpdate(
+                    sessionId,
+                    { status: 'COMPLETED' },
+                    { runValidators: true }
+                );
+                console.log(`Session: ${sessionId} Completed !!`);
+            } catch (error) {
+                console.log(`Failed to complete session: ${sessionId}`);
+            }
+        }, (time || 5) * 60 * 1000);
+
+        return session;
+    }
+
+    async userDoneSwiping(sessionId: Types.ObjectId, userId: string) {
+        const userObjId = new mongoose.Types.ObjectId(userId);
+
+        const session = await Session.findOneAndUpdate(
+            {
+                _id: sessionId,
+                status: 'MATCHING',
+                'participants.userId': userObjId,
+            },
+            {
+                $pull: { doneSwiping: userObjId }
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!session) {
+            throw new Error('Session does not exists or user is not in session or user has already swiped');
+        }
+
+        if (session.doneSwiping.length === 0) {
+            session.status = 'COMPLETED';
+            await session.save();
+        }
+
+        return session;
+    }
+
+    async getResultForSession(sessionId: Types.ObjectId) {
         const session = await Session.findById(sessionId);
         if (!session) {
             throw new Error('Session not found');
         }
 
-        if (session.status === 'COMPLETED') {
-            throw new Error('Cannot leave a completed session');
+        // Only allow completed sessions or matching sessions where everyone is done swiping
+        if (session.status !== 'COMPLETED' && 
+            (session.status === 'MATCHING' && session.doneSwiping?.length !== 0)) {
+            throw new Error('Session is not completed');
         }
 
-        // Check if user is the creator
-        if (session.creator.equals(userId)) {
-            throw new Error('Session creator cannot leave the session');
+        if(session.status === 'MATCHING') {
+            // Mark the session as completed
+            session.status = 'COMPLETED';
+            await session.save();
         }
 
-        // Check if user is a participant
-        const participantIndex = session.participants.findIndex(p => p.userId.equals(userId));
-        if (participantIndex === -1) {
-            throw new Error('User is not a participant in this session');
+        const participants = session.participants;
+        
+        const restaurantVotes = new Map<string, number>();
+
+        for (const restaurant of session.restaurants) {
+            restaurantVotes.set(restaurant.restaurantId.toString(), 0);
         }
 
-        // Remove from participants
-        session.participants.splice(participantIndex, 1);
+        for (const participant of participants) {
+            for (const preference of participant.preferences) {
+                if (preference.liked) {
+                    const restaurantId = preference.restaurantId.toString();
+
+                    const currentCount = restaurantVotes.get(restaurantId) || 0;
+                    restaurantVotes.set(restaurantId, currentCount + 1);
+                }
+            }
+        }
+        
+        for (const restaurant of session.restaurants) {
+            const votes = restaurantVotes.get(restaurant.restaurantId.toString()) || 0;
+            restaurant.positiveVotes = votes;
+            restaurant.totalVotes = participants.length;
+            restaurant.score = votes / participants.length;
+        }
+
+
+        const winnerRestaurant = [...restaurantVotes.entries()].reduce((a, e) => e[1] > a[1] ? e : a, ['', 0]);
+        const winnerRestaurantId = winnerRestaurant[0];
+
+        session.finalSelection = {
+            restaurantId: new mongoose.Types.ObjectId(winnerRestaurantId),
+            selectedAt: new Date
+        };
+
         await session.save();
-        return session;
+
+        return this.restaurantService.getRestaurant(new mongoose.Types.ObjectId(winnerRestaurantId));
     }
+
 }

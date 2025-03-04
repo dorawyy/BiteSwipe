@@ -12,6 +12,7 @@ interface IParticipant {
 }
 
 interface ISession extends Document {
+    joinCode: string;
     creator: Types.ObjectId;
     participants: IParticipant[];
     pendingInvitations: Types.ObjectId[];
@@ -33,11 +34,13 @@ interface ISession extends Document {
         restaurantId: Types.ObjectId;
         selectedAt: Date;
     };
+    doneSwiping: Types.ObjectId[];
     createdAt: Date;
     expiresAt: Date;
 }
 
 const SessionSchema = new mongoose.Schema<ISession>({
+    joinCode: { type: String, unique: true, index: true },
     creator: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -61,7 +64,7 @@ const SessionSchema = new mongoose.Schema<ISession>({
     }],
     status: {
         type: String,
-        enum: ['CREATED', 'ACTIVE', 'MATCHING', 'COMPLETED'],
+        enum: ['CREATED', 'MATCHING', 'COMPLETED'],
         default: 'CREATED'
     },
     settings: {
@@ -88,6 +91,10 @@ const SessionSchema = new mongoose.Schema<ISession>({
         },
         selectedAt: Date
     },
+    doneSwiping: [{ 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User' 
+    }],
     createdAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, required: true }
 });

@@ -15,7 +15,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+
 import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -38,6 +40,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
     private lateinit var recyclerView: RecyclerView
     private lateinit var cuisineAdapter: CuisineAdapter
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
     private var latitude  = 0.0
     private var longitude = 0.0
     private lateinit var userId: String
@@ -72,7 +75,9 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
 
 //        Load global variables
         userId = intent.getStringExtra("userId") ?: ""
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
 
 
 //        Set up Cuisines
@@ -87,6 +92,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
             }
         }
         recyclerView.adapter = cuisineAdapter
+
 
 // Request location updates
         Log.d(TAG, "Checking permissions")
@@ -112,7 +118,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
             val searchRadius = findViewById<EditText>(R.id.searchRadiusText).text.toString()
 
             val endpoint = "/sessions/"
-            Toast.makeText(this, "latitude: $latitude, longitude: $longitude", Toast.LENGTH_LONG).show()
+
             val body = JSONObject().apply {
                 put("userId", userId)
                 put("latitude", latitude)
@@ -176,7 +182,6 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
                 showSettingsDialog()
             }
         }
-
 
     private fun showSettingsDialog() {
         Log.d(TAG, "Location Result: ${ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)}")

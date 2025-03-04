@@ -3,6 +3,7 @@ package com.example.biteswipe
 import android.content.Intent
 import android.os.Bundle
 import android.util.Base64
+
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
@@ -26,13 +27,16 @@ import java.util.UUID
 import kotlin.reflect.typeOf
 import kotlin.text.Charsets.UTF_8
 
+
 class LoginPage : AppCompatActivity(), ApiHelper {
 
     companion object {
         private const val TAG = "LoginPage"
+
 //        Yes this is hardcoded, will be thrown after MVP
         const val WEB_CLIENT_ID: String =
             "11247540626-v3khra1d42f8dtcb9eeoep79h0rusamq.apps.googleusercontent.com"
+
     }
 
 
@@ -42,7 +46,6 @@ class LoginPage : AppCompatActivity(), ApiHelper {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_page)
-
         val signInButton = findViewById<Button>(R.id.sign_in_button)
 
         signInButton.setOnClickListener {
@@ -169,6 +172,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
             }
         }
     }
+
 
     private fun handleFailure(e: GetCredentialException) {
         Log.e(TAG, "Failed to return credential", e)
