@@ -17,7 +17,7 @@ interface Restaurant {
 export class UserService {
     async createUser(email: string, displayName: string) {
         const existingUser = await this.getUserByEmail(email);
-        
+        console.log('existingUser:', existingUser);
         if (existingUser) {
             throw new Error('User already exists');
         }
@@ -29,6 +29,7 @@ export class UserService {
                 sessionHistory: [],
                 restaurantInteractions: []
             });
+            
             return await user.save();
         } catch (error) {
             console.error('Error creating user:', error);
