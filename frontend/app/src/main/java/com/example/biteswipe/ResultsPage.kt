@@ -53,7 +53,7 @@ class ResultsPage : AppCompatActivity(), ApiHelper {
                 val restaurant  = parseRestaurant(response.toString())
 
                 val restaurantName = restaurant.name
-                val imageResId = 0
+                val imageResId = restaurant.picture
                 val address = restaurant.address
                 val contact = restaurant.contactNumber
                 val price = restaurant.price

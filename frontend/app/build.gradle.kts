@@ -72,12 +72,15 @@ dependencies {
     implementation (libs.googleid)
     implementation("com.google.code.gson:gson:2.8.7")
     implementation(libs.play.services.location)
-    implementation(libs.androidx.uiautomator)
     implementation(libs.androidx.espresso.intents)
+    implementation(libs.androidx.uiautomator)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(libs.androidx.rules)
+
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
