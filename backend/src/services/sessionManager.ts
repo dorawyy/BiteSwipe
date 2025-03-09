@@ -1,7 +1,6 @@
-import { StringExpressionOperatorReturningArray, Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { Session, ISession, SessionStatus } from '../models/session';
 import { RestaurantService } from './restaurantService';
-import mongoose, { ObjectId } from 'mongoose';
 import { UserModel } from '../models/user';
 
 interface CustomError extends Error {
@@ -17,7 +16,7 @@ export class SessionManager {
     }
     
     async createSession(
-        userId: string | Types.ObjectId,
+        userId: string,
         settings: {
             latitude: number;
             longitude: number;
@@ -25,10 +24,11 @@ export class SessionManager {
         }
     ): Promise<ISession> {
         try {
+            // Validate and convert userId to ObjectId
             if (!Types.ObjectId.isValid(userId)) {
                 throw new Error('Invalid user ID format');
             }
-            const userObjectId = new Types.ObjectId(userId);
+            const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
             
             // Check if user exists
             const user = await UserModel.findById(userObjectId);
@@ -56,12 +56,14 @@ export class SessionManager {
                 settings: {
                     location: settings
                 },
-                restaurants: restaurants.map(r => ({
-                    restaurantId: r._id,
-                    score: 0,
-                    totalVotes: 0,
-                    positiveVotes: 0
-                })),
+                restaurants: restaurants.map(r => {
+                    return {
+                        restaurantId: r._id,
+                        score: 0,
+                        totalVotes: 0,
+                        positiveVotes: 0
+                    };
+                }),
                 joinCode: joinCode,
                 status: 'CREATED' as SessionStatus,
                 expiresAt: expiresAt
@@ -97,12 +99,16 @@ export class SessionManager {
     }
 
     
-    async sessionSwiped(sessionId: Types.ObjectId, userId: string, restaurantId: string, swipe: boolean) {
-        const userObjId = new mongoose.Types.ObjectId(userId);
+    async sessionSwiped(sessionId: string, userId: string, restaurantId: string, swipe: boolean) {
+        if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
+            throw new Error('Invalid ID format');
+        }
+        const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+        const userObjId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
 
         const session = await Session.findOneAndUpdate(
             {
-                _id: sessionId,
+                _id: sessionObjId,
                 status: { $eq: 'MATCHING' },
                 'participants.userId': userObjId,
                 'participants': {
@@ -129,7 +135,7 @@ export class SessionManager {
 
         if (!session){
             const existingSession = await Session.findOne({
-                _id: sessionId,
+                _id: sessionObjId,
                 'participants': {
                     $elemMatch : {
                         userId: userObjId,
@@ -147,14 +153,13 @@ export class SessionManager {
         return session;
     }
 
-    async addPendingInvitation(sessionId: string | Types.ObjectId, userId: string | Types.ObjectId): Promise<ISession> {
+    async addPendingInvitation(sessionId: string, userId: string): Promise<ISession> {
         if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
             throw new Error('Invalid ID format');
         }
-        const sessionObjectId = new Types.ObjectId(sessionId);
-        const userObjectId = new Types.ObjectId(userId);
+        const sessionObjectId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+        const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
 
-        // Use findOneAndUpdate for atomic operation
         const updatedSession = await Session.findOneAndUpdate(
             {
                 _id: sessionObjectId,
@@ -192,13 +197,12 @@ export class SessionManager {
         return updatedSession;
     }
 
-    async joinSession(joinCode: String, userId: string | Types.ObjectId): Promise<ISession> {
+    async joinSession(joinCode: String, userId: string): Promise<ISession> {
         if (!Types.ObjectId.isValid(userId)) {
             throw new Error('Invalid user ID format');
         }
-        const userObjectId = new Types.ObjectId(userId);
+        const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
 
-        // Use findOneAndUpdate for atomic operation
         const updatedSession = await Session.findOneAndUpdate(
             {
                 joinCode: joinCode,
@@ -236,12 +240,12 @@ export class SessionManager {
         return updatedSession;
     }
 
-    async getUserSessions(userId: string | Types.ObjectId): Promise<ISession[]> {
+    async getUserSessions(userId: string): Promise<ISession[]> {
         try {
             if (!Types.ObjectId.isValid(userId)) {
                 throw new Error('Invalid user ID format');
             }
-            const userObjectId = new Types.ObjectId(userId);
+            const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
             const sessions = await Session.find({
                 $or: [
                     { creator: userObjectId },
@@ -258,14 +262,18 @@ export class SessionManager {
         }
     }
 
-    async getSession(sessionId: Types.ObjectId): Promise<ISession> {
+    async getSession(sessionId: string): Promise<ISession> {
         try {
-            const session = await Session.findById(sessionId);
+            if (!Types.ObjectId.isValid(sessionId)) {
+                throw new Error('Invalid session ID format');
+            }
+            const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+            
+            const session = await Session.findById(sessionObjId);
             if (!session) {
                 const error = new Error('Session not found') as Error & { code?: string };
                 error.code = 'SESSION_NOT_FOUND';
                 throw error;
-
             }
             return session;
         } catch (error) {
@@ -274,14 +282,13 @@ export class SessionManager {
         }
     }
 
-    async rejectInvitation(sessionId: string | Types.ObjectId, userId: string | Types.ObjectId): Promise<ISession> {
+    async rejectInvitation(sessionId: string, userId: string): Promise<ISession> {
         if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
             throw new Error('Invalid ID format');
         }
-        const sessionObjectId = new Types.ObjectId(sessionId);
-        const userObjectId = new Types.ObjectId(userId);
+        const sessionObjectId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+        const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
 
-        // Use findOneAndUpdate for atomic operation
         const updatedSession = await Session.findOneAndUpdate(
             {
                 _id: sessionObjectId,
@@ -314,12 +321,12 @@ export class SessionManager {
         return updatedSession;
     }
 
-    async leaveSession(sessionId: string | Types.ObjectId, userId: string | Types.ObjectId): Promise<ISession> {
+    async leaveSession(sessionId: string, userId: string): Promise<ISession> {
         if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
             throw new Error('Invalid ID format');
         }
-        const sessionObjectId = new Types.ObjectId(sessionId);
-        const userObjectId = new Types.ObjectId(userId);
+        const sessionObjectId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+        const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
 
         // Use findOneAndUpdate to perform an atomic operation
         const updatedSession = await Session.findOneAndUpdate(
@@ -354,10 +361,15 @@ export class SessionManager {
         return updatedSession;
     }
 
-    async getRestaurantsInSession(sessionId: Types.ObjectId) {
+    async getRestaurantsInSession(sessionId: string) {
         try {
+            if (!Types.ObjectId.isValid(sessionId)) {
+                throw new Error('Invalid session ID format');
+            }
+            const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+            
             const session = await Session.findOne({
-                _id: sessionId
+                _id: sessionObjId
             });
 
             if (!session) {
@@ -374,12 +386,16 @@ export class SessionManager {
         }
     }
 
-    async startSession(sessionId: Types.ObjectId, userId: string, time: number) {
-        const userObjId = new mongoose.Types.ObjectId(userId);
+    async startSession(sessionId: string, userId: string, time: number) {
+        if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
+            throw new Error('Invalid ID format');
+        }
+        const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+        const userObjId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
 
         const session = await Session.findOneAndUpdate(
             {
-                _id: sessionId,
+                _id: sessionObjId,
                 creator: userObjId,
                 status: 'CREATED'
             },
@@ -410,12 +426,16 @@ export class SessionManager {
         return session;
     }
 
-    async userDoneSwiping(sessionId: Types.ObjectId, userId: string) {
-        const userObjId = new mongoose.Types.ObjectId(userId);
+    async userDoneSwiping(sessionId: string, userId: string) {
+        if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
+            throw new Error('Invalid ID format');
+        }
+        const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+        const userObjId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
 
         const session = await Session.findOneAndUpdate(
             {
-                _id: sessionId,
+                _id: sessionObjId,
                 status: 'MATCHING',
                 'participants.userId': userObjId,
             },
@@ -437,8 +457,13 @@ export class SessionManager {
         return session;
     }
 
-    async getResultForSession(sessionId: Types.ObjectId) {
-        const session = await Session.findById(sessionId);
+    async getResultForSession(sessionId: string) {
+        if (!Types.ObjectId.isValid(sessionId)) {
+            throw new Error('Invalid session ID format');
+        }
+        const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+        
+        const session = await Session.findById(sessionObjId);
         if (!session) {
             throw new Error('Session not found');
         }
