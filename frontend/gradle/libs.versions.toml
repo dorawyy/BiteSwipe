@@ -21,6 +21,7 @@ animationGraphicsAndroid = "1.7.8"
 playServicesLocation = "21.3.0"
 espressoIntents = "3.6.1"
 uiautomator = "2.3.0"
+espressoContrib = "3.6.1"
 
 
 [libraries]
@@ -55,6 +56,7 @@ androidx-animation-graphics-android = { group = "androidx.compose.animation", na
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 androidx-espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+androidx-espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
 
 
 [plugins]

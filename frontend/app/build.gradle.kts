@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.androidx.espresso.intents)
     implementation(libs.androidx.uiautomator)
+    implementation(libs.androidx.espresso.contrib)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
