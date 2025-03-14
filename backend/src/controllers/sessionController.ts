@@ -3,14 +3,18 @@ import { Types } from 'mongoose';
 import { SessionManager } from '../services/sessionManager';
 import { NotificationService } from '../services/notificationService';
 import { UserModel } from '../models/user';
+import { MongoDocument } from '../models/appTypes';
+import { UserService } from '../services/userService';
 
 export class SessionController {
     private sessionManager: SessionManager;
     private notificationService: NotificationService;
+    private userService: UserService;
 
-    constructor(sessionManager: SessionManager) {
+    constructor(sessionManager: SessionManager, userService: UserService) {
         this.sessionManager = sessionManager;
         this.notificationService = new NotificationService();
+        this.userService = userService;
 
         // Bind methods
         this.getSession = this.getSession.bind(this);
@@ -85,20 +89,23 @@ export class SessionController {
         try {
             const sessionId = req.params.sessionId;
             const { email } = req.body;
-
-            const user = await UserModel.findOne({ email });
+            const user = await this.userService.getUserByEmail(String(email)) as unknown as MongoDocument;
             
             if (!user) {
                 return res.status(404).json({ error: 'No user found with this email'});
             }
             
+            if (!user._id) {
+                return res.status(400).json({ error: 'User has no ID' });
+            }
+
             const session = await this.sessionManager.addPendingInvitation(
                 sessionId,
                 user._id.toString()
             );
 
             // Send notification to invited user
-            if (user?.fcmToken) {
+            if (user.fcmToken && typeof user.fcmToken === 'string') {
                 await this.notificationService.sendNotification(
                     user.fcmToken,
                     'Session Invitation',
@@ -107,9 +114,9 @@ export class SessionController {
             }
 
             res.json(session);
-        } catch (error) {
-            console.error('Error inviting user:', error);
+        } catch (error: unknown) {
             if (error instanceof Error) {
+                console.error('Error inviting user:', error);
                 if (error.message.includes('already')) {
                     return res.status(400).json({ error: error.message });
                 }
@@ -125,7 +132,7 @@ export class SessionController {
 
             const session = await this.sessionManager.joinSession(
                 joinCode,
-                userId
+                String(userId)
             );
 
             res.json(session);
@@ -204,7 +211,7 @@ export class SessionController {
             const { sessionId } = req.params;
             const { userId, restaurantId, liked} = req.body;
 
-            const session = await this.sessionManager.sessionSwiped(sessionId, userId, restaurantId, liked);
+            const session = await this.sessionManager.sessionSwiped(sessionId, String(userId), String(restaurantId), Boolean(liked));
 
             res.json({ success: true, session: session._id });
         } catch (error) {
@@ -219,7 +226,7 @@ export class SessionController {
             const { sessionId } = req.params;
             const { userId, time } = req.body;
 
-            const session = await this.sessionManager.startSession(sessionId, userId, Number(time));
+            const session = await this.sessionManager.startSession(sessionId, String(userId), Number(time));
 
             res.json({ success: true, session: session._id });
         } catch (error) {
@@ -234,7 +241,7 @@ export class SessionController {
             const { sessionId } = req.params;
             const { userId } = req.body;
 
-            const session = await this.sessionManager.userDoneSwiping(sessionId, userId);
+            const session = await this.sessionManager.userDoneSwiping(sessionId, String(userId));
 
             res.json({ success: true, session: session._id });
         } catch (error) {

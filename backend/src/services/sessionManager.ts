@@ -2,12 +2,14 @@ import mongoose, { Types } from 'mongoose';
 import { Session, ISession, SessionStatus } from '../models/session';
 import { RestaurantService } from './restaurantService';
 import { UserModel } from '../models/user';
+import crypto from 'crypto';
 
 interface CustomError extends Error {
     code?: string;
 }
 
 export class SessionManager {
+    private readonly joinCodeCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
     private restaurantService: RestaurantService;
 
@@ -28,7 +30,7 @@ export class SessionManager {
             if (!Types.ObjectId.isValid(userId)) {
                 throw new Error('Invalid user ID format');
             }
-            const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
+            const userObjectId = Types.ObjectId.createFromHexString(userId) as mongoose.Types.ObjectId;
             
             // Check if user exists
             const user = await UserModel.findById(userObjectId);
@@ -42,7 +44,7 @@ export class SessionManager {
             const expiresAt = new Date();
             expiresAt.setHours(expiresAt.getHours() + 24);
 
-            const restaurants = await this.restaurantService.addRestaurants(settings, '');
+            const restaurants = await this.restaurantService.addRestaurants(settings, '') as {_id: string}[];
 
             const joinCode = await this.generateUniqueJoinCode();
 
@@ -64,9 +66,9 @@ export class SessionManager {
                         positiveVotes: 0
                     };
                 }),
-                joinCode: joinCode,
+                joinCode,
                 status: 'CREATED' as SessionStatus,
-                expiresAt: expiresAt
+                expiresAt
             });
 
             session.doneSwiping = [userObjectId];
@@ -80,17 +82,17 @@ export class SessionManager {
     }
 
     private async generateUniqueJoinCode(): Promise<string> {
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let isUnique = false;
         let joinCode = '';
 
         while (!isUnique) {
             joinCode = '';
             for (let i = 0; i < 5; i++) {
-                joinCode += characters.charAt(Math.floor(Math.random() * characters.length));
+                const randomIndex = crypto.randomInt(0, this.joinCodeCharacters.length);
+                joinCode += this.joinCodeCharacters.charAt(randomIndex);
             }
 
-            const existingSession = await Session.findOne({ joinCode: joinCode, status: { $ne: 'COMPLETED'} });
+            const existingSession = await Session.findOne({ joinCode, status: { $ne: 'COMPLETED'} });
 
             isUnique = !existingSession;
         }
@@ -100,11 +102,12 @@ export class SessionManager {
 
     
     async sessionSwiped(sessionId: string, userId: string, restaurantId: string, swipe: boolean) {
-        if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
+        if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId) || !Types.ObjectId.isValid(restaurantId)) {
             throw new Error('Invalid ID format');
         }
-        const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
-        const userObjId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
+        const sessionObjId = Types.ObjectId.createFromHexString(sessionId) as mongoose.Types.ObjectId;
+        const userObjId = Types.ObjectId.createFromHexString(userId) as mongoose.Types.ObjectId;
+        const restaurantObjId = Types.ObjectId.createFromHexString(restaurantId) as mongoose.Types.ObjectId;
 
         const session = await Session.findOneAndUpdate(
             {
@@ -116,7 +119,7 @@ export class SessionManager {
                     $not: {
                         $elemMatch: {
                             userId: userObjId,
-                            'preferences.restaurantId': restaurantId
+                            'preferences.restaurantId': restaurantObjId
                         }
                     }
                 }
@@ -124,7 +127,7 @@ export class SessionManager {
             {
                 $push: {
                     'participants.$.preferences': {
-                        restaurantId: restaurantId,
+                        restaurantId: restaurantObjId,
                         liked: swipe,
                         timestamp: new Date()
                     }
@@ -139,7 +142,7 @@ export class SessionManager {
                 'participants': {
                     $elemMatch : {
                         userId: userObjId,
-                        'preferences.restaurantId': restaurantId
+                        'preferences.restaurantId': restaurantObjId
                     }
                 }
             });
@@ -157,8 +160,8 @@ export class SessionManager {
         if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
             throw new Error('Invalid ID format');
         }
-        const sessionObjectId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
-        const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
+        const sessionObjectId = Types.ObjectId.createFromHexString(sessionId) as Types.ObjectId;
+        const userObjectId = Types.ObjectId.createFromHexString(userId) as Types.ObjectId;
 
         const updatedSession = await Session.findOneAndUpdate(
             {
@@ -201,11 +204,11 @@ export class SessionManager {
         if (!Types.ObjectId.isValid(userId)) {
             throw new Error('Invalid user ID format');
         }
-        const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
+        const userObjectId = Types.ObjectId.createFromHexString(userId) as mongoose.Types.ObjectId;
 
         const updatedSession = await Session.findOneAndUpdate(
             {
-                joinCode: joinCode,
+                joinCode,
                 status: { $ne: 'COMPLETED' },
                 pendingInvitations: userObjectId,
                 'participants.userId': { $ne: userObjectId }
@@ -224,7 +227,7 @@ export class SessionManager {
     
         if (!updatedSession) {
             // Determine the specific reason for failure
-            const session = await Session.findOne({ joinCode: joinCode });
+            const session = await Session.findOne({ joinCode });
             
             if (!session) {
                 throw new Error('Session not found');
@@ -245,7 +248,7 @@ export class SessionManager {
             if (!Types.ObjectId.isValid(userId)) {
                 throw new Error('Invalid user ID format');
             }
-            const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
+            const userObjectId = Types.ObjectId.createFromHexString(userId) as mongoose.Types.ObjectId;
             const sessions = await Session.find({
                 $or: [
                     { creator: userObjectId },
@@ -267,7 +270,7 @@ export class SessionManager {
             if (!Types.ObjectId.isValid(sessionId)) {
                 throw new Error('Invalid session ID format');
             }
-            const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+            const sessionObjId = Types.ObjectId.createFromHexString(sessionId) as mongoose.Types.ObjectId;
             
             const session = await Session.findById(sessionObjId);
             if (!session) {
@@ -286,8 +289,8 @@ export class SessionManager {
         if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
             throw new Error('Invalid ID format');
         }
-        const sessionObjectId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
-        const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
+        const sessionObjectId = Types.ObjectId.createFromHexString(sessionId) as Types.ObjectId;
+        const userObjectId = Types.ObjectId.createFromHexString(userId) as Types.ObjectId;
 
         const updatedSession = await Session.findOneAndUpdate(
             {
@@ -325,8 +328,8 @@ export class SessionManager {
         if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
             throw new Error('Invalid ID format');
         }
-        const sessionObjectId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
-        const userObjectId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
+        const sessionObjectId = Types.ObjectId.createFromHexString(sessionId) as Types.ObjectId;
+        const userObjectId = Types.ObjectId.createFromHexString(userId) as Types.ObjectId;
 
         // Use findOneAndUpdate to perform an atomic operation
         const updatedSession = await Session.findOneAndUpdate(
@@ -366,7 +369,7 @@ export class SessionManager {
             if (!Types.ObjectId.isValid(sessionId)) {
                 throw new Error('Invalid session ID format');
             }
-            const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+            const sessionObjId = Types.ObjectId.createFromHexString(sessionId) as mongoose.Types.ObjectId;
             
             const session = await Session.findOne({
                 _id: sessionObjId
@@ -390,8 +393,8 @@ export class SessionManager {
         if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
             throw new Error('Invalid ID format');
         }
-        const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
-        const userObjId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
+        const sessionObjId = Types.ObjectId.createFromHexString(sessionId) as mongoose.Types.ObjectId;
+        const userObjId = Types.ObjectId.createFromHexString(userId) as mongoose.Types.ObjectId;
 
         const session = await Session.findOneAndUpdate(
             {
@@ -430,8 +433,8 @@ export class SessionManager {
         if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId)) {
             throw new Error('Invalid ID format');
         }
-        const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
-        const userObjId = new Types.ObjectId(userId) as unknown as mongoose.Types.ObjectId;
+        const sessionObjId = Types.ObjectId.createFromHexString(sessionId) as mongoose.Types.ObjectId;
+        const userObjId = Types.ObjectId.createFromHexString(userId) as mongoose.Types.ObjectId;
 
         const session = await Session.findOneAndUpdate(
             {
@@ -461,7 +464,7 @@ export class SessionManager {
         if (!Types.ObjectId.isValid(sessionId)) {
             throw new Error('Invalid session ID format');
         }
-        const sessionObjId = new Types.ObjectId(sessionId) as unknown as mongoose.Types.ObjectId;
+        const sessionObjId = Types.ObjectId.createFromHexString(sessionId) as mongoose.Types.ObjectId;
         
         const session = await Session.findById(sessionObjId);
         if (!session) {

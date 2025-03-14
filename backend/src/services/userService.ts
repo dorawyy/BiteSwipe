@@ -1,18 +1,6 @@
 import { UserModel } from '../models/user';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
-interface Location {
-    latitude: number,
-    longitude: number,
-    radius: number
-}
-
-interface Restaurant {
-    id: String,
-    name: String,
-    location: Location,
-    rating: Number
-}
 
 export class UserService {
     async createUser(email: string, displayName: string) {  
@@ -37,12 +25,13 @@ export class UserService {
         }
     }
 
-    async getUserById(userId: string | Types.ObjectId) {
+    async getUserById(userId: string) {
         try {
             if (!Types.ObjectId.isValid(userId)) {
                 throw new Error('Invalid user ID format');
             }
-            return await UserModel.findById(new Types.ObjectId(userId))
+            const userObjectId = Types.ObjectId.createFromHexString(userId) as unknown as Types.ObjectId;
+            return await UserModel.findById(userObjectId)
                 .select('-__v') // Exclude version field
                 .lean(); // Convert to plain JavaScript object
         } catch (error) {
@@ -60,12 +49,14 @@ export class UserService {
         }
     }
 
-    async updateFCMToken(userId: string | Types.ObjectId, fcmToken: string) {
+    async updateFCMToken(userId: string, fcmToken: string) {
         try {
             if (!Types.ObjectId.isValid(userId)) {
                 throw new Error('Invalid user ID format');
             }
-            const result = await UserModel.findByIdAndUpdate(new Types.ObjectId(userId), { fcmToken }, { new: true })
+
+            const userObjectId = Types.ObjectId.createFromHexString(userId) as mongoose.Types.ObjectId;
+            const result = await UserModel.findByIdAndUpdate(userObjectId, { fcmToken }, { new: true })
                 .select('-__v')
                 .lean();
             if (!result) {

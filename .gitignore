@@ -24,3 +24,5 @@ test.env
 */codacy/.env
 backend/scripts/codacy/.env
 backend/scripts/codacy/*_analysis*.json
+.*frules
+backend/.zsh_history
