@@ -1,6 +1,5 @@
 package com.example.biteswipe
 
-import android.content.Intent
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.Espresso.onView
@@ -30,9 +29,9 @@ import org.junit.Rule
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4::class)
-class JoinGroupTest {
+class CreateGroupTest {
     @get:Rule
-    val activityRule = ActivityScenarioRule(JoinGroupPage::class.java)
+    val activityRule = ActivityScenarioRule(CreateGroupPage::class.java)
 
     @Before
     fun setup() {
@@ -44,21 +43,8 @@ class JoinGroupTest {
         Intents.release()
     }
 
-
-    //    TODO: Correct values here
-    private fun startPage() {
-        val intent = Intent().apply {
-            putExtra("userId", "123456789")
-            putExtra("userEmail", "biteswiped@gmail.com")
-        }
-        ActivityScenario.launch<JoinGroupPage>(intent)
-    }
-
     @Test
     fun workingUI () {
-//        initialize page
-        startPage()
-
         // Title
         onView(withId(R.id.titleText)).check(matches(isDisplayed()))
 //      Join Group requirements
@@ -72,10 +58,6 @@ class JoinGroupTest {
 
     @Test
     fun testJoinButton() {
-//        initialize page
-        startPage()
-
-
 //        input valid group code TODO: Put valid group code here
         onView(withId(R.id.group_id_input)).perform(typeText("123456"), closeSoftKeyboard())
         onView(withId(R.id.join_button)).perform(click())
@@ -86,9 +68,6 @@ class JoinGroupTest {
 
     @Test
     fun testBadCode() {
-//        initialize page
-        startPage()
-
         val scenario = ActivityScenario.launch(JoinGroupPage::class.java)
         onView(withId(R.id.group_id_input)).perform(typeText("12345"), closeSoftKeyboard())
         onView(withId(R.id.join_button)).perform(click())

@@ -1,6 +1,8 @@
 package com.example.biteswipe
 
+import android.content.Intent
 import androidx.recyclerview.widget.RecyclerView
+import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.swipeLeft
 import androidx.test.espresso.action.ViewActions.swipeRight
@@ -24,8 +26,20 @@ class SwipeTest {
     @get:Rule
     val activityRule = ActivityScenarioRule(MatchingPage::class.java)
 
+    //    TODO: Correct values here
+    private fun startPage() {
+        val intent = Intent().apply {
+            putExtra("userId", "123456789")
+            putExtra("sessionId", "abcdef")
+        }
+        ActivityScenario.launch<MatchingPage>(intent)
+    }
+
+
     @Test
     fun workingUI () {
+//        initialize page
+        startPage()
 //        recycler view exists
         onView(withId(R.id.recycler_view)).check(matches(isDisplayed()))
 //      finish text invisible
@@ -36,6 +50,8 @@ class SwipeTest {
 
     @Test
     fun swipeLeftTest() {
+//        initialize page
+        startPage()
         var numCards = 0
         onView(withId(R.id.recycler_view)).check { view, _ ->
             val recyclerView = view as RecyclerView
@@ -62,6 +78,9 @@ class SwipeTest {
 
     @Test
     fun swipeRightTest() {
+//        initialize page
+        startPage()
+
         var numCards = 0
         onView(withId(R.id.recycler_view)).check { view, _ ->
             val recyclerView = view as RecyclerView
@@ -87,6 +106,8 @@ class SwipeTest {
 
     @Test
     fun finishSwipingTest() {
+//        initialize page
+        startPage()
         var numCards = 0
         onView(withId(R.id.recycler_view)).check { view, _ ->
             val recyclerView = view as RecyclerView
