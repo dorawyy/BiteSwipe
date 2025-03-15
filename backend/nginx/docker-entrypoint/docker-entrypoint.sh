@@ -80,12 +80,37 @@ fi
 
 # Set default PORT if not provided
 PORT=${PORT:-3000}
-echo "Configuring Nginx to proxy to app:$PORT"
+echo "Creating Nginx configuration for app:$PORT"
 
-# Create a temporary file with environment variables substituted
-envsubst '$PORT' < /etc/nginx/conf.d/default.conf > /tmp/default.conf.temp
-cat /tmp/default.conf.temp > /etc/nginx/conf.d/default.conf
-rm /tmp/default.conf.temp
+# Create the default.conf file dynamically
+cat > /etc/nginx/conf.d/default.conf << 'EOF'
+server { 
+    listen 443 ssl default_server; 
+    
+    ssl_certificate /etc/ssl/selfsigned.crt; 
+    ssl_certificate_key /etc/ssl/selfsigned.key; 
+    ssl_protocols TLSv1.2 TLSv1.3; 
+    ssl_ciphers HIGH:!aNULL:!MD5; 
+    
+    location / { 
+        proxy_pass http://app:${PORT}; 
+        proxy_set_header Host $host; 
+        proxy_set_header X-Real-IP $remote_addr; 
+        proxy_set_header X-Forwarded-Proto https; 
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 
+    } 
+}
+
+server { 
+    listen 80 default_server; 
+    return 301 https://$host$request_uri; 
+}
+EOF
+
+# Replace ${PORT} with actual value
+sed -i "s/\${PORT}/$PORT/g" /etc/nginx/conf.d/default.conf
+
+echo "Nginx configuration created successfully."
 
 # Execute the original NGINX docker-entrypoint with the provided arguments
 exec /docker-entrypoint.sh "$@"

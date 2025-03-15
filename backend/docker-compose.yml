@@ -61,7 +61,6 @@ services:
       - "443:443"
       - "80:80"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/docker-entrypoint/docker-entrypoint.sh:/docker-entrypoint-custom.sh
       - ./nginx/certs:/etc/ssl
     entrypoint: ["/docker-entrypoint-custom.sh"]
