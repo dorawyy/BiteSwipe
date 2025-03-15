@@ -66,6 +66,8 @@ services:
       - ./nginx/certs:/etc/ssl
     entrypoint: ["/docker-entrypoint-custom.sh"]
     command: ["nginx", "-g", "daemon off;"]
+    environment:
+      - PORT=${PORT}
     networks:
       - app_network
     depends_on:

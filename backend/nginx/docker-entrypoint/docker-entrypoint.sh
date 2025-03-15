@@ -78,5 +78,14 @@ EOF
     fi
 fi
 
+# Set default PORT if not provided
+PORT=${PORT:-3000}
+echo "Configuring Nginx to proxy to app:$PORT"
+
+# Create a temporary file with environment variables substituted
+envsubst '$PORT' < /etc/nginx/conf.d/default.conf > /tmp/default.conf.temp
+cat /tmp/default.conf.temp > /etc/nginx/conf.d/default.conf
+rm /tmp/default.conf.temp
+
 # Execute the original NGINX docker-entrypoint with the provided arguments
 exec /docker-entrypoint.sh "$@"

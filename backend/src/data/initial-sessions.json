@@ -2,6 +2,7 @@
   "_id": {
     "$oid": "67c19de1087610838ead0e73"
   },
+  "joinCode": "ABC123",
   "creator": {
     "$oid": "67c0106e9be4429eab3392b7"
   },
@@ -16,6 +17,7 @@
       "preferences": []
     }
   ],
+  "pendingInvitations": [],
   "status": "CREATED",
   "settings": {
     "location": {
@@ -114,6 +116,7 @@
       }
     }
   ],
+  "doneSwiping": [],
   "createdAt": {
     "$date": "2025-02-28T11:28:33.803Z"
   },
