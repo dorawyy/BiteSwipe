@@ -1,6 +1,6 @@
 import { Restaurant } from '../models/restaurant';
-import { FilterQuery, Types } from 'mongoose';
-import { GooglePlacesService } from './externalAPIs/googleMaps';
+import { Types } from 'mongoose';
+import { GooglePlacesService, GooglePlaceDetails } from './externalAPIs/googleMaps';
 
 export class RestaurantService {
 
@@ -10,14 +10,18 @@ export class RestaurantService {
         try {
             const places = await this.googlePlacesService.searchNearby(location.latitude, location.longitude, location.radius, keyword);
 
-            const savedRestaurants = [];
+            // Properly type the savedRestaurants array to fix the 'never' type issue
+            const savedRestaurants: unknown[] = [];
             for (const place of places) {
 
                 const restaurant_exist = await Restaurant.findOne({ 'sourceData.googlePlaceId': place.place_id });
 
                 if(!restaurant_exist) {
-                    const details = await this.googlePlacesService.getPlaceDetails(place.place_id);
-                
+                    const details: GooglePlaceDetails | null = await this.googlePlacesService.getPlaceDetails(place.place_id);
+                    if(!details) {
+                        console.error(`Failed to get details for place ID: ${place.place_id}`);
+                        continue;
+                    }
                     const primaryImage = details.photos_url && details.photos_url.length > 0 ? details.photos_url[0] : '';
                     const galleryImages = details.photos_url && details.photos_url.length > 1 ? details.photos_url.slice(1) : [];
 
@@ -33,8 +37,8 @@ export class RestaurantService {
                             }
                         },
                         contact: {
-                            phone: details.formatted_phone_number || ' ',
-                            website: details.website || ' '
+                            phone: details.formatted_phone_number ?? ' ',
+                            website: details.website ?? ' '
                         },
                         menu: {
                             categories: []
@@ -43,12 +47,14 @@ export class RestaurantService {
                             primary: primaryImage,
                             gallery: galleryImages
                         },
-                        priceLevel: details.price_level || 0,
-                        rating: details.rating || 0,
-                        openingHours: details.opening_hours ? {
-                            openNow: details.opening_hours.open_now,
-                            weekdayText: details.opening_hours.weekday_text
-                        } : undefined,
+                        priceLevel: details.price_level ?? 0,
+                        rating: details.rating ?? 0,
+                        openingHours: details.opening_hours
+                            ? {
+                                openNow: details.opening_hours.open_now,
+                                weekdayText: details.opening_hours.weekday_text
+                            }
+                            : undefined,
                         sourceData: {
                             googlePlaceId: place.place_id,
                             lastUpdated: new Date()

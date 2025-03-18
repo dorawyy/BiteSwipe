@@ -1,0 +1,110 @@
+name: Run Tests with Coverage
+
+on:
+  pull_request:
+    branches:
+      - main
+
+# Define permissions needed for GitHub API operations
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      # Install dependencies
+      - name: Install dependencies
+        run: cd backend && npm install
+
+      # Run tests and generate coverage
+      - name: Run tests with coverage
+        id: test_coverage
+        run: |
+          cd backend && npm run test:coverage -- --coverageReporters="json-summary" "text" --no-cache
+        env:
+          CI: true
+
+      # Display coverage summary in logs
+      - name: Display coverage summary
+        working-directory: ./backend
+        run: |
+          # Display coverage summary in the logs
+          node -e "
+            const fs = require('fs');
+            const summary = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+            
+            // Create summary table header
+            let summaryTable = '| Metric | Coverage | Covered/Total |\\n|--------|----------|---------------|';
+            
+            // Add rows for each metric in a specific order to ensure consistent output
+            const metrics = ['lines', 'statements', 'functions', 'branches', 'branchesTrue'];
+            for (const key of metrics) {
+              if (summary.total[key]) {
+                const value = summary.total[key];
+                summaryTable += '\\n| ' + key + ' | ' + value.pct + '% | ' + value.covered + '/' + value.total + ' |';
+              }
+            }
+            
+            // Print the table to the GitHub Actions log
+            console.log('\\n\\n--- Coverage Summary ---');
+            console.log(summaryTable.replace(/\\\\n/g, '\\n'));
+            console.log('------------------------\\n');
+          "
+
+      # Comment on PR if tests pass
+      - name: Comment on PR if tests pass
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (pr) {
+              const runId = context.runId;
+              const workflowUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+              
+              const comment = "✅ **Tests passed!** [View coverage report in workflow logs](" + workflowUrl + ")";
+              
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: pr.number,
+                body: comment
+              });
+            }
+
+      # Comment on PR if tests fail
+      - name: Comment on PR if tests fail
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (pr) {
+              const runId = context.runId;
+              const workflowUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+              
+              const comment = "❌ **Tests failed!** [View error details in workflow logs](" + workflowUrl + ")";
+              
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: pr.number,
+                body: comment
+              });
+            }
+
+      # Fail if tests fail
+      - name: Fail if tests fail
+        if: failure()
+        run: exit 1

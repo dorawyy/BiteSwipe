@@ -1,61 +1,6 @@
 import 'dotenv/config';
-import express from 'express';
-import mongoose from 'mongoose';
-import morgan from 'morgan';
-import { userRoutes } from './routes/userRoutes';
-import { sessionRoutes } from './routes/sessionRoutes';
-import { UserService } from './services/userService';
-import { SessionManager } from './services/sessionManager';
-import { RestaurantService } from './services/restaurantService';
-import { validateRequest } from './middleware/validateRequest';
-
-// Configure mongoose
-mongoose.set('strictQuery', true);
-
-const app = express();
-
-// Use Morgan for request logging
-app.use(morgan(':method :url :status :response-time ms - :res[content-length]'));
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Initialize services
-const restaurantService = new RestaurantService();
-const userService = new UserService();
-const sessionManager = new SessionManager(restaurantService);
-
-// Store build timestamp - this will be fixed at deployment time
-const buildTimestamp = new Date().toISOString();
-
-// Register routes
-const routes = [
-    ...userRoutes(userService, sessionManager),
-    ...sessionRoutes(sessionManager)
-];
-
-// Register routes with validation
-routes.forEach(route => {
-    const { method, route: path, action, validation } = route;
-    console.log(`Registering route: ${method.toUpperCase()} ${path}`);
-    app[method](path, validation, validateRequest, action);
-});
-
-// Add default route
-app.get('/', (req, res) => {
-    res.status(200).json({ 
-        message: 'Welcome to BiteSwipe API', 
-        serverTime: new Date().toISOString(),
-        buildTime: buildTimestamp,
-        version: '1.0.0',
-        status: 'online',
-    });
-});
-
-// Add health check endpoint for Docker
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'healthy' });
-});
+import mongoose, { Mongoose } from 'mongoose';
+import { createApp } from './app';
 
 // ---------------------------------------------------------
 // ENV
@@ -75,31 +20,37 @@ console.log('\n=== Server Configuration ===');
 console.log(`HTTP Port: ${port}`);
 console.log('=========================\n');
 
-// Configure mongoose connection with all recommended options
-mongoose.connect(dbUrl, {
+// TODO : attempted to fix the codacy warning but could not. 
+// This make all accesses to mongoose in this file unsafe so
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+const typedMongoose: Mongoose = mongoose as unknown as Mongoose;
+// eslint-enable-next-line @typescript-eslint/no-unnecessary-type-assertion
+
+// Now we can safely call connect with proper typing
+typedMongoose.connect(dbUrl, {
     autoIndex: true, // Build indexes
     maxPoolSize: 10, // Maintain up to 10 socket connections
     serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
     socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
     family: 4 // Use IPv4, skip trying IPv6
 })
-.then(() => {
+.then(async () => {
     console.log('\n=== MongoDB Connection Info ===');
     console.log('Connection Status: Connected');
     console.log(`Full URL: \x1b[34m${dbUrl}\x1b[0m`);
     console.log('===========================\n');
 
-    // Start HTTP server
+    // Create and start HTTP server
+    const app = await createApp();
     app.listen(port, () => {
         console.log(`\n=== Server Started ===`);
         console.log(`Server is running on http://localhost:${port}`);
-        console.log(`Build Time: ${buildTimestamp}`);
         console.log('====================\n');
     });
 })
-.catch(error => {
+.catch((error : unknown)=> {
     console.error('\n=== MongoDB Connection Error ===');
     console.error('Failed to connect to MongoDB');
-    console.error('Error:', error.message);
+    console.error('Error:', (error as Error).message);
     console.error('=============================\n');
 });

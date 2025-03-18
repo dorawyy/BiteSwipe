@@ -1,9 +1,10 @@
 import { SessionController } from '../controllers/sessionController';
 import { SessionManager } from '../services/sessionManager';
+import { UserService } from '../services/userService';
 import { body, param } from 'express-validator'; 
 
-export const sessionRoutes = (sessionManager: SessionManager) => {
-    const sessionController = new SessionController(sessionManager);
+export const sessionRoutes = (sessionManager: SessionManager, userService: UserService) => {
+    const sessionController = new SessionController(sessionManager, userService);
 
     return [
         {
