@@ -14,7 +14,7 @@
     <string name="grup">GRUP</string>
     <string name="members">Members:</string>
     <string name="ready">Ready!</string>
-    <string name="base_url"> https://134.33.137.46</string>
+    <string name="base_url"> https://master-biteswipe.westus2.cloudapp.azure.com/</string>
 
     <string name="waiting_on_leader_to_start_matching">Waiting on Leader to start matching</string>
     <string name="biteswipe">BiteSwipe</string>
