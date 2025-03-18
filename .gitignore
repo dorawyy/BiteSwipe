@@ -9,8 +9,6 @@ backend/BiteSwipe.code-workspace
 **/.terraform.lock.hcl
 frontend/.idea
 frontend/app/src/main/res/raw
-git rm --cached frontend/res/raw/server.crt
-
 backend/.env
 backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
 backend/key.pem

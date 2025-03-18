@@ -103,7 +103,7 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                     Log.d(TAG, "Restaurant: $restaurant")
 
                     val restaurantName = restaurant.name
-                    val imageResId = 0
+                    val imageResId = restaurant.picture
                     val address = restaurant.address
                     val contact = restaurant.contactNumber
                     val price = restaurant.price
