@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      - develop
-      - terraform/*
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -49,6 +47,7 @@ jobs:
         ls -la ~/.ssh/
 
     - name: Create .env File
+      working-directory: ${{ github.workspace }}
       run: |
         echo "PORT=3000" > backend/.env
         echo "DB_URI=mongodb://mongo:27017/biteswipe" >> backend/.env

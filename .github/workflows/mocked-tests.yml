@@ -1,0 +1,116 @@
+name: Mocked Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/mocked-tests.yml'
+
+jobs:
+  run-mocked-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+
+      # Login to Azure
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Download Firebase credentials
+      - name: Download Firebase Credentials
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Function to download with retries
+          download_with_retry() {
+            max_attempts=3
+            attempt=1
+            while [ $attempt -le $max_attempts ]; do
+              echo "Attempt $attempt of $max_attempts to download Firebase credentials..."
+              
+              # Create directory if it doesn't exist
+              mkdir -p backend
+
+              # Try to download using Azure CLI with key authentication
+              if az storage blob download \
+                --account-name productionstorageaccoun2 \
+                --container-name production-container \
+                --name biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+                --file backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+                --auth-mode key 2>/dev/null; then
+                # Verify the file exists and is not empty
+                if [ -s backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json ]; then
+                  echo "Download successful and file is valid!"
+                  return 0
+                else
+                  echo "Download succeeded but file is empty or missing!"
+                  rm -f backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+                  return 1
+                fi
+              fi
+              
+              echo "Download failed. Waiting 5 seconds before retry..."
+              sleep 5
+              attempt=$((attempt + 1))
+            done
+            echo "Failed to download after $max_attempts attempts"
+            return 1
+          }
+
+          # Try to download with retries
+          if download_with_retry; then
+            # Set proper permissions
+            chmod 600 backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+            echo "Firebase credentials downloaded and secured successfully"
+          else
+            echo "Failed to download Firebase credentials after all retries"
+            exit 1
+          fi
+
+      - name: Setup test environment
+        run: |
+          cd backend
+          # Create .env file for tests
+          echo "PORT=3000" > .env
+          echo "DB_URI=mongodb://mock:27017/biteswipe_test" >> .env
+          echo "NODE_ENV=test" >> .env
+          echo "TEST_TYPE=mocked" >> .env
+          echo "GOOGLE_MAPS_API_KEY=mock_key" >> .env
+          echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=./backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json" >> .env
+
+      - name: Run mocked tests
+        run: |
+          cd backend
+          echo "Running mocked tests..."
+          npm run test:coverage:mocked -- --coverageReporters="json-summary" "text" --no-cache --forceExit --maxWorkers=2
+          
+          # Save test results for reporting
+          mkdir -p test-results
+          cp coverage/coverage-summary.json test-results/
+          
+          # Display test summary in readable format
+          echo "\n===== Test Coverage Summary ====="
+          echo "Statement coverage: $(cat coverage/coverage-summary.json | jq -r '.total.statements.pct')%"
+          echo "Branch coverage:    $(cat coverage/coverage-summary.json | jq -r '.total.branches.pct')%"
+          echo "Function coverage:  $(cat coverage/coverage-summary.json | jq -r '.total.functions.pct')%"
+          echo "Line coverage:      $(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')%"
+          
+          echo "\n===== Files with Less Than 80% Coverage ====="
+          jq -r 'to_entries | .[] | select(.key != "total") | select(.value.lines.pct < 80) | "\(.key):\n  Lines: \(.value.lines.pct)%\n  Statements: \(.value.statements.pct)%\n  Functions: \(.value.functions.pct)%\n  Branches: \(.value.branches.pct)%"' coverage/coverage-summary.json
+
+

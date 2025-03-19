@@ -5,9 +5,12 @@
     },
     {
       "path": ".."
-    },
+    }
   ],
   "settings": {
     "python.languageServer": "None"
+  },
+  "extensions": {
+    "recommendations": ["esbenp.prettier-vscode"]
   }
 }

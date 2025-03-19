@@ -1,73 +1,36 @@
-import mongoose from 'mongoose';
+import './unittest_setup';
 import { Types } from 'mongoose';
 import { RestaurantService } from '../../services/restaurantService';
 import { GooglePlacesService } from '../../services/externalAPIs/googleMaps';
+import { Restaurant, mockGooglePlacesService } from './unittest_setup';
 
-// Mock dependencies
-jest.mock('mongoose', () => {
-  class ObjectId {
-    private str: string;
-    
-    constructor(str: string) {
-      this.str = str;
-    }
-
-    toString() {
-      return this.str;
-    }
-
-    equals(other: unknown) {
-      return other?.toString() === this.str;
-    }
-
-    static isValid(str: string) {
-      return true;
+// Add Jest type declarations for tests
+declare global {
+  namespace jest {
+    interface Mock<T = any> extends Function {
+      mockImplementation(fn: (...args: any[]) => any): this;
+      mockResolvedValue(value: any): this;
+      mockRejectedValue(value: any): this;
     }
   }
+}
 
-  return {
-    ...jest.requireActual('mongoose'),
-    Types: {
-      ObjectId
-    }
-  };
-});
-
-jest.mock('../../services/externalAPIs/googleMaps', () => {
-  return {
-    GooglePlacesService: jest.fn().mockImplementation(() => ({
-      searchNearby: jest.fn(),
-      getPlaceDetails: jest.fn()
-    })),
-    GooglePlaceDetails: jest.fn()
-  };
-});
-
-jest.mock('../../models/restaurant', () => {
-  const RestaurantModel = jest.fn().mockImplementation(function (this: any, data) {
-    Object.assign(this, data);
-    this.save = jest.fn().mockResolvedValue(this);
-  });
-
-  Object.assign(RestaurantModel, {
-    findOne: jest.fn(),
-    find: jest.fn(),
-    findById: jest.fn()
-  });
-
-  return { Restaurant: RestaurantModel };
-});
-
-jest.unmock('../../services/restaurantService');
+// Type alias for tests
+type MockObjectId = string;
 
 describe('RestaurantService', () => {
   let restaurantService: RestaurantService;
-  let mockGooglePlacesService: jest.Mocked<GooglePlacesService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     restaurantService = new RestaurantService();
-    mockGooglePlacesService = (restaurantService as any).googlePlacesService;
+    
+    // The mockGooglePlacesService is already set up in unittest_setup.ts
+    // and automatically injected into the RestaurantService via the GooglePlacesService mock
+    
+    // Reset mock methods for this test
+    mockGooglePlacesService.searchNearby = jest.fn();
+    mockGooglePlacesService.getPlaceDetails = jest.fn();
   });
 
   describe('addRestaurants', () => {
@@ -105,10 +68,10 @@ describe('RestaurantService', () => {
 
     test('should add new restaurants successfully', async () => {
       // Setup
-      mockGooglePlacesService.searchNearby.mockResolvedValue(mockPlaces as any);
-      mockGooglePlacesService.getPlaceDetails.mockResolvedValue(mockPlaceDetails as any);
+      mockGooglePlacesService.searchNearby.mockImplementation(() => Promise.resolve(mockPlaces));
+      mockGooglePlacesService.getPlaceDetails.mockImplementation(() => Promise.resolve(mockPlaceDetails));
       
-      require('../../models/restaurant').Restaurant.findOne.mockResolvedValue(null);
+      Restaurant.findOne.mockResolvedValue(null);
       
       // Execute
       const result = await restaurantService.addRestaurants(location);
@@ -125,7 +88,7 @@ describe('RestaurantService', () => {
       expect(result).toHaveLength(2);
       
       // Check restaurant model is created with correct data
-      expect(require('../../models/restaurant').Restaurant).toHaveBeenCalledWith(
+      expect(Restaurant).toHaveBeenCalledWith(
         expect.objectContaining({
           name: mockPlaceDetails.name,
           location: expect.objectContaining({
@@ -144,7 +107,7 @@ describe('RestaurantService', () => {
 
     test('should skip restaurant if it already exists', async () => {
       // Setup
-      mockGooglePlacesService.searchNearby.mockResolvedValue(mockPlaces as any);
+      mockGooglePlacesService.searchNearby.mockImplementation(() => Promise.resolve(mockPlaces));
       
       const existingRestaurant = {
         _id: 'existingId',
@@ -154,8 +117,7 @@ describe('RestaurantService', () => {
         }
       };
       
-      require('../../models/restaurant').Restaurant.findOne
-        .mockImplementation((query: any) => {
+      Restaurant.findOne.mockImplementation((query: any) => {
           if (query['sourceData.googlePlaceId'] === 'place1') {
             return Promise.resolve(existingRestaurant);
           }
@@ -175,12 +137,12 @@ describe('RestaurantService', () => {
 
     test('should skip restaurant if place details are not available', async () => {
       // Setup
-      mockGooglePlacesService.searchNearby.mockResolvedValue(mockPlaces as any);
+      mockGooglePlacesService.searchNearby.mockImplementation(() => Promise.resolve(mockPlaces));
       
-      require('../../models/restaurant').Restaurant.findOne.mockResolvedValue(null);
+      Restaurant.findOne.mockResolvedValue(null);
       
       mockGooglePlacesService.getPlaceDetails
-        .mockImplementation((placeId) => {
+        .mockImplementation((placeId: string) => {
           if (placeId === 'place1') {
             return Promise.resolve(mockPlaceDetails);
           }
@@ -222,7 +184,7 @@ describe('RestaurantService', () => {
     test('should handle error in Google Places API', async () => {
       // Setup
       const apiError = new Error('API error');
-      mockGooglePlacesService.searchNearby.mockRejectedValue(apiError);
+      mockGooglePlacesService.searchNearby.mockImplementation(() => Promise.reject(apiError));
       
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       
@@ -282,23 +244,23 @@ describe('RestaurantService', () => {
     test('should return multiple restaurants by ids', async () => {
       // Setup
       const restaurantIds = [
-        new mongoose.Types.ObjectId('restaurant1'), 
-        new mongoose.Types.ObjectId('restaurant2')
-      ];
+        '507f1f77bcf86cd799439011', 
+        '507f1f77bcf86cd799439022'
+      ] as unknown as Types.ObjectId[];
       
       const mockRestaurants = [
         { _id: 'restaurant1', name: 'Restaurant 1' },
         { _id: 'restaurant2', name: 'Restaurant 2' }
       ];
       
-      require('../../models/restaurant').Restaurant.find.mockResolvedValue(mockRestaurants);
+      Restaurant.find.mockResolvedValue(mockRestaurants);
       
       // Execute
       const result = await restaurantService.getRestaurants(restaurantIds);
       
       // Assert
       expect(result).toEqual(mockRestaurants);
-      expect(require('../../models/restaurant').Restaurant.find).toHaveBeenCalledWith({
+      expect(Restaurant.find).toHaveBeenCalledWith({
         _id: { $in: restaurantIds }
       });
     });
@@ -306,24 +268,24 @@ describe('RestaurantService', () => {
     test('should handle empty id array', async () => {
       // Setup
       const emptyIds: Types.ObjectId[] = [];
-      require('../../models/restaurant').Restaurant.find.mockResolvedValue([]);
+      Restaurant.find.mockResolvedValue([]);
       
       // Execute
       const result = await restaurantService.getRestaurants(emptyIds);
       
       // Assert
       expect(result).toEqual([]);
-      expect(require('../../models/restaurant').Restaurant.find).toHaveBeenCalledWith({
+      expect(Restaurant.find).toHaveBeenCalledWith({
         _id: { $in: [] }
       });
     });
 
     test('should handle error when finding restaurants', async () => {
       // Setup
-      const restaurantIds = [new mongoose.Types.ObjectId('restaurant1')];
+      const restaurantIds = ['507f1f77bcf86cd799439011'] as unknown as Types.ObjectId[];
       const dbError = new Error('Database error');
       
-      require('../../models/restaurant').Restaurant.find.mockRejectedValue(dbError);
+      Restaurant.find.mockRejectedValue(dbError);
       
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       
@@ -340,7 +302,7 @@ describe('RestaurantService', () => {
   describe('getRestaurant', () => {
     test('should return a single restaurant by id', async () => {
       // Setup
-      const restaurantId = new mongoose.Types.ObjectId('restaurant1');
+      const restaurantId = '507f1f77bcf86cd799439011' as unknown as Types.ObjectId;
       const mockRestaurant = { 
         _id: 'restaurant1', 
         name: 'Test Restaurant' 
@@ -353,15 +315,15 @@ describe('RestaurantService', () => {
       
       // Assert
       expect(result).toEqual(mockRestaurant);
-      expect(require('../../models/restaurant').Restaurant.findOne).toHaveBeenCalledWith({
+      expect(Restaurant.findOne).toHaveBeenCalledWith({
         _id: restaurantId
       });
     });
 
     test('should return null when restaurant not found', async () => {
       // Setup
-      const restaurantId = new mongoose.Types.ObjectId('nonexistent');
-      require('../../models/restaurant').Restaurant.findOne.mockResolvedValue(null);
+      const restaurantId = '507f1f77bcf86cd799439033' as unknown as Types.ObjectId;
+      Restaurant.findOne.mockResolvedValue(null);
       
       // Execute
       const result = await restaurantService.getRestaurant(restaurantId);
@@ -372,10 +334,10 @@ describe('RestaurantService', () => {
 
     test('should handle error when finding restaurant', async () => {
       // Setup
-      const restaurantId = new mongoose.Types.ObjectId('restaurant1');
+      const restaurantId = '507f1f77bcf86cd799439011' as unknown as Types.ObjectId;
       const dbError = new Error('Database error');
       
-      require('../../models/restaurant').Restaurant.findOne.mockRejectedValue(dbError);
+      Restaurant.findOne.mockRejectedValue(dbError);
       
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       

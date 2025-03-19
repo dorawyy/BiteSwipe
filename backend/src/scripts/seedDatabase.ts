@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
 import { MongoDocument } from '../models/appTypes';
+import { IRestaurant } from '../models/restaurant';
 
 // Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -22,6 +23,7 @@ console.log(`Database URI: ${DB_URI} [Source: ${process.env.DB_URI ? 'ENV' : 'DE
 function transformMongoId(doc: MongoDocument): MongoDocument {
     const transformed = { ...doc };
 
+
     // Handle all properties recursively
     for (const [key, value] of Object.entries(doc)) {
         if (value && typeof value === 'object') {
@@ -34,7 +36,7 @@ function transformMongoId(doc: MongoDocument): MongoDocument {
             } else if (Array.isArray(value)) {
                 // Handle arrays recursively
                 transformed[key] = value.map(item =>
-                    typeof item === 'object' ? transformMongoId(item) : item
+                    typeof item === 'object' && item !== null ? transformMongoId(item as MongoDocument) : item
                 );
             } else {
                 // Handle nested objects recursively

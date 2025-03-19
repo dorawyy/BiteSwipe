@@ -91,6 +91,42 @@ POST /users/
 }
 ```
 
+#### Get User by Email
+Retrieves user ID by email address.
+
+```http
+GET /users/emails/{email}
+```
+
+**Parameters**
+- `email`: Email address (path parameter)
+
+**Response**
+- `200 OK`: Successfully retrieved user ID
+```json
+{
+  "userId": "string"
+}
+```
+- `404 Not Found`: User does not exist
+```json
+{
+  "error": "User not found"
+}
+```
+- `400 Bad Request`: Invalid email format
+```json
+{
+  "errors": [{ "msg": "string" }]
+}
+```
+- `500 Internal Server Error`: Server error occurred
+```json
+{
+  "error": "Internal Server Error"
+}
+```
+
 #### Update FCM Token
 Updates a user's Firebase Cloud Messaging token for notifications.
 
@@ -356,6 +392,211 @@ POST /sessions/:sessionId/invitations
 }
 ```
 - `404 Not Found`: Session not found
+```json
+{
+  "error": "Session not found"
+}
+```
+
+#### Reject Invitation
+Rejects a session invitation for a user.
+
+```http
+DELETE /sessions/{sessionId}/invitations/{userId}
+```
+
+**Parameters**
+- `sessionId`: Session ID (path parameter)
+- `userId`: User ID (path parameter)
+
+**Response**
+- `200 OK`: Successfully rejected invitation
+```json
+{
+  "success": true
+}
+```
+- `404 Not Found`: Session not found
+```json
+{
+  "error": "Session not found"
+}
+```
+
+#### Leave Session
+Removes a user from a session.
+
+```http
+DELETE /sessions/{sessionId}/participants/{userId}
+```
+
+**Parameters**
+- `sessionId`: Session ID (path parameter)
+- `userId`: User ID (path parameter)
+
+**Response**
+- `200 OK`: Successfully left session
+```json
+{
+  "success": true
+}
+```
+- `404 Not Found`: Session not found
+```json
+{
+  "error": "Session not found"
+}
+```
+
+#### Get Session Restaurants
+Retrieves all restaurants for a session.
+
+```http
+GET /sessions/{sessionId}/restaurants
+```
+
+**Parameters**
+- `sessionId`: Session ID (path parameter)
+
+**Response**
+- `200 OK`: Successfully retrieved restaurants
+```json
+{
+  "restaurants": [{
+    "restaurantId": "string",
+    "name": "string",
+    "address": "string",
+    "rating": "number",
+    "priceLevel": "number",
+    "photos": ["string"],
+    "score": "number",
+    "totalVotes": "number",
+    "positiveVotes": "number"
+  }]
+}
+```
+- `404 Not Found`: Session not found
+```json
+{
+  "error": "Session not found"
+}
+```
+
+#### Record Vote
+Records a user's swipe (like/dislike) for a restaurant.
+
+```http
+POST /sessions/{sessionId}/votes
+```
+
+**Parameters**
+- `sessionId`: Session ID (path parameter)
+
+**Request Body**
+```json
+{
+  "restaurantId": "string",
+  "liked": "boolean"
+}
+```
+
+**Response**
+- `200 OK`: Successfully recorded vote
+```json
+{
+  "success": true
+}
+```
+- `404 Not Found`: Session not found
+```json
+{
+  "error": "Session not found"
+}
+```
+
+#### Start Session
+Starts a session, making it active for swiping.
+
+```http
+POST /sessions/{sessionId}/start
+```
+
+**Parameters**
+- `sessionId`: Session ID (path parameter)
+
+**Response**
+- `200 OK`: Successfully started session
+```json
+{
+  "success": true
+}
+```
+- `404 Not Found`: Session not found
+```json
+{
+  "error": "Session not found"
+}
+```
+
+#### Mark Done Swiping
+Marks a user as done swiping in a session.
+
+```http
+POST /sessions/{sessionId}/doneSwiping
+```
+
+**Parameters**
+- `sessionId`: Session ID (path parameter)
+
+**Request Body**
+```json
+{
+  "userId": "string"
+}
+```
+
+**Response**
+- `200 OK`: Successfully marked as done
+```json
+{
+  "success": true
+}
+```
+- `404 Not Found`: Session not found
+```json
+{
+  "error": "Session not found"
+}
+```
+
+#### Get Session Result
+Retrieves the final result for a session.
+
+```http
+GET /sessions/{sessionId}/result
+```
+
+**Parameters**
+- `sessionId`: Session ID (path parameter)
+
+**Response**
+- `200 OK`: Successfully retrieved result
+```json
+{
+  "winner": {
+    "restaurantId": "string",
+    "name": "string",
+    "address": "string",
+    "rating": "number",
+    "priceLevel": "number",
+    "photos": ["string"],
+    "score": "number",
+    "totalVotes": "number",
+    "positiveVotes": "number"
+  }
+}
+```
+- `404 Not Found`: Session not found or no result yet
 ```json
 {
   "error": "Session not found"

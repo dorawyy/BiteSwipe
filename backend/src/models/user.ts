@@ -18,7 +18,7 @@ interface RestaurantInteraction {
 export interface IUser {
     email: string;
     displayName: string;
-    fcmToken?: string;  // Firebase Cloud Messaging token
+    fcmTokens?: string[];  // Firebase Cloud Messaging tokens
     sessionHistory: SessionHistoryEntry[];
     restaurantInteractions: RestaurantInteraction[];
 }
@@ -35,7 +35,7 @@ const UserSchema = new mongoose.Schema({
         unique: true
     },
     displayName: String,
-    fcmToken: String,  // Add FCM token field
+    fcmTokens: [String],  // Array of FCM tokens
     sessionHistory: [{
         sessionId: {
             type: mongoose.Schema.Types.ObjectId,

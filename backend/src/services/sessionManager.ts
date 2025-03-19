@@ -31,7 +31,6 @@ export class SessionManager {
                 throw new Error('Invalid user ID format');
             }
             const userObjectId = new Types.ObjectId(userId);
-
             // Check if user exists
             const user = await UserModel.findById(userObjectId);
             if (!user) {
@@ -108,7 +107,6 @@ export class SessionManager {
         const sessionObjId = new Types.ObjectId(sessionId);
         const userObjId = new Types.ObjectId(userId);
         const restaurantObjId = new Types.ObjectId(restaurantId);
-
         const session = await Session.findOneAndUpdate(
             {
                 _id: sessionObjId,
@@ -249,6 +247,15 @@ export class SessionManager {
                 throw new Error('Invalid user ID format');
             }
             const userObjectId = new Types.ObjectId(userId);
+
+            // Check if user exists
+            const user = await UserModel.findById(userObjectId);
+            if (!user) {
+                const error = new Error('User not found') as CustomError;
+                error.code = 'USER_NOT_FOUND';
+                throw error;
+            }
+
             const sessions = await Session.find({
                 $or: [
                     { creator: userObjectId },
@@ -271,7 +278,7 @@ export class SessionManager {
                 throw new Error('Invalid session ID format');
             }
             const sessionObjId = new Types.ObjectId(sessionId);
-
+            
             const session = await Session.findById(sessionObjId);
             if (!session) {
                 const error = new Error('Session not found') as Error & { code?: string; };
@@ -370,7 +377,7 @@ export class SessionManager {
                 throw new Error('Invalid session ID format');
             }
             const sessionObjId = new Types.ObjectId(sessionId);
-
+            
             const session = await Session.findOne({
                 _id: sessionObjId
             });
@@ -473,7 +480,7 @@ export class SessionManager {
             throw new Error('Invalid session ID format');
         }
         const sessionObjId = new Types.ObjectId(sessionId);
-
+        
         const session = await Session.findById(sessionObjId);
         if (!session) {
             throw new Error('Session not found');

@@ -506,7 +506,13 @@ if __name__ == "__main__":
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Deploy Azure infrastructure for BiteSwipe.')
     parser.add_argument('--prefix', type=str, help='Prefix for resource names (overrides GITHUB_ACTOR/username)')
+    parser.add_argument('--destroy', action='store_true', help='Destroy infrastructure instead of creating it')
     args = parser.parse_args()
     
-    # Call the main function
-    main(args.prefix)
+    if args.destroy:
+        # Destroy infrastructure
+        print(f"Destroying infrastructure with prefix: {args.prefix if args.prefix else get_owner_tag()}")
+        terraform_destroy(get_owner_tag(args.prefix))
+    else:
+        # Create/update infrastructure
+        main(args.prefix)

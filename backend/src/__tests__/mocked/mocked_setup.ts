@@ -1,0 +1,152 @@
+import { config } from "dotenv";
+import path from "path";
+// Load test environment variables
+config({ path: path.join(__dirname, "test.env") });
+
+// Set environment variables for test mode
+process.env.NODE_ENV = 'test';
+process.env.TEST_TYPE = 'mocked';
+
+// ---------------------------------------------------------
+// Mongoose
+//
+const mockSchema = {
+  add: jest.fn(),
+  index: jest.fn(),
+};
+
+const mockSchemaType = {
+  ObjectId: String,
+};
+
+jest.mock("mongoose", () => {
+  class ObjectId {
+    private str: string;
+
+    constructor(str: string) {
+      this.str = str;
+    }
+
+    toString() {
+      return this.str;
+    }
+
+    toJSON() {
+      return this.str;
+    }
+
+    equals(other: any) {
+      return other?.toString() === this.str;
+    }
+
+    static isValid = jest.fn().mockImplementation((str: string) => {
+      return str !== "invalid-id";
+    });
+  }
+
+  return {
+    ...jest.requireActual("mongoose"),
+    connect: jest.fn().mockResolvedValue({}),
+    model: jest.fn().mockImplementation((modelName) => {
+      // Default model mock for other models
+      return {
+        findById: jest.fn(),
+        findOne: jest.fn(),
+        save: jest.fn(),
+        create: jest.fn(),
+      };
+    }),
+    Schema: Object.assign(
+      jest.fn().mockImplementation(() => mockSchema),
+      { Types: mockSchemaType }
+    ),
+    Types: {
+      ObjectId,
+    },
+  };
+});
+
+// ---------------------------------------------------------
+// Google Maps
+//
+const mockGooglePlacesService = {
+  searchNearby: jest.fn().mockResolvedValue([]),
+  getPlaceDetails: jest.fn().mockResolvedValue({}),
+  apiKey: "mock-api-key",
+  baseUrl: "https://maps.googleapis.com/maps/api/place",
+  getPhotoUrl: jest.fn().mockImplementation((photoReference, maxWidth) => {
+    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photo_reference=${photoReference}&key=mock-api-key`;
+  }),
+};
+
+jest.mock("../../services/externalAPIs/googleMaps", () => ({
+  GooglePlacesService: jest
+    .fn()
+    .mockImplementation(() => mockGooglePlacesService),
+}));
+
+// ---------------------------------------------------------
+// Firebase
+//
+jest.mock("firebase-admin", () => ({
+  messaging: jest.fn().mockReturnValue({
+    send: jest.fn().mockResolvedValue("message-id"),
+  }),
+  initializeApp: jest.fn(),
+}));
+
+jest.mock("../../config/firebase", () => ({
+  default: {
+    apps: [],
+    messaging: jest.fn().mockReturnValue({
+      send: jest.fn().mockResolvedValue("mock-message-id"),
+    }),
+  },
+  getMessaging: jest.fn().mockReturnValue({
+    send: jest.fn().mockResolvedValue("mock-message-id"),
+    sendMulticast: jest.fn().mockResolvedValue({ responses: [{ success: true }] })
+  }),
+}));
+
+// ---------------------------------------------------------
+// Session Manager
+//
+const mockSessionManager = {
+  createSession: jest.fn(),
+  getSession: jest.fn(),
+  startSession: jest.fn(),
+  addPendingInvitation: jest.fn(),
+  rejectInvitation: jest.fn(),
+  joinSession: jest.fn(),
+  leaveSession: jest.fn(),
+  sessionSwiped: jest.fn(),
+  userDoneSwiping: jest.fn(),
+  getRestaurantsInSession: jest.fn(),
+  getResultForSession: jest.fn()
+};
+
+jest.mock("../../services/sessionManager", () => ({
+  SessionManager: jest.fn().mockImplementation(() => mockSessionManager)
+}));
+
+// ---------------------------------------------------------
+// User Service
+//
+const mockUserService = {
+  getUserById: jest.fn(),
+  getUserByUsername: jest.fn(),
+  getUserByEmail: jest.fn(),
+  createUser: jest.fn(),
+  updateUser: jest.fn(),
+  deleteUser: jest.fn(),
+  updateFCMToken: jest.fn()
+};
+
+jest.mock("../../services/userService", () => ({
+  UserService: jest.fn().mockImplementation(() => mockUserService)
+}));
+
+// ---------------------------------------------------------
+// Export mocks
+//
+export { mockGooglePlacesService, mockSessionManager, mockUserService };

@@ -1,0 +1,123 @@
+name: Unit Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+# Define permissions needed for GitHub API operations
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      # Install dependencies
+      - name: Install dependencies
+        run: cd backend && npm install
+
+      - name: Setup Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Download Firebase credentials
+      - name: Download Firebase Credentials
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Create directory if it doesn't exist
+          mkdir -p backend
+
+          # Try to download using Azure CLI with key authentication
+          if az storage blob download \
+            --account-name productionstorageaccoun2 \
+            --container-name production-container \
+            --name biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+            --file backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+            --auth-mode key 2>/dev/null; then
+            # Verify the file exists and is not empty
+            if [ -s backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json ]; then
+              echo "Download successful and file is valid!"
+              chmod 600 backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+            else
+              echo "Downloaded file is empty or invalid"
+              rm -f backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+              exit 1
+            fi
+          else
+            echo "Failed to download Firebase credentials"
+            exit 1
+          fi
+
+      # Setup test environment
+      - name: Setup test environment
+        run: |
+          cd backend
+          # Create .env file for tests
+          echo "PORT=3000" > .env
+          echo "DB_URI=mongodb://mock:27017/biteswipe_test" >> .env
+          echo "NODE_ENV=test" >> .env
+          echo "TEST_TYPE=unit" >> .env
+          echo "GOOGLE_MAPS_API_KEY=mock_key" >> .env
+          echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=./backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json" >> .env
+
+      # Run unit tests and generate coverage
+      - name: Run unit tests with coverage
+        id: test_coverage
+        run: |
+          cd backend
+          echo "Running unit tests..."
+          npm run test:coverage:unittest -- --coverageReporters="json-summary" "text" --no-cache --forceExit --maxWorkers=2
+          
+          # Save test results for reporting
+          mkdir -p test-results
+          cp coverage/coverage-summary.json test-results/
+        env:
+          CI: true
+
+      # Display coverage summary in logs
+      - name: Display coverage summary
+        working-directory: ./backend
+        run: |
+          # Display coverage summary in the logs
+          node -e "
+            const fs = require('fs');
+            const summary = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+            
+            // Create summary table header
+            let summaryTable = '| Metric | Coverage | Covered/Total |\\n|--------|----------|---------------|';
+            
+            // Add rows for each metric in a specific order to ensure consistent output
+            const metrics = ['lines', 'statements', 'functions', 'branches', 'branchesTrue'];
+            for (const key of metrics) {
+              if (summary.total[key]) {
+                const value = summary.total[key];
+                summaryTable += '\\n| ' + key + ' | ' + value.pct + '% | ' + value.covered + '/' + value.total + ' |';
+              }
+            }
+            
+            // Print the table to the GitHub Actions log
+            console.log('\\n\\n--- Coverage Summary ---');
+            console.log(summaryTable.replace(/\\\\n/g, '\\n'));
+            console.log('------------------------\\n');
+          "
+
+
+
+      # Fail if tests fail
+      - name: Fail if tests fail
+        if: failure()
+        run: exit 1

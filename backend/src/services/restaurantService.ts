@@ -4,7 +4,11 @@ import { GooglePlacesService, GooglePlaceDetails } from './externalAPIs/googleMa
 
 export class RestaurantService {
 
-    private googlePlacesService = new GooglePlacesService();
+    private googlePlacesService: GooglePlacesService;
+
+    constructor(googlePlacesService?: GooglePlacesService) {
+        this.googlePlacesService = googlePlacesService || new GooglePlacesService();
+    }
     
     async addRestaurants(location: { latitude: number, longitude: number, radius: number}, keyword?: string) {
         try {

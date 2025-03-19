@@ -1,3 +1,5 @@
+import '../mocked/mocked_setup';
+
 import axios from 'axios';
 import { GooglePlacesService, GooglePlaceDetails, GooglePlaceSearchResult } from '../../services/externalAPIs/googleMaps'; // Update with correct path
 

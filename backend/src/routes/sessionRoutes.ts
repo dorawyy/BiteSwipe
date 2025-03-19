@@ -1,8 +1,37 @@
 import { SessionController } from '../controllers/sessionController';
 import { SessionManager } from '../services/sessionManager';
 import { UserService } from '../services/userService';
-import { body, param, ValidationChain } from 'express-validator';
-import express from 'express';
+import { body, param, CustomValidator, ValidationChain} from 'express-validator';
+import { Types } from 'mongoose';
+import * as express from 'express';
+
+
+// Reusable validator functions
+const isValidObjectId: CustomValidator = (value: any) => {
+    if (!Types.ObjectId.isValid(value)) {
+        throw new Error('Invalid user ID format');
+    }
+    return true;
+};
+
+const isValidSessionId: CustomValidator = (value: any) => {
+    if (!Types.ObjectId.isValid(value)) {
+        throw new Error('Invalid session ID format');
+    }
+    return true;
+};
+
+const validateUserIdBody = () => body('userId')
+    .notEmpty().withMessage('User ID is required')
+    .custom(isValidObjectId).withMessage('Invalid user ID format');
+
+const validateSessionIdParam = () => param('sessionId')
+    .notEmpty().withMessage('Session ID is required')
+    .custom(isValidSessionId).withMessage('Invalid session ID format');
+
+const validateUserIdParam = () => param('userId')
+    .notEmpty().withMessage('User ID is required')
+    .custom(isValidObjectId).withMessage('Invalid user ID format');
 
 export const sessionRoutes = (sessionManager: SessionManager, userService: UserService) => {
     const sessionController = new SessionController(sessionManager, userService);
@@ -11,7 +40,7 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
     interface RouteDefinition {
         method: 'get' | 'post' | 'put' | 'delete' | 'patch';
         route: string;
-        action: (req: express.Request, res: express.Response, next?: express.NextFunction) => void | Promise<void>;
+        action: (req: express.Request, res: express.Response, next?: express.NextFunction) => Promise<unknown>;
         validation: ValidationChain[];
     }
 
@@ -23,6 +52,7 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             validation: [
                 param('sessionId').exists().withMessage('Session ID is required')
                     .notEmpty().withMessage('Session ID cannot be empty')
+                    .custom(isValidSessionId)
             ]
         },
         {
@@ -30,7 +60,7 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             route: '/sessions',
             action: (req: express.Request, res: express.Response) => sessionController.createSession(req, res),
             validation: [
-                body('userId').notEmpty().withMessage('User ID is required'),
+                validateUserIdBody(),
                 body('latitude').isNumeric().withMessage('Latitude must be a number'),
                 body('longitude').isNumeric().withMessage('Longitude must be a number'),
                 body('radius').isNumeric().withMessage('Radius must be a number')
@@ -41,7 +71,7 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             route: '/sessions/:sessionId/invitations',
             action: (req: express.Request, res: express.Response) => sessionController.inviteUser(req, res),
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required'),
+                validateSessionIdParam(),
                 body('email').notEmpty().withMessage('Email is required')
             ]
         },
@@ -50,8 +80,8 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             route: '/sessions/:sessionId/invitations/:userId',
             action: (req: express.Request, res: express.Response) => sessionController.rejectInvitation(req, res),
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required'),
-                param('userId').notEmpty().withMessage('User ID is required')
+                validateSessionIdParam(),
+                validateUserIdParam()
             ]
         },
         {
@@ -59,8 +89,8 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             route: '/sessions/:sessionId/participants/:userId',
             action: (req: express.Request, res: express.Response) => sessionController.leaveSession(req, res),
             validation: [
-                param('userId').notEmpty().withMessage('User ID is required'),
-                param('sessionId').notEmpty().withMessage('Session ID is required')
+                validateSessionIdParam(),
+                validateUserIdParam()
             ]
         },
         {
@@ -68,8 +98,8 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             route: '/sessions/:joinCode/participants',
             action: (req: express.Request, res: express.Response) => sessionController.joinSession(req, res),
             validation: [
-                param('joinCode').notEmpty().withMessage('Session ID is required'),
-                body('userId').notEmpty().withMessage('User ID is required')
+                param('joinCode').notEmpty().withMessage('Join code is required'),
+                validateUserIdBody()
             ]
         },
         {
@@ -77,7 +107,7 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             route: '/sessions/:sessionId/restaurants',
             action: (req: express.Request, res: express.Response) => sessionController.getRestaurantsInSession(req, res),
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required')
+                validateSessionIdParam()
             ]
         },
         {
@@ -85,7 +115,7 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             route: '/sessions/:sessionId/votes',
             action: (req: express.Request, res: express.Response) => sessionController.sessionSwiped(req, res),
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required'),
+                validateSessionIdParam(),
                 body('restaurantId').notEmpty().withMessage('Restaurant ID is required'),
                 body('liked').isBoolean().withMessage('Liked must be a boolean')
             ]
@@ -95,7 +125,9 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             route: '/sessions/:sessionId/start',
             action: (req: express.Request, res: express.Response) => sessionController.startSession(req, res),
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required')
+                validateSessionIdParam(),
+                validateUserIdBody(),
+                body('time').isNumeric().withMessage('Time must be a number')
             ]
         },
         {
@@ -103,8 +135,8 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             route: '/sessions/:sessionId/doneSwiping',
             action: (req: express.Request, res: express.Response) => sessionController.userDoneSwiping(req, res),
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required'),
-                body('userId').notEmpty().withMessage('User ID is required')
+                validateSessionIdParam(),
+                validateUserIdBody()
             ]
         },
         {
@@ -112,7 +144,7 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             route: '/sessions/:sessionId/result',
             action: (req: express.Request, res: express.Response) => sessionController.getResultForSession(req, res),
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required')
+                validateSessionIdParam()
             ]
         }
     ] as RouteDefinition[];

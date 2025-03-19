@@ -11,9 +11,11 @@
     "test": "jest --detectOpenHandles",
     "test:mocked": "jest --detectOpenHandles --testPathPattern=src/__tests__/mocked",
     "test:unmocked": "jest --detectOpenHandles --testPathPattern=src/__tests__/unmocked",
+    "test:unittest": "jest --detectOpenHandles --testPathPattern=src/__tests__/unittest",
     "test:coverage": "jest --detectOpenHandles --coverage",
     "test:coverage:mocked": "jest --detectOpenHandles --coverage --testPathPattern=src/__tests__/mocked",
-    "test:coverage:unmocked": "jest --detectOpenHandles --coverage --testPathPattern=src/__tests__/unmocked"
+    "test:coverage:unmocked": "jest --detectOpenHandles --coverage --testPathPattern=src/__tests__/unmocked",
+    "test:coverage:unittest": "jest --detectOpenHandles --coverage --testPathPattern=src/__tests__/unittest"
   },
   "dependencies": {
     "@types/mongoose": "^5.11.97",
@@ -28,7 +30,7 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
     "@types/supertest": "^6.0.2",
     "dotenv": "^16.4.7",
     "dotenv-cli": "^5.0.0",

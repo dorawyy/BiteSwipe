@@ -1,0 +1,262 @@
+name: Unmocked Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/unmocked-tests.yml'
+
+jobs:
+  run-unmocked-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Setup Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install MongoDB Tools
+        run: |
+          # Import MongoDB GPG key
+          curl -fsSL https://pgp.mongodb.com/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor
+
+          # Add MongoDB repository
+          echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg] http://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+
+          # Update package list and install MongoDB tools
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh mongodb-database-tools
+
+      - name: Setup Azure Cosmos DB for MongoDB
+        run: |
+          # Create resource group for PR
+          PR_RG="pr${{ github.event.pull_request.number }}-mongodb-rg"
+          az group create --name $PR_RG --location westus2
+
+          # Generate unique name for Cosmos DB account
+          COSMOS_ACCOUNT="biteswipe-test-${{ github.event.pull_request.number }}"
+          
+          echo "Creating Azure Cosmos DB account..."
+          if az cosmosdb create \
+            --resource-group $PR_RG \
+            --name $COSMOS_ACCOUNT \
+            --kind MongoDB \
+            --capabilities EnableMongo \
+            --server-version 4.2 \
+            --default-consistency-level Strong \
+            --enable-free-tier true \
+            --locations regionName=westus2; then
+            echo "Cosmos DB account created successfully!"
+          else
+            echo "Failed to create Cosmos DB account"
+            exit 1
+          fi
+
+          # Wait for account to be fully provisioned
+          echo "Waiting for Cosmos DB account to be fully provisioned..."
+          sleep 60
+
+          # Get connection string and add database name
+          BASE_MONGO_CONNECTION_STRING=$(az cosmosdb keys list \
+            --resource-group $PR_RG \
+            --name $COSMOS_ACCOUNT \
+            --type connection-strings \
+            --query 'connectionStrings[0].connectionString' \
+            --output tsv)
+          
+          # Add database name to connection string
+          MONGO_CONNECTION_STRING="${BASE_MONGO_CONNECTION_STRING}/?retryWrites=true&w=majority&appName=biteswipe_test"
+
+          # Extract host and port from connection string
+          MONGO_IP=$(echo $MONGO_CONNECTION_STRING | sed -n 's/.*@\(.*\):\([0-9]*\).*/\1/p')
+          MONGO_PORT=$(echo $MONGO_CONNECTION_STRING | sed -n 's/.*@\(.*\):\([0-9]*\).*/\2/p')
+
+          # Export connection info
+          echo "MONGO_CONNECTION_STRING=$MONGO_CONNECTION_STRING" >> $GITHUB_ENV
+
+          # Wait and verify MongoDB with retries
+          max_attempts=10
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt of $max_attempts to connect to MongoDB..."
+            
+            # Try to connect and initialize
+            if mongosh "$MONGO_CONNECTION_STRING" --eval 'use biteswipe_test; db.stats();' &>/dev/null; then
+              echo "MongoDB is ready! Initializing collections..."
+              
+              # Set DB_URI environment variable with database name
+              echo "DB_URI=${MONGO_CONNECTION_STRING}/biteswipe_test" >> $GITHUB_ENV
+              
+              # Initialize collections with error handling
+              if mongosh "$MONGO_CONNECTION_STRING" --eval '
+                try {
+                  db.createCollection("startup");
+                  db.createCollection("users");
+                  db.createCollection("restaurants");
+                  db.createCollection("matches");
+                  print("All collections created successfully");
+                } catch (e) {
+                  print("Error creating collections: " + e);
+                  quit(1);
+                }
+              '; then
+                echo "Database initialized successfully!"
+                break
+              else
+                echo "Failed to initialize collections"
+                sleep 5
+                continue
+              fi
+            fi
+            
+            if [ $attempt -eq $max_attempts ]; then
+              echo "Failed to connect to MongoDB after $max_attempts attempts"
+              exit 1
+            fi
+            
+            echo "MongoDB not ready. Waiting 20 seconds before retry..."
+            sleep 20
+            attempt=$((attempt + 1))
+          done
+          
+          # Final verification
+          echo "\nVerifying database state:"
+          mongosh "$MONGO_CONNECTION_STRING" --eval '
+            const stats = db.stats();
+            const collections = db.getCollectionNames();
+            print("\nDatabase stats:");
+            print(JSON.stringify(stats, null, 2));
+            print("\nCollections:");
+            print(JSON.stringify(collections, null, 2));
+          '
+
+      # Cleanup Azure resources
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Cleaning up Azure resources..."
+          az group delete --name $PR_RG --yes --no-wait || true
+
+      # Setup test environment
+      - name: Setup test environment
+        run: |
+          cd backend
+          # Create .env file for tests
+          echo "PORT=3000" > .env
+          echo "DB_URI=${MONGO_CONNECTION_STRING}/biteswipe_test" >> .env
+          echo "NODE_ENV=test" >> .env
+          echo "TEST_TYPE=unmocked" >> .env
+          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" >> .env
+          echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=./backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json" >> .env
+
+      - name: Download Firebase Credentials
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Create directory if it doesn't exist
+          mkdir -p backend
+
+          # Try to download using Azure CLI with key authentication
+          if az storage blob download \
+            --account-name productionstorageaccoun2 \
+            --container-name production-container \
+            --name biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+            --file backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+            --auth-mode key 2>/dev/null; then
+            # Verify the file exists and is not empty
+            if [ -s backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json ]; then
+              echo "Download successful and file is valid!"
+              chmod 600 backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+            else
+              echo "Downloaded file is empty or invalid"
+              rm -f backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+              exit 1
+            fi
+          else
+            echo "Failed to download Firebase credentials"
+            exit 1
+          fi
+
+      - name: Run unmocked tests with coverage
+        id: test_coverage
+        run: |
+          cd backend
+          echo "Running unmocked tests..."
+          npm run test:coverage:unmocked -- --coverageReporters="json-summary" "text" --no-cache --forceExit --maxWorkers=2
+          
+          # Save test results for reporting
+          mkdir -p test-results
+          cp coverage/coverage-summary.json test-results/
+        env:
+          CI: true
+
+      # Display coverage summary in logs
+      - name: Display coverage summary
+        working-directory: ./backend
+        run: |
+          # Display coverage summary in the logs
+          node -e "
+            const fs = require('fs');
+            const summary = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+            
+            // Create summary table header
+            let summaryTable = '| Metric | Coverage | Covered/Total |\n|--------|----------|---------------|';
+            
+            // Add rows for each metric in a specific order to ensure consistent output
+            const metrics = ['lines', 'statements', 'functions', 'branches', 'branchesTrue'];
+            for (const key of metrics) {
+              if (summary.total[key]) {
+                const value = summary.total[key];
+                summaryTable += '\n| ' + key + ' | ' + value.pct + '% | ' + value.covered + '/' + value.total + ' |';
+              }
+            }
+            
+            // Print the table to the GitHub Actions log
+            console.log('\n\n--- Coverage Summary ---');
+            console.log(summaryTable.replace(/\\n/g, '\n'));
+            console.log('------------------------\n');
+            
+            // Print files with less than 80% coverage
+            console.log('\n--- Files with Less Than 80% Coverage ---');
+            Object.entries(summary)
+              .filter(([key, value]) => key !== 'total' && value.lines.pct < 80)
+              .forEach(([file, coverage]) => {
+                console.log(`\n${file}:`);
+                console.log(`  Lines: ${coverage.lines.pct}% (${coverage.lines.covered}/${coverage.lines.total})`);
+                console.log(`  Statements: ${coverage.statements.pct}% (${coverage.statements.covered}/${coverage.statements.total})`);
+                console.log(`  Functions: ${coverage.functions.pct}% (${coverage.functions.covered}/${coverage.functions.total})`);
+                console.log(`  Branches: ${coverage.branches.pct}% (${coverage.branches.covered}/${coverage.branches.total})`);
+              });
+          "
+
+      - name: Restore original setup file
+        if: always()
+        run: |
+          cd backend
+          mv src/__tests__/unmocked/unmocked_setup.ts.bak src/__tests__/unmocked/unmocked_setup.ts
+
+      - name: Cleanup Azure Resources
+        if: always()
+        run: |
+          # Delete the resource group and all resources
+          echo "Cleaning up Azure resources..."
+          PR_RG="pr${{ github.event.pull_request.number }}-mongodb-rg"
+          az group delete --name $PR_RG --yes --no-wait
+
+

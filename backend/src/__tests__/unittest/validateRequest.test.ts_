@@ -1,3 +1,5 @@
+import './unittest_setup';
+
 import { Request, Response, NextFunction } from 'express';
 import { validateRequest } from '../../middleware/validateRequest';
 import { validationResult, ValidationError } from 'express-validator';
@@ -94,6 +96,47 @@ describe('validateRequest Middleware', () => {
     validateRequest(mockRequest as Request, mockResponse as Response, mockNext);
     
     // Verify response
+    expect(mockResponse.status).toHaveBeenCalledWith(400);
+    // The middleware returns the first error message for most routes
+    expect(mockResponse.json).toHaveBeenCalledWith({ error: mockErrors[0].msg });
+    expect(mockNext).not.toHaveBeenCalled();
+  });
+  
+  test('should return all errors for POST /users route', () => {
+    // Create mock validation errors
+    const mockErrors: ValidationError[] = [
+      { 
+        type: 'field',
+        msg: 'Invalid email format', 
+        path: 'email',
+        location: 'body',
+        value: 'test'
+      },
+      { 
+        type: 'field',
+        msg: 'Password must be at least 6 characters', 
+        path: 'password',
+        location: 'body',
+        value: 'test'
+      }
+    ];
+    
+    // Create a mock result with errors
+    const mockResult = new MockResult(mockErrors);
+    
+    // Mock validationResult to return our mock result
+    (validationResult as unknown as jest.Mock).mockReturnValue(mockResult);
+    
+    // Setup request for POST /users route
+    mockRequest = {
+      method: 'POST',
+      path: '/users'
+    };
+    
+    // Call the middleware
+    validateRequest(mockRequest as Request, mockResponse as Response, mockNext);
+    
+    // Verify response for POST /users route
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith({ errors: mockErrors });
     expect(mockNext).not.toHaveBeenCalled();
