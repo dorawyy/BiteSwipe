@@ -16,7 +16,7 @@ export class SessionManager {
     constructor(restaurantService: RestaurantService) {
         this.restaurantService = restaurantService;
     }
-    
+
     async createSession(
         userId: string,
         settings: {
@@ -31,7 +31,7 @@ export class SessionManager {
                 throw new Error('Invalid user ID format');
             }
             const userObjectId = new Types.ObjectId(userId);
-            
+
             // Check if user exists
             const user = await UserModel.findById(userObjectId);
             if (!user) {
@@ -44,7 +44,7 @@ export class SessionManager {
             const expiresAt = new Date();
             expiresAt.setHours(expiresAt.getHours() + 24);
 
-            const restaurants = await this.restaurantService.addRestaurants(settings, '') as {_id: string}[];
+            const restaurants = await this.restaurantService.addRestaurants(settings, '') as { _id: string; }[];
 
             const joinCode = await this.generateUniqueJoinCode();
 
@@ -92,15 +92,15 @@ export class SessionManager {
                 joinCode += this.joinCodeCharacters.charAt(randomIndex);
             }
 
-            const existingSession = await Session.findOne({ joinCode, status: { $ne: 'COMPLETED'} });
+            const existingSession = await Session.findOne({ joinCode, status: { $ne: 'COMPLETED' } });
 
             isUnique = !existingSession;
         }
 
-        return joinCode
+        return joinCode;
     }
 
-    
+
     async sessionSwiped(sessionId: string, userId: string, restaurantId: string, swipe: boolean) {
         if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(userId) || !Types.ObjectId.isValid(restaurantId)) {
             throw new Error('Invalid ID format');
@@ -108,7 +108,7 @@ export class SessionManager {
         const sessionObjId = new Types.ObjectId(sessionId);
         const userObjId = new Types.ObjectId(userId);
         const restaurantObjId = new Types.ObjectId(restaurantId);
-    
+
         const session = await Session.findOneAndUpdate(
             {
                 _id: sessionObjId,
@@ -136,11 +136,11 @@ export class SessionManager {
             { new: true, runValidators: true }
         );
 
-        if (!session){
+        if (!session) {
             const existingSession = await Session.findOne({
                 _id: sessionObjId,
                 'participants': {
-                    $elemMatch : {
+                    $elemMatch: {
                         userId: userObjId,
                         'preferences.restaurantId': restaurantObjId
                     }
@@ -171,19 +171,19 @@ export class SessionManager {
                 pendingInvitations: { $ne: userObjectId }
             },
             {
-                $push: { 
+                $push: {
                     pendingInvitations: userObjectId,
                     doneSwiping: userObjectId
                 }
             },
             { new: true, runValidators: true }
         );
-    
+
         // Handle failure cases
         if (!updatedSession) {
             // Find the session to determine the specific error
             const session = await Session.findById(sessionObjectId);
-            
+
             if (!session) {
                 throw new Error('Session not found');
             } else if (session.status === 'COMPLETED') {
@@ -196,7 +196,7 @@ export class SessionManager {
                 throw new Error('Failed to invite user to session');
             }
         }
-    
+
         return updatedSession;
     }
 
@@ -224,11 +224,11 @@ export class SessionManager {
             },
             { new: true, runValidators: true }
         );
-    
+
         if (!updatedSession) {
             // Determine the specific reason for failure
             const session = await Session.findOne({ joinCode });
-            
+
             if (!session) {
                 throw new Error('Session not found');
             } else if (session.status === 'COMPLETED') {
@@ -239,7 +239,7 @@ export class SessionManager {
                 throw new Error('User has not been invited to this session');
             }
         }
-    
+
         return updatedSession;
     }
 
@@ -257,7 +257,7 @@ export class SessionManager {
                 ],
                 status: { $ne: 'COMPLETED' as SessionStatus }
             }).sort({ createdAt: -1 }); // Most recent first
-            
+
             return sessions;
         } catch (error) {
             console.error('Error fetching user sessions:', error);
@@ -271,10 +271,10 @@ export class SessionManager {
                 throw new Error('Invalid session ID format');
             }
             const sessionObjId = new Types.ObjectId(sessionId);
-            
+
             const session = await Session.findById(sessionObjId);
             if (!session) {
-                const error = new Error('Session not found') as Error & { code?: string };
+                const error = new Error('Session not found') as Error & { code?: string; };
                 error.code = 'SESSION_NOT_FOUND';
                 throw error;
             }
@@ -304,12 +304,12 @@ export class SessionManager {
             },
             { new: true, runValidators: true }
         );
-    
+
         // Handle failure cases
         if (!updatedSession) {
             // Find the session to determine the specific error
             const session = await Session.findById(sessionObjectId);
-            
+
             if (!session) {
                 throw new Error('Session not found');
             } else if (session.status === 'COMPLETED') {
@@ -320,7 +320,7 @@ export class SessionManager {
                 throw new Error('User has not been invited to this session');
             }
         }
-    
+
         return updatedSession;
     }
 
@@ -344,12 +344,12 @@ export class SessionManager {
             },
             { new: true, runValidators: true }
         );
-    
+
         // Handle failure cases
         if (!updatedSession) {
             // Find the session to determine the specific error
             const session = await Session.findById(sessionObjectId);
-            
+
             if (!session) {
                 throw new Error('Session not found');
             } else if (session.status === 'COMPLETED') {
@@ -360,7 +360,7 @@ export class SessionManager {
                 throw new Error('User is not a participant in this session');
             }
         }
-    
+
         return updatedSession;
     }
 
@@ -370,7 +370,7 @@ export class SessionManager {
                 throw new Error('Invalid session ID format');
             }
             const sessionObjId = new Types.ObjectId(sessionId);
-            
+
             const session = await Session.findOne({
                 _id: sessionObjId
             });
@@ -473,26 +473,26 @@ export class SessionManager {
             throw new Error('Invalid session ID format');
         }
         const sessionObjId = new Types.ObjectId(sessionId);
-        
+
         const session = await Session.findById(sessionObjId);
         if (!session) {
             throw new Error('Session not found');
         }
 
         // Only allow completed sessions or matching sessions where everyone is done swiping
-        if (session.status !== 'COMPLETED' && 
+        if (session.status !== 'COMPLETED' &&
             (session.status === 'MATCHING' && session.doneSwiping.length !== 0)) {
             throw new Error('Session is not completed');
         }
 
-        if(session.status === 'MATCHING') {
+        if (session.status === 'MATCHING') {
             // Mark the session as completed
             session.status = 'COMPLETED';
             await session.save();
         }
 
         const participants = session.participants;
-        
+
         const restaurantVotes = new Map<string, number>();
 
         for (const restaurant of session.restaurants) {
@@ -509,7 +509,7 @@ export class SessionManager {
                 }
             }
         }
-        
+
         for (const restaurant of session.restaurants) {
             const votes = restaurantVotes.get(restaurant.restaurantId.toString()) ?? 0;
             restaurant.positiveVotes = votes;
@@ -523,7 +523,7 @@ export class SessionManager {
 
         session.finalSelection = {
             restaurantId: new mongoose.Types.ObjectId(winnerRestaurantId),
-            selectedAt: new Date();
+            selectedAt: new Date()
         };
 
         await session.save();

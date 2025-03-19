@@ -21,7 +21,7 @@ console.log(`Database URI: ${DB_URI} [Source: ${process.env.DB_URI ? 'ENV' : 'DE
 
 function transformMongoId(doc: MongoDocument): MongoDocument {
     const transformed = { ...doc };
-    
+
     // Handle all properties recursively
     for (const [key, value] of Object.entries(doc)) {
         if (value && typeof value === 'object') {
@@ -33,22 +33,22 @@ function transformMongoId(doc: MongoDocument): MongoDocument {
                 transformed[key] = value;
             } else if (Array.isArray(value)) {
                 // Handle arrays recursively
-                transformed[key] = value.map(item => 
+                transformed[key] = value.map(item =>
                     typeof item === 'object' ? transformMongoId(item) : item
                 );
             } else {
                 // Handle nested objects recursively
-                transformed[key] = transformMongoId(value);
+                transformed[key] = transformMongoId(value as MongoDocument);
             }
         }
     }
-    
+
     return transformed;
 }
 
 function updateSessionDates(session: any): any {
     const now = new Date();
-    
+
     // If we have existing dates, calculate the time delta
     let timeDelta = 20 * 60 * 1000; // Default 20 minutes
     let usedDefault = true;
@@ -59,14 +59,14 @@ function updateSessionDates(session: any): any {
         timeDelta = originalExpires.getTime() - originalCreated.getTime();
         usedDefault = false;
     }
-    
+
     // Set new dates
     const expires = new Date(now.getTime() + timeDelta);
 
     // Log timing details
     const minutes = Math.round(timeDelta / (60 * 1000));
     console.log(`Session timing: ${usedDefault ? '(using default) ' : ''}created at ${now.toISOString()}, expires in ${minutes} minutes`);
-    
+
     return {
         ...session,
         createdAt: now,
@@ -90,9 +90,9 @@ async function seedDatabase() {
         const usersPath = path.join(__dirname, '..', 'data', INITIAL_USERS_FILE);
         const usersData = fs.readFileSync(usersPath, 'utf-8');
         const usersJson = JSON.parse(usersData);
-        
+
         // Transform users data
-        const users = Array.isArray(usersJson) 
+        const users = Array.isArray(usersJson)
             ? usersJson.map(transformMongoId)
             : [transformMongoId(usersJson)];
 
@@ -104,30 +104,30 @@ async function seedDatabase() {
         const jsonPath = path.join(__dirname, '..', 'data', INITIAL_RESTAURANTS_FILE);
         const jsonData = fs.readFileSync(jsonPath, 'utf-8');
         const restaurantsJson = JSON.parse(jsonData);
-        
+
         // Transform and insert restaurants
         const transformedRestaurants = (Array.isArray(restaurantsJson) ? restaurantsJson : [restaurantsJson])
             .map(transformMongoId)
             .map((restaurant: MongoDocument) => ({
                 ...(restaurant._id && { _id: restaurant._id }),
-                name: (restaurant as unknown).name,
-                address: (restaurant as unknown).location?.address ?? '',
+                name: (restaurant as unknown as { name: string; }).name,
+                address: (restaurant as unknown as { location: { address: string; }; }).location?.address ?? '',
                 location: {
                     type: 'Point',
                     coordinates: [
-                        (restaurant as unknown).location?.coordinates?.longitude ?? 0,
-                        (restaurant as unknown).location?.coordinates?.latitude ?? 0
+                        (restaurant as unknown as { location: { coordinates: { longitude: number, latitude: number; }; }; }).location?.coordinates?.longitude ?? 0,
+                        (restaurant as unknown as { location: { coordinates: { longitude: number, latitude: number; }; }; }).location?.coordinates?.latitude ?? 0
                     ]
                 },
-                phoneNumber: (restaurant as unknown).contact?.phone ?? '',
-                website: (restaurant as unknown).contact?.website ?? '',
-                primaryImage: (restaurant as unknown).images?.primary ?? '',
-                galleryImages: (restaurant as unknown).images?.gallery ?? [],
-                cuisine: (restaurant as unknown).cuisine ?? '',
-                priceRange: (restaurant as unknown).priceRange ?? '',
-                rating: (restaurant as unknown).rating ?? 0,
-                openingHours: (restaurant as unknown).openingHours ?? '',
-                googlePlaceId: (restaurant as unknown).sourceData?.googlePlaceId ?? ''
+                phoneNumber: (restaurant as unknown as { contact: { phone: string; }; }).contact?.phone ?? '',
+                website: (restaurant as unknown as { contact: { website: string; }; }).contact?.website ?? '',
+                primaryImage: (restaurant as unknown as { images: { primary: string; }; }).images?.primary ?? '',
+                galleryImages: (restaurant as unknown as { images: { gallery: string[]; }; }).images?.gallery ?? [],
+                cuisine: (restaurant as unknown as { cuisine: string; }).cuisine ?? '',
+                priceRange: (restaurant as unknown as { priceRange: string; }).priceRange ?? '',
+                rating: (restaurant as unknown as { rating: number; }).rating ?? 0,
+                openingHours: (restaurant as unknown as { openingHours: string; }).openingHours ?? '',
+                googlePlaceId: (restaurant as unknown as { sourceData: { googlePlaceId: string; }; }).sourceData?.googlePlaceId ?? ''
             }));
 
         const insertedRestaurants = await Restaurant.insertMany(transformedRestaurants);
@@ -137,9 +137,9 @@ async function seedDatabase() {
         const sessionsPath = path.join(__dirname, '..', 'data', INITIAL_SESSIONS_FILE);
         const sessionsData = fs.readFileSync(sessionsPath, 'utf-8');
         const sessionsJson = JSON.parse(sessionsData);
-        
+
         // Transform sessions data
-        const sessions = Array.isArray(sessionsJson) 
+        const sessions = Array.isArray(sessionsJson)
             ? sessionsJson.map(transformMongoId).map(updateSessionDates)
             : [updateSessionDates(transformMongoId(sessionsJson))];
 

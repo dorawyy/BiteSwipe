@@ -7,11 +7,11 @@ RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /etc/ssl/certs /etc/ssl/private
 
 # Copy custom entrypoint script
-COPY ./docker-entrypoint.sh /docker-entrypoint-custom.sh
-RUN chmod +x /docker-entrypoint-custom.sh
+COPY ./nginx-entrypoint.sh /nginx-entrypoint-inside-container.sh
+RUN chmod +x /nginx-entrypoint-inside-container.sh
 
 # Set the entrypoint
-ENTRYPOINT ["/docker-entrypoint-custom.sh"]
+ENTRYPOINT ["/nginx-entrypoint-inside-container.sh"]
 
 # Default command
 CMD ["nginx", "-g", "daemon off;"]

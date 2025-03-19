@@ -61,9 +61,9 @@ services:
       - "443:443"
       - "80:80"
     volumes:
-      - ./nginx/docker-entrypoint/docker-entrypoint.sh:/docker-entrypoint-custom.sh
+      - ./nginx/nginx-entrypoint/nginx-entrypoint.sh:/nginx-entrypoint-inside-container.sh
       - ./nginx/certs:/etc/ssl
-    entrypoint: ["/docker-entrypoint-custom.sh"]
+    entrypoint: ["/nginx-entrypoint-inside-container.sh"]
     command: ["nginx", "-g", "daemon off;"]
     environment:
       - PORT=${PORT}
