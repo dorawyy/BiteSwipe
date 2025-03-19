@@ -5,12 +5,13 @@ import { Session } from '../models/session';
 import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
-import { IRestaurant } from '../models/restaurant';
+import { MongoDocument } from '../models/appTypes';
+
 // Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 // Global configuration
-
+const DATA_DIR = path.join(__dirname, '../../data');
 const INITIAL_RESTAURANTS_FILE = 'initial-restaurants.json';
 const INITIAL_USERS_FILE = 'initial-users.json';
 const INITIAL_SESSIONS_FILE = 'initial-sessions.json';
@@ -18,25 +19,30 @@ const DB_URI = process.env.DB_URI ?? 'mongodb://localhost:27017/biteswipe';
 console.log(`Database URI: ${DB_URI} [Source: ${process.env.DB_URI ? 'ENV' : 'DEFAULT'}]`);
 
 
-function transformMongoId(doc: any): Object {
+function transformMongoId(doc: MongoDocument): MongoDocument {
     const transformed = { ...doc };
-
+    
+    // Handle all properties recursively
     for (const [key, value] of Object.entries(doc)) {
         if (value && typeof value === 'object') {
             if ('$oid' in value) {
+                // Handle ObjectId
                 transformed[key] = value.$oid;
             } else if ('$date' in value) {
+                // Skip date fields - we'll handle them separately for sessions
                 transformed[key] = value;
             } else if (Array.isArray(value)) {
-                transformed[key] = value.map(item =>
+                // Handle arrays recursively
+                transformed[key] = value.map(item => 
                     typeof item === 'object' ? transformMongoId(item) : item
                 );
             } else {
+                // Handle nested objects recursively
                 transformed[key] = transformMongoId(value);
             }
         }
     }
-
+    
     return transformed;
 }
 
@@ -102,26 +108,26 @@ async function seedDatabase() {
         // Transform and insert restaurants
         const transformedRestaurants = (Array.isArray(restaurantsJson) ? restaurantsJson : [restaurantsJson])
             .map(transformMongoId)
-            .map((restaurant: any): IRestaurant => ({
+            .map((restaurant: MongoDocument) => ({
                 ...(restaurant._id && { _id: restaurant._id }),
-                name: restaurant.name,
-                address: restaurant.location?.address ?? '',
+                name: (restaurant as unknown).name,
+                address: (restaurant as unknown).location?.address ?? '',
                 location: {
                     type: 'Point',
                     coordinates: [
-                        restaurant.location?.coordinates?.longitude ?? 0,
-                        restaurant.location?.coordinates?.latitude ?? 0
+                        (restaurant as unknown).location?.coordinates?.longitude ?? 0,
+                        (restaurant as unknown).location?.coordinates?.latitude ?? 0
                     ]
                 },
-                phoneNumber: restaurant.contact?.phone ?? '',
-                website: restaurant.contact?.website ?? '',
-                primaryImage: restaurant.images?.primary ?? '',
-                galleryImages: restaurant.images?.gallery ?? [],
-                cuisine: restaurant.cuisine ?? '',
-                priceRange: restaurant.priceRange ?? '',
-                rating: restaurant.rating ?? 0,
-                openingHours: restaurant.openingHours ?? '',
-                googlePlaceId: restaurant.sourceData?.googlePlaceId ?? ''
+                phoneNumber: (restaurant as unknown).contact?.phone ?? '',
+                website: (restaurant as unknown).contact?.website ?? '',
+                primaryImage: (restaurant as unknown).images?.primary ?? '',
+                galleryImages: (restaurant as unknown).images?.gallery ?? [],
+                cuisine: (restaurant as unknown).cuisine ?? '',
+                priceRange: (restaurant as unknown).priceRange ?? '',
+                rating: (restaurant as unknown).rating ?? 0,
+                openingHours: (restaurant as unknown).openingHours ?? '',
+                googlePlaceId: (restaurant as unknown).sourceData?.googlePlaceId ?? ''
             }));
 
         const insertedRestaurants = await Restaurant.insertMany(transformedRestaurants);
@@ -159,7 +165,3 @@ async function seedDatabase() {
 
 // Run the seeding
 seedDatabase();
-seedDatabase().catch(error => {
-    console.error('Error seeding database:', error);
-    process.exit(1);
-});

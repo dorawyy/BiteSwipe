@@ -2,7 +2,8 @@ import * as admin from 'firebase-admin';
 import type { ServiceAccount } from 'firebase-admin';
 import * as fs from 'fs';
 
-let messaging: admin.messaging.Messaging | null = null;
+// Exported for testing purposes
+export let messaging: admin.messaging.Messaging | null = null;
 
 try {
     // Path to the credentials file - can be set via environment variable or use default

@@ -25,7 +25,7 @@ export class RestaurantService {
                     const primaryImage = details.photos_url && details.photos_url.length > 0 ? details.photos_url[0] : '';
                     const galleryImages = details.photos_url && details.photos_url.length > 1 ? details.photos_url.slice(1) : [];
 
-                    console.log('Creating and Storing restaurant =: ', details);
+                    //console.log('Creating and Storing restaurant =: ', details);
 
                     const RestaurantData = {
                         name: details.name,
@@ -64,7 +64,7 @@ export class RestaurantService {
                     const restaurant = new Restaurant(RestaurantData);
                     savedRestaurants.push(await restaurant.save());
                 } else {
-                    console.log('Restaurant already exists');
+                    //console.log('Restaurant already exists');
                     savedRestaurants.push(restaurant_exist);
                 }
             }

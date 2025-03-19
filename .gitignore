@@ -22,7 +22,13 @@ test.env
 */codacy/.env
 backend/scripts/codacy/.env
 backend/scripts/codacy/*_analysis*.json
-.*frules
+
+*frules
+.zsh_history
+bin
+.bin
+firebase-service-account.json
+.env
 backend/.zsh_history
 *.crt
 *.key

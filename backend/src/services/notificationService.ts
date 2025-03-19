@@ -7,7 +7,7 @@ export class NotificationService {
         try {
             // Get the user's FCM token from the database
             const user = await UserModel.findById(invitedUserId);
-            if (!user || !user.fcmToken) {
+            if (!user?.fcmToken) {
                 console.error('User not found or no FCM token available');
                 return;
             }
@@ -27,7 +27,7 @@ export class NotificationService {
 
             // Send the notification
             const response = await getMessaging().send(message);
-            console.log('Successfully sent notification:', response);
+            //console.log('Successfully sent notification:', response);
             
             return response;
         } catch (error) {
@@ -47,7 +47,7 @@ export class NotificationService {
             };
 
             const response = await getMessaging().send(message);
-            console.log('Successfully sent notification:', response);
+            //console.log('Successfully sent notification:', response);
             return response;
         } catch (error) {
             console.error('Error sending notification:', error);

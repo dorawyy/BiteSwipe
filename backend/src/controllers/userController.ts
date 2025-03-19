@@ -117,7 +117,6 @@ export class UserController {
     async getUserByEmail(req: Request, res: Response) {
         try {
             const { email } = req.params;
-            console.log(email);
             const user = await this.userService.getUserByEmail(email);
 
             if (!user) {
@@ -130,7 +129,7 @@ export class UserController {
                 displayName: user.displayName
             });
         } catch (error: unknown) {
-            console.log(error);
+            console.error(error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     }

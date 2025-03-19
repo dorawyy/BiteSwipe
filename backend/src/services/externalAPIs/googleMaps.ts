@@ -43,7 +43,7 @@ export interface GooglePlaceSearchResult {
 
 export class GooglePlacesService {
     private apiKey: string;
-    private baseUrl: string = 'https://maps.googleapis.com/maps/api/place';
+    private baseUrl = 'https://maps.googleapis.com/maps/api/place';
     
     private getPhotoUrl = (photoReference: string, maxWidth: number) => {
         return `${this.baseUrl}/photo?maxwidth=${maxWidth}&photo_reference=${photoReference}&key=${this.apiKey}`;

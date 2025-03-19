@@ -24,12 +24,12 @@ interface ISession extends Document {
             radius: number;
         };
     };
-    restaurants: Array<{
+    restaurants: {
         restaurantId: Types.ObjectId;
         score: number;
         totalVotes: number;
         positiveVotes: number;
-    }>;
+    }[];
     finalSelection?: {
         restaurantId: Types.ObjectId;
         selectedAt: Date;

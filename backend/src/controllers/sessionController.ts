@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
-import { Types } from 'mongoose';
 import { SessionManager } from '../services/sessionManager';
 import { NotificationService } from '../services/notificationService';
-import { UserModel } from '../models/user';
 import { MongoDocument } from '../models/appTypes';
 import { UserService } from '../services/userService';
+import { ObjectId } from 'mongoose';
+
+interface CodedError extends Error {
+    code?: string;
+}
 
 export class SessionController {
     private sessionManager: SessionManager;
@@ -36,16 +39,19 @@ export class SessionController {
 
     async getSession(req: Request, res: Response) {
         try {
+            if(req.params.sessionId.length !== 24) {
+                return res.status(400).json({ error: 'Invalid session ID format' });
+            }
             const sessionId = req.params.sessionId;
-            console.log('Session ID from params:', sessionId);
+            //console.log('Session ID from params:', sessionId);
             
-            const session = await this.sessionManager.getSession(sessionId);
-            res.json(session);
-        } catch (error) {
-            console.error('Error fetching session:', error);
-            if (error instanceof Error && (error as any).code === 'SESSION_NOT_FOUND') {
+            const session = await this.sessionManager.getSession(sessionId) as unknown as MongoDocument;
+            if(!session) {
                 return res.status(404).json({ error: 'Session not found' });
             }
+            res.status(200).json(session);
+        } catch (error) {
+            console.error('Error fetching session:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
     }
@@ -63,9 +69,9 @@ export class SessionController {
             const lat = typeof latitude === 'string' ? parseFloat(latitude) : latitude;
             const lng = typeof longitude === 'string' ? parseFloat(longitude) : longitude;
             const rad = typeof radius === 'string' ? parseFloat(radius) : radius;
-
+            
             // Validate userId is a valid ObjectId
-            if (!Types.ObjectId.isValid(userId)) {
+            if (userId.length !== 24) {
                 return res.status(400).json({ error: 'Invalid user ID format' });
             }
 
@@ -101,7 +107,7 @@ export class SessionController {
 
             const session = await this.sessionManager.addPendingInvitation(
                 sessionId,
-                user._id.toString()
+                (user._id as unknown as ObjectId).toString()
             );
 
             // Send notification to invited user
@@ -135,7 +141,7 @@ export class SessionController {
                 String(userId)
             );
 
-            res.json(session);
+            res.status(200).json(session);
         } catch (error) {
             console.error('Error joining session:', error);
             if (error instanceof Error) {
@@ -153,7 +159,7 @@ export class SessionController {
 
             const session = await this.sessionManager.rejectInvitation(sessionId, userId);
 
-            res.json(session);
+            res.status(200).json(session);
         } catch (error) {
             console.error('Error rejecting invitation:', error);
             if (error instanceof Error) {
@@ -199,7 +205,7 @@ export class SessionController {
             res.json(restaurants);
         } catch (error) {
             console.error('Error fetching restaurants:', error);
-            if (error instanceof Error && (error as any).code === 'SESSION_NOT_FOUND') {
+            if (error instanceof Error && (error as CodedError).code === 'SESSION_NOT_FOUND') {
                 return res.status(404).json({ error: 'Session not found' });
             }
             res.status(500).json({ error: 'Internal server error' });
@@ -215,9 +221,9 @@ export class SessionController {
 
             res.json({ success: true, session: session._id });
         } catch (error) {
-            console.log(error);
+            console.error(error);
 
-            res.status(500).json({ error: error }); 
+            res.status(500).json({ error }); 
         }
     }
 
@@ -230,7 +236,7 @@ export class SessionController {
 
             res.json({ success: true, session: session._id });
         } catch (error) {
-            console.log(error);
+            console.error(error);
 
             res.status(500).json({ error: error });
         }
@@ -245,7 +251,7 @@ export class SessionController {
 
             res.json({ success: true, session: session._id });
         } catch (error) {
-            console.log(error);
+            console.error(error);
 
             res.status(500).json({ error: error });
         }
@@ -258,7 +264,7 @@ export class SessionController {
             const result = await this.sessionManager.getResultForSession(sessionId);
             res.json({ success: true, result });
         } catch (error) {
-            console.log(error);
+            console.error(error);
 
             res.status(500).json({ error: error });
         }
