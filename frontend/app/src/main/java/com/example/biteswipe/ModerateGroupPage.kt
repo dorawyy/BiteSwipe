@@ -112,6 +112,10 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
             finish()
         }
 
+//        Session ID for testing
+        val testSessionId = findViewById<TextView>(R.id.test_session_id)
+        testSessionId.text = sessionId
+
 //        Load Session ID into Text View
         val groupIdText = findViewById<TextView>(R.id.placeholderText)
         groupIdText.text = intent.getStringExtra("joinCode")

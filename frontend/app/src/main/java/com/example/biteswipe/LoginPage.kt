@@ -34,9 +34,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
         private const val TAG = "LoginPage"
 
 //        Yes this is hardcoded, will be thrown after MVP
-        const val WEB_CLIENT_ID: String =
-            "11247540626-v3khra1d42f8dtcb9eeoep79h0rusamq.apps.googleusercontent.com"
-
+        const val WEB_CLIENT_ID: String = BuildConfig.WEB_CLIENT_ID
     }
 
 

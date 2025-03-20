@@ -51,7 +51,7 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                 endpoint = endpoint,
                 method = "GET",
                 onSuccess = { response ->
-                    val session  = parseSessionData(response)
+                    val session  = parseSessionData(response, TAG)
                     if(session.status != "MATCHING") {
                         Log.d(TAG, "Session Finished")
                         val intent = Intent(this@MatchingPage, ResultsPage::class.java)
@@ -97,7 +97,8 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
             endpoint = endpoint,
             method = "GET",
             onSuccess = { response ->
-                RestaurantList  = parseRestaurants(response.toString())
+                Log.d(TAG, "restaurant Response: $response")
+                RestaurantList  = parseRestaurants(response.toString(), TAG)
                 cards.clear()
                 for (restaurant in RestaurantList) {
                     Log.d(TAG, "Restaurant: $restaurant")
