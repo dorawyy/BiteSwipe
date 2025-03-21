@@ -10,8 +10,8 @@
 | **Change Date** | **Modified Sections** | **Rationale** |
 | ----------------- | --------------------- | ------------- |
 | _10 March 2025_ | created document | N/A |
-| _17 March 2025_ | Added Frontend Components to doc | TODO|
-
+| _17 March 2025_ | Added Frontend Components to doc | for submission |
+| _21 March 2025_ | Added Espresso Logs to doc | for submission |
 ---
 
   
@@ -167,17 +167,57 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 - **Expected Behaviors:**
 
 | **Scenario Steps** | **Test Case Steps** |
-| ------------------ | ------------------- |
-| 1. The user opens “Add Todo Items” screen. | Open “Add Todo Items” screen. |
-| 2. The app shows an input text field and an “Add” button. The add button is disabled. | Check that the text field is present on screen.<br>Check that the button labelled “Add” is present on screen.<br>Check that the “Add” button is disabled. |
-| 3a. The user inputs an ill-formatted string. | Input “_^_^^OQ#$” in the text field. |
-| 3a1. The app displays an error message prompting the user for the expected format. | Check that a dialog is opened with the text: “Please use only alphanumeric characters”. |
-| 3. The user inputs a new item for the list and the add button becomes enabled. | Input “buy milk” in the text field.<br>Check that the button labelled “add” is enabled. |
-| 4. The user presses the “Add” button. | Click the button labelled “add”. |
-| 5. The screen refreshes and the new item is at the bottom of the todo list. | Check that a text box with the text “buy milk” is present on screen.<br>Input “buy chocolate” in the text field.<br>Click the button labelled “add”.<br>Check that two text boxes are present on the screen with “buy milk” on top and “buy chocolate” at the bottom. |
-| 5a. The list exceeds the maximum todo-list size. | Repeat steps 3 to 5 ten times.<br>Check that a dialog is opened with the text: “You have too many items, try completing one first”. |
+| --- | --- |
+| 1. The user opens the app. | Launch LoginPage activity. |
+| 2. The system displays the login screen with a "Sign in with Google" button. | N/A |
+| 3. The user taps the "Sign in with Google" button. | Click the button labeled "Sign in with Google". |
+| 3a. The user denies the Google authentication request. | Click away from the Google authentication page. |
+| 3a1. The system returns to the login screen with a message: "Sign-in required." | Check that the login screen is displayed again. Check that an error message "Sign-in required." is displayed. |
+| 4. The system redirects the user to Google's authentication page. | Check that the Google authentication page is displayed. |
+| 5. The user selects or enters their Google account credentials. | Input valid Google account credentials and submit. |
+| 5a. Network failure during authentication. | N/A Backend mock required |
+| 5a1. The system displays an error message: "No internet connection. Please try again." | N/A |
+| 5a2. The user retries login once the network is restored. | N/A |
+| 6. The system verifies authentication with Google and grants access. | Check that authentication is successfully verified. |
+| 6a. Google authentication service is unavailable. | N/A |
+| 6a1. The system displays an error message: "Google sign-in is currently unavailable." | N/A |
+| 6a2. The user is advised to try again later. | N/A |
+| 7. The system redirects the user back to the app, now logged in. | Check that the user is redirected back to the home page. |
+
+- **Test Logs**
+<div style="margin-left: 40px;">
+
+| Timestamp            | PID         | Tag               | Package                     | Level | Message                                                                 |
+|----------------------|------------|-------------------|-----------------------------|-------|-------------------------------------------------------------------------|
+| 2025-03-21 01:58:41.485 | 11146-11163 | TestRunner       | com.example.biteswipe      | I     | started: testA_Login(com.example.biteswipe.ALoginPageTest)            |
+| 2025-03-21 01:58:42.443 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'single click' action on view view.getId() is <2131231185/com.example.biteswipe:id/sign_in_button> |
+| 2025-03-21 01:58:56.893 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Checking 'MatchesViewAssertion{viewMatcher=(view has effective visibility <VISIBLE> and view.getGlobalVisibleRect() to return non-empty rectangle)}' assertion on view view.getId() is <2131231008/com.example.biteswipe:id/main_join_group_button> |
+| 2025-03-21 01:58:56.932 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'Get text from TextView' action on view view.getId() is <2131231235/com.example.biteswipe:id/test_user_id> |
+| 2025-03-21 01:58:57.846 | 11146-11163 | TestRunner       | com.example.biteswipe      | I     | finished: testA_Login(com.example.biteswipe.ALoginPageTest)           |
+
+</div>
+
+
+- **Use Case: Swipe to Select Restaurants**
 
   
+
+- **Expected Behaviors:**
+
+| **Scenario Steps** | **Test Case Steps** |
+| --- | --- |
+| 1. The screen displays a restaurant suggestion, including the name, image, rating, and short description. | Check that a restaurant suggestion is displayed in the recycler view. |
+| 1a. No restaurants are available when the user navigates to the selection screen. | Check if restaurant recycler view has any children |
+| 1a1. Instead of showing a restaurant, the app displays the message: "No restaurants available at this time." | Check for text on the screen |
+| 2. The user swipes right to like or left to dislike the restaurant. | Swipe right to like a restaurant. Swipe left to dislike a restaurant. |
+| 3. The screen briefly shows a confirmation animation. | N/A Can’t be tested with Espresso |
+| 4. A new restaurant suggestion appears. | Check that the restaurant recycler view has less children than it did before |
+| 4a. Network failure while loading the next restaurant. | N/A Backend mocking |
+| 4a1. The screen displays a message: "Network error. Please check your connection and try again." | N/A Backend mocking |
+| 4a2. The user can retry by tapping "Reload", or exit the screen. | N/A Backend mocking |
+| 5. Steps 3-5 repeat until no more restaurant suggestions are available. | Continue swiping until all restaurant suggestions are exhausted. |
+| 6. If no restaurants remain, the app displays a message: "Waiting for other users to finish…" | Check text "Waiting for other users to finish…" is displayed, check that recycler view is invisible|
+
 
 - **Test Logs:**
 
@@ -187,10 +227,60 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
 ```
 
+  
+
+- **Use Case: Create A Session**
+
+  
+
+- **Expected Behaviors:**
+
+ | **Scenario Steps** | **Test Case Steps** |
+| --- | --- |
+| 1. The group creator taps the “Create Group” button from the main page. | Click the button labeled "Create Group" on the main page. |
+| 2. The screen displays input fields for: Radius, Cuisine preferences. | Check that input fields for "Radius" and "Cuisine preferences" are displayed. |
+| 3. The group creator enters the required details. | Enter valid values for "Radius" and "Cuisine preferences." |
+| 3a. Invalid input (missing location or preferences). | Leave one or both input fields empty and attempt to proceed. |
+| 3a1. The system highlights missing fields and displays a message: "Please fill in all required fields." | Check intent hasn’t changed (still in Create A Session) page|
+| 4. The group creator taps the "Create Session" button. | Click the button labeled "Create Session." |
+| 5. The system confirms session creation and displays: A confirmation message, A unique join code for other users to join the session, A list of users in the session, A Start Matching button. | Check that a confirmation message is displayed.<br>Check that a unique join code is generated and displayed.<br>Check that a list of users in the session is displayed.<br>Check that a button labeled "Start Matching" is present. |
+| 5a. Server error prevents session creation. | N/A Backend mocking |
+| 5a1. The system displays an error toast: "Error: Please try again" | Check if intent remains the same |
+| 5a2. The group creator can retry after some time. | Check if intent remains the same  |
 
 
+- **Test Logs:**
 
-- **Use Case: Join A Session**
+<div style="margin-left: 40px;">
+
+
+| Timestamp            | PID         | Tag               | Package                     | Level | Message                                                                 |
+|----------------------|------------|-------------------|-----------------------------|-------|-------------------------------------------------------------------------|
+| 2025-03-21 01:58:58.719 | 11146-11163 | TestRunner       | com.example.biteswipe      | I     | started: testA_WorkingUI(com.example.biteswipe.BCreateGroupTest)       |
+| 2025-03-21 01:59:09.191 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Checking 'MatchesViewAssertion' on view <2131231250/id/textView2>      |
+| 2025-03-21 01:59:09.197 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Checking 'MatchesViewAssertion' on view <2131230869/id/create_group_button> |
+| 2025-03-21 01:59:09.200 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Checking 'MatchesViewAssertion' on view <2131231164/id/searchRadiusText> |
+| 2025-03-21 01:59:09.472 | 11146-11163 | TestRunner       | com.example.biteswipe      | I     | finished: testA_WorkingUI(com.example.biteswipe.BCreateGroupTest)      |
+| 2025-03-21 01:59:09.747 | 11146-11163 | TestRunner       | com.example.biteswipe      | I     | started: testB_InvalidParameters(com.example.biteswipe.BCreateGroupTest) |
+| 2025-03-21 01:59:19.116 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'type text(0)' on view <2131231164/id/searchRadiusText>     |
+| 2025-03-21 01:59:20.029 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'single click' on view <2131230869/id/create_group_button>  |
+| 2025-03-21 01:59:23.346 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Checking assertion on view view.getRootView() to equal view            |
+| 2025-03-21 01:59:23.361 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'actionOnItemAtPosition' on view <2131230872/id/cuisine_recycler_view> |
+| 2025-03-21 01:59:23.423 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'single click' on view <2131230869/id/create_group_button>  |
+| 2025-03-21 01:59:27.093 | 11146-11163 | TestRunner       | com.example.biteswipe      | I     | finished: testB_InvalidParameters(com.example.biteswipe.BCreateGroupTest) |
+| 2025-03-21 01:59:27.353 | 11146-11163 | TestRunner       | com.example.biteswipe      | I     | started: testC_CreateButton(com.example.biteswipe.BCreateGroupTest)    |
+| 2025-03-21 01:59:37.205 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'type text(1000)' on view <2131231164/id/searchRadiusText>  |
+| 2025-03-21 01:59:42.943 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'single click' on view <2131230869/id/create_group_button>  |
+| 2025-03-21 01:59:51.247 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Checking assertion on view view.getRootView() to equal view            |
+| 2025-03-21 01:59:51.254 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'Get text from TextView' on view <2131231122/id/placeholderText> |
+| 2025-03-21 01:59:51.261 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'single click' on view <2131231178/id/share_group_button>   |
+| 2025-03-21 01:59:51.790 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'type text(byteswiper@gmail.com)' on view <2131231079/id/new_member_text> |
+| 2025-03-21 01:59:54.077 | 11146-11146 | ViewInteraction  | com.example.biteswipe      | I     | Performing 'single click' on view <2131230794/id/add_member_button>    |
+| 2025-03-21 01:59:59.377 | 11146-11163 | TestRunner       | com.example.biteswipe      | I     | finished: testC_CreateButton(com.example.biteswipe.BCreateGroupTest)   |
+
+</div>
+
+**Use Case: Join A Session**
 
   
 
@@ -207,29 +297,50 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 | 4. The user clicks the "Join" button. | Click join button|
 | 5. The screen transitions to the Group Members page, displaying: - The session name - A list of all members in the group | Check to see intent has changed |
 
-| **Scenario Steps** | **Test Case Steps** |
-| ------------------ | ------------------- |
-| ... | ... |
+
 
   
 
 - **Test Logs:**
 
-```
+<div style="margin-left: 40px;">
 
-[Placeholder for Espresso test execution logs]
 
-```
+| Timestamp               | Thread ID | Component            | Package                          | Log Level | Message                                                                                   |
+|-------------------------|----------|----------------------|----------------------------------|-----------|-------------------------------------------------------------------------------------------|
+| 2025-03-21 01:59:59.846 | 11146-11163 | TestRunner         | com.example.biteswipe          | I         | started: testA_SignIn(com.example.biteswipe.CJoinGroupTest)                              |
+| 2025-03-21 02:00:00.138 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Performing 'single click' action on view view.getId() is <2131231185/com.example.biteswipe:id/sign_in_button> |
+| 2025-03-21 02:00:14.819 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Performing 'Get userId from TextView' action on view view.getId() is <2131231235/com.example.biteswipe:id/test_user_id> |
+| 2025-03-21 02:00:14.823 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Performing 'single click' action on view view.getId() is <2131231008/com.example.biteswipe:id/main_join_group_button> |
+| 2025-03-21 02:00:18.762 | 11146-11163 | TestRunner         | com.example.biteswipe          | I         | finished: testA_SignIn(com.example.biteswipe.CJoinGroupTest)                             |
+| 2025-03-21 02:00:19.023 | 11146-11163 | TestRunner         | com.example.biteswipe          | I         | started: testB_WorkingUI(com.example.biteswipe.CJoinGroupTest)                           |
+| 2025-03-21 02:00:19.309 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Checking 'MatchesViewAssertion' assertion on view view.getId() is <2131231270/com.example.biteswipe:id/titleText> |
+| 2025-03-21 02:00:19.313 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Checking 'MatchesViewAssertion' assertion on view view.getId() is <2131230951/com.example.biteswipe:id/groupIdInputLayout> |
+| 2025-03-21 02:00:19.318 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Checking 'MatchesViewAssertion' assertion on view view.getId() is <2131230987/com.example.biteswipe:id/join_button> |
+| 2025-03-21 02:00:19.323 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Checking 'MatchesViewAssertion' assertion on view view.getId() is <2131230986/com.example.biteswipe:id/join_back_button> |
+| 2025-03-21 02:00:19.328 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Checking 'MatchesViewAssertion' assertion on view view.getId() is <2131231247/com.example.biteswipe:id/textView13> |
+| 2025-03-21 02:00:19.330 | 11146-11163 | TestRunner         | com.example.biteswipe          | I         | finished: testB_WorkingUI(com.example.biteswipe.CJoinGroupTest)                           |
+| 2025-03-21 02:00:19.644 | 11146-11163 | TestRunner         | com.example.biteswipe          | I         | started: testC_BadCode(com.example.biteswipe.CJoinGroupTest)                              |
+| 2025-03-21 02:00:24.299 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Performing 'type text(12345)' action on view view.getId() is <2131230954/com.example.biteswipe:id/group_id_input> |
+| 2025-03-21 02:00:24.812 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Performing 'close keyboard' action on view view.getId() is <2131230954/com.example.biteswipe:id/group_id_input> |
+| 2025-03-21 02:00:25.161 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Performing 'single click' action on view view.getId() is <2131230987/com.example.biteswipe:id/join_button> |
+| 2025-03-21 02:00:28.463 | 11146-11163 | TestRunner         | com.example.biteswipe          | I         | finished: testC_BadCode(com.example.biteswipe.CJoinGroupTest)                              |
+| 2025-03-21 02:00:28.929 | 11146-11163 | TestRunner         | com.example.biteswipe          | I         | started: testD_JoinButton(com.example.biteswipe.CJoinGroupTest)                           |
+| 2025-03-21 02:00:29.325 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Performing 'type text(BU5XF)' action on view view.getId() is <2131230954/com.example.biteswipe:id/group_id_input> |
+| 2025-03-21 02:00:29.924 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Performing 'close keyboard' action on view view.getId() is <2131230954/com.example.biteswipe:id/group_id_input> |
+| 2025-03-21 02:00:30.253 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Performing 'single click' action on view view.getId() is <2131230987/com.example.biteswipe:id/join_button> |
+| 2025-03-21 02:00:40.559 | 11146-11146 | ViewInteraction    | com.example.biteswipe          | I         | Checking 'androidx.test.espresso.intent.Intents$2@6a57e5' assertion on view view.getRootView() to equal view |
+| 2025-03-21 02:00:41.201 | 11146-11163 | TestRunner         | com.example.biteswipe          | I         | finished: testD_JoinButton(com.example.biteswipe.CJoinGroupTest)                           |
+
+</div>
 
   
-
-- **...**
-
   
 
 ---
 
   
+
 
 ## 5. Automated Code Review Results
 
