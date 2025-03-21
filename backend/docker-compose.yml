@@ -3,7 +3,7 @@ version: "3.3"
 services:
   mongo:
     image: mongo:latest
-    container_name: mongo_instance
+    container_name: mongo
     restart: unless-stopped
     expose:
       - "27017"
@@ -24,7 +24,9 @@ services:
         max-size: "10m"
         max-file: "3"
     networks:
-      - app_network
+      app_network:
+        aliases:
+          - mongo
 
   app:
     build:
@@ -43,10 +45,15 @@ services:
     depends_on:
       - mongo
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://app:${PORT}/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      app_network:
+        aliases:
+          - app
     logging:
       driver: "json-file"
       
@@ -59,18 +66,22 @@ services:
     container_name: test
     env_file:
       - .env
+    environment:
+      - DOCKER_ENV=true
     command: ["npm", "run", "test:coverage:unmocked"]
     depends_on:
       - mongo
     volumes:
       - ./coverage:/app/backend/coverage
+    networks:
+      app_network:
+        aliases:
+          - test
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - app_network
 
   nginx:
     image: nginx:latest
@@ -82,12 +93,16 @@ services:
     volumes:
       - ./nginx/nginx-entrypoint/nginx-entrypoint.sh:/nginx-entrypoint-inside-container.sh
       - ./nginx/certs:/etc/ssl
+      - ./nginx/conf.d:/etc/nginx/conf.d
     entrypoint: ["/nginx-entrypoint-inside-container.sh"]
     command: ["nginx", "-g", "daemon off;"]
     environment:
       - PORT=${PORT}
+      - APP_HOST=app
     networks:
-      - app_network
+      app_network:
+        aliases:
+          - nginx
     depends_on:
       - app
     logging:
