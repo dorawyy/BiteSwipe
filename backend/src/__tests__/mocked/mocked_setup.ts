@@ -88,25 +88,25 @@ jest.mock("../../services/externalAPIs/googleMaps", () => ({
 // ---------------------------------------------------------
 // Firebase
 //
-jest.mock("firebase-admin", () => ({
-  messaging: jest.fn().mockReturnValue({
-    send: jest.fn().mockResolvedValue("message-id"),
-  }),
-  initializeApp: jest.fn(),
-}));
+// jest.mock("firebase-admin", () => ({
+//   messaging: jest.fn().mockReturnValue({
+//     send: jest.fn().mockResolvedValue("message-id"),
+//   }),
+//   initializeApp: jest.fn(),
+// }));
 
-jest.mock("../../config/firebase", () => ({
-  default: {
-    apps: [],
-    messaging: jest.fn().mockReturnValue({
-      send: jest.fn().mockResolvedValue("mock-message-id"),
-    }),
-  },
-  getMessaging: jest.fn().mockReturnValue({
-    send: jest.fn().mockResolvedValue("mock-message-id"),
-    sendMulticast: jest.fn().mockResolvedValue({ responses: [{ success: true }] })
-  }),
-}));
+// jest.mock("../../config/firebase", () => ({
+//   default: {
+//     apps: [],
+//     messaging: jest.fn().mockReturnValue({
+//       send: jest.fn().mockResolvedValue("mock-message-id"),
+//     }),
+//   },
+//   getMessaging: jest.fn().mockReturnValue({
+//     send: jest.fn().mockResolvedValue("mock-message-id"),
+//     sendMulticast: jest.fn().mockResolvedValue({ responses: [{ success: true }] })
+//   }),
+// }));
 
 
 // Export mocks

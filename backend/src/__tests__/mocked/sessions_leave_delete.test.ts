@@ -54,7 +54,12 @@ jest.mock('../../models/session', () => {
     });
     
     Object.assign(SessionModel, {
-      findById: jest.fn().mockImplementation(() => {
+      findById: jest.fn().mockImplementation((sessionId) => {
+        if(sessionId.toString() === '67db3be580163bf1328c0219'){
+          return Promise.resolve({
+            status: 'COMPLETED'
+          });
+        }
         return Promise.resolve({
             creator: {
                 equals: (id: any) => id === '67db3be580163bf1328c0213'
@@ -109,12 +114,20 @@ jest.mock('../../models/session', () => {
       jest.clearAllMocks();
     });
   
-    test('Cannot Join Completed Session', async () => {
+    test('User is not a participant', async () => {
       const response = await agent
         .delete('/sessions/67db3be580163bf1328c0211/participants/67db3be580163bf1328c0211')
         
         expect(response.status).toBe(403);
         expect(response.body.error).toBe('User is not a participant in this session')   
+    });
+
+    test('Cannot Leave Completed Session', async () => {
+      const response = await agent
+        .delete('/sessions/67db3be580163bf1328c0219/participants/67db3be580163bf1328c0211')
+        
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe('Internal server error');
     });
   
   });

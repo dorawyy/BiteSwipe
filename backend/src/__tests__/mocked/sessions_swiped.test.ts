@@ -71,7 +71,10 @@ jest.mock('../../models/user', () => {
   // Mock static methods (findOne, findById, create, findByIdAndUpdate)
   Object.assign(UserModel, {
       findOne: jest.fn().mockImplementation((query) => {
-          const createResponse = (data: any) => ({
+        if(query._id.toString() === '67db3be580163bf1328c0250'){ 
+          return Promise.resolve(null);
+        } 
+        const createResponse = (data: any) => ({
             lean: () => Promise.resolve(data),
             select: () => ({
               lean: () => Promise.resolve(data),
@@ -158,8 +161,8 @@ jest.mock('../../models/session', () => {
   Object.assign(SessionModel, {
     findOne: jest.fn().mockImplementation((query) => {
       // Mock for checking if join code exists
-      if(query._id === '67db3be580163bf1328c0250'){
-        return Promise.reject(null);
+      if(query._id.toString() === '67db3be580163bf1328c0250'){
+        return Promise.resolve(null);
       }
       if (query._id === '67db3be580163bf1328c0220'){
         return Promise.resolve({

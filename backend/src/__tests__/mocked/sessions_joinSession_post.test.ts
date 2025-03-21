@@ -84,6 +84,13 @@ jest.mock('../../models/session', () => {
         // Mock for sessionSwiped
         return Promise.resolve(null);
       }),
+      findById: jest.fn().mockImplementation(() => {
+        return Promise.resolve({
+          _id: '67db3be580163bf1328c0220',
+          joinCode: 'ABCD1',
+          status: 'COMPLETED'
+        });
+      })
     });
     
     return { 

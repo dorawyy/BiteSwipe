@@ -56,9 +56,6 @@ export function createApp(): Express {
       case 'delete':
         app.delete(path, validation, validateRequest, asyncHandler(action));
         break;
-      case 'patch':
-        app.patch(path, validation, validateRequest, asyncHandler(action));
-        break;
       default:
         console.warn(`Unsupported HTTP method: ${method as string}`);
     }
@@ -73,11 +70,6 @@ export function createApp(): Express {
       version: '1.0.0',
       status: 'online',
     });
-  });
-
-  // Add health check endpoint for Docker
-  app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'healthy' });
   });
 
   return app;

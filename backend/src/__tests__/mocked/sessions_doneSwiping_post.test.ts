@@ -61,20 +61,12 @@ jest.mock('../../models/session', () => {
         return Promise.resolve(null);
       }  
 
-      if (query._id && query.status?.$eq === 'MATCHING') {
-        if (query.participants?.$not?.$elemMatch?.userId) {
-          // User already swiped on this restaurant
-          return Promise.resolve(null);
-        }
+      if(query._id.toString() === '67db3be580163bf1328c0212') {
         return Promise.resolve({
           _id: query._id,
           status: 'MATCHING',
-          participants: [
-            {
-              userId: query.participants.userId,
-              preferences: [...(update.$push?.['participants.$.preferences'] ? [update.$push['participants.$.preferences']] : [])]
-            }
-          ]
+          doneSwiping: [],
+          save: jest.fn().mockResolvedValue({})
         });
       }
       
@@ -140,6 +132,16 @@ describe("POST /sessions/:sessionId/votes - Mocked", () => {
             userId: 'invalid-id',
         });
     expect(response.status).toBe(500);
+  });
+
+  test('Done Swiping complete',async () => {
+    const response = await agent
+        .post('/sessions/67db3be580163bf1328c0212/doneSwiping')
+        .send({
+            userId: '67db3be580163bf1328c0213',
+        });
+        console.log(response.body);
+        expect(response.status).toBe(200);
   });
 
 });

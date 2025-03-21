@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { SessionManager } from '../services/sessionManager';
-import { NotificationService } from '../services/notificationService';
+// import { NotificationService } from '../services/notificationService';
 import { MongoDocument } from '../models/appTypes';
 import { UserService } from '../services/userService';
 import { ObjectId } from 'mongoose';
@@ -11,12 +11,12 @@ interface CodedError extends Error {
 
 export class SessionController {
     private sessionManager: SessionManager;
-    private notificationService: NotificationService;
+    // private notificationService: NotificationService;
     private userService: UserService;
 
     constructor(sessionManager: SessionManager, userService: UserService) {
         this.sessionManager = sessionManager;
-        this.notificationService = new NotificationService();
+        // this.notificationService = new NotificationService();
         this.userService = userService;
 
         // Bind methods
@@ -132,13 +132,13 @@ export class SessionController {
             );
 
             // Send notification to invited user
-            if (user.fcmToken && typeof user.fcmToken === 'string') {
-                await this.notificationService.sendNotification(
-                    user.fcmToken,
-                    'Session Invitation',
-                    'You have been invited to join a BiteSwipe session!'
-                );
-            }
+            // if (user.fcmToken && typeof user.fcmToken === 'string') {
+            //     await this.notificationService.sendNotification(
+            //         user.fcmToken,
+            //         'Session Invitation',
+            //         'You have been invited to join a BiteSwipe session!'
+            //     );
+            // }
 
             res.json(session);
         } catch (error: unknown) {
