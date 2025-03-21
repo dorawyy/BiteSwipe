@@ -1,262 +1,234 @@
 name: Unmocked Tests
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/unmocked-tests.yml'
+
+# Add permissions block
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  NODE_VERSION: '18.x'
+  RESOURCE_GROUP: CPEN321RSRCGROUP
+  PR_NUMBER: ${{ github.event.pull_request.number || 'main' }}
 
 jobs:
-  run-unmocked-tests:
+  setup-mongodb:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+    - name: Verify Azure Connection
+      run: |
+        echo "Verifying Azure connection..."
+        if ! az account show &> /dev/null; then
+          echo "::error::Azure login failed - could not verify account"
+          exit 1
+        fi
+        echo "Azure connection verified successfully"
+        az account show --query name -o tsv
 
-      - name: Install dependencies
-        run: |
-          cd backend
-          npm ci
-
-      - name: Setup Azure CLI
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Install MongoDB Tools
-        run: |
-          # Import MongoDB GPG key
-          curl -fsSL https://pgp.mongodb.com/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor
-
-          # Add MongoDB repository
-          echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg] http://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-
-          # Update package list and install MongoDB tools
-          sudo apt-get update
-          sudo apt-get install -y mongodb-mongosh mongodb-database-tools
-
-      - name: Setup Azure Cosmos DB for MongoDB
-        run: |
-          # Create resource group for PR
-          PR_RG="pr${{ github.event.pull_request.number }}-mongodb-rg"
-          az group create --name $PR_RG --location westus2
-
-          # Generate unique name for Cosmos DB account
-          COSMOS_ACCOUNT="biteswipe-test-${{ github.event.pull_request.number }}"
+    - name: Deploy MongoDB to Azure Container Apps
+      run: |
+        # Check Azure CLI version
+        az --version
+        
+        # First, check if the resource group exists
+        if ! az group show --name ${{ env.RESOURCE_GROUP }} &> /dev/null; then
+          echo "Creating resource group ${{ env.RESOURCE_GROUP }}..."
+          az group create \
+            --name ${{ env.RESOURCE_GROUP }} \
+            --location eastus
+        else
+          echo "Resource group ${{ env.RESOURCE_GROUP }} already exists"
+        fi
+        
+        # Next, check if the environment exists
+        ENV_NAME="biteswipe-env"
+        if ! az containerapp env show --resource-group ${{ env.RESOURCE_GROUP }} --name "$ENV_NAME" &> /dev/null; then
+          echo "Creating Container App environment $ENV_NAME..."
+          az containerapp env create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name "$ENV_NAME" \
+            --location eastus
+        else
+          echo "Container App environment $ENV_NAME already exists"
+        fi
+        
+        # Now create the container app with the environment
+        echo "Creating MongoDB container app..."
+        az containerapp create \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name biteswipe-mongodb-test-pr${{ env.PR_NUMBER }} \
+          --environment "$ENV_NAME" \
+          --image mongo:latest \
+          --env-vars MONGO_INITDB_ROOT_USERNAME=test MONGO_INITDB_ROOT_PASSWORD=test MONGO_INITDB_DATABASE=biteswipe "MONGOD_ARGS=--bind_ip_all" \
+          --target-port 27017 \
+          --ingress external \
+          --min-replicas 1 \
+          --max-replicas 1 \
+          --cpu 0.5 \
+          --memory 1.0Gi \
+          --query properties.configuration.ingress.fqdn
           
-          echo "Creating Azure Cosmos DB account..."
-          if az cosmosdb create \
-            --resource-group $PR_RG \
-            --name $COSMOS_ACCOUNT \
-            --kind MongoDB \
-            --capabilities EnableMongo \
-            --server-version 4.2 \
-            --default-consistency-level Strong \
-            --enable-free-tier true \
-            --locations regionName=westus2; then
-            echo "Cosmos DB account created successfully!"
-          else
-            echo "Failed to create Cosmos DB account"
-            exit 1
-          fi
+        # Wait for the MongoDB container to be ready
+        echo "Waiting for MongoDB container to be ready..."
+        sleep 30
+      # Azure login is already done at the beginning of the job
 
-          # Wait for account to be fully provisioned
-          echo "Waiting for Cosmos DB account to be fully provisioned..."
-          sleep 60
-
-          # Get connection string and add database name
-          BASE_MONGO_CONNECTION_STRING=$(az cosmosdb keys list \
-            --resource-group $PR_RG \
-            --name $COSMOS_ACCOUNT \
-            --type connection-strings \
-            --query 'connectionStrings[0].connectionString' \
-            --output tsv)
+    - name: Set MongoDB connection string
+      run: |
+        # Get the FQDN from the container app
+        MONGO_FQDN=$(az containerapp show \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name biteswipe-mongodb-test-pr${{ env.PR_NUMBER }} \
+          --query properties.configuration.ingress.fqdn -o tsv)
           
-          # Add database name to connection string
-          MONGO_CONNECTION_STRING="${BASE_MONGO_CONNECTION_STRING}/?retryWrites=true&w=majority&appName=biteswipe_test"
+        echo "MongoDB FQDN: $MONGO_FQDN"
+        
+        # Set the MongoDB connection string for later steps
+        # Now including authSource parameter since unmocked_setup.ts has been fixed to handle it
+        MONGODB_URI="mongodb://test:test@$MONGO_FQDN:27017/biteswipe?authSource=admin"
+        echo "Setting MongoDB connection string: ${MONGODB_URI//:test@/:***@}"
+        echo "MONGODB_URI=$MONGODB_URI" >> $GITHUB_ENV
+        echo "DB_URI=$MONGODB_URI" >> $GITHUB_ENV
+        echo "MONGO_FQDN=$MONGO_FQDN" >> $GITHUB_ENV
+        
+        # Test the MongoDB connection
+        echo "Testing MongoDB connection..."
+        echo "Note: Connection will be tested during the test run"
+        
+        # Verify the environment variables were set
+        echo "Verifying environment variables:"
+        echo "MONGODB_URI=${MONGODB_URI//:test@/:***@}"
+        echo "DB_URI=${MONGODB_URI//:test@/:***@}"
 
-          # Extract host and port from connection string
-          MONGO_IP=$(echo $MONGO_CONNECTION_STRING | sed -n 's/.*@\(.*\):\([0-9]*\).*/\1/p')
-          MONGO_PORT=$(echo $MONGO_CONNECTION_STRING | sed -n 's/.*@\(.*\):\([0-9]*\).*/\2/p')
+  test:
+    needs: setup-mongodb
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        echo "Installing dependencies..."
+        npm ci
+        if [ $? -ne 0 ]; then
+          echo "npm ci failed"
+          exit 1
+        fi
 
-          # Export connection info
-          echo "MONGO_CONNECTION_STRING=$MONGO_CONNECTION_STRING" >> $GITHUB_ENV
+    - name: Azure Login for Firebase Credentials
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-          # Wait and verify MongoDB with retries
-          max_attempts=10
+    - name: Download Firebase Credentials
+      working-directory: ${{ github.workspace }}
+      run: |
+        # Function to download with retries
+        download_with_retry() {
+          max_attempts=3
           attempt=1
-          
           while [ $attempt -le $max_attempts ]; do
-            echo "Attempt $attempt of $max_attempts to connect to MongoDB..."
+            echo "Attempt $attempt of $max_attempts to download Firebase credentials..."
             
-            # Try to connect and initialize
-            if mongosh "$MONGO_CONNECTION_STRING" --eval 'use biteswipe_test; db.stats();' &>/dev/null; then
-              echo "MongoDB is ready! Initializing collections..."
-              
-              # Set DB_URI environment variable with database name
-              echo "DB_URI=${MONGO_CONNECTION_STRING}/biteswipe_test" >> $GITHUB_ENV
-              
-              # Initialize collections with error handling
-              if mongosh "$MONGO_CONNECTION_STRING" --eval '
-                try {
-                  db.createCollection("startup");
-                  db.createCollection("users");
-                  db.createCollection("restaurants");
-                  db.createCollection("matches");
-                  print("All collections created successfully");
-                } catch (e) {
-                  print("Error creating collections: " + e);
-                  quit(1);
-                }
-              '; then
-                echo "Database initialized successfully!"
-                break
+            # Create directory if it doesn't exist
+            mkdir -p backend
+
+            # Try to download using Azure CLI with key authentication
+            if az storage blob download \
+              --account-name productionstorageaccoun2 \
+              --container-name production-container \
+              --name biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+              --file backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+              --auth-mode key 2>/dev/null; then
+              # Verify the file exists and is not empty
+              if [ -s backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json ]; then
+                echo "Download successful and file is valid!"
+                return 0
               else
-                echo "Failed to initialize collections"
-                sleep 5
-                continue
+                echo "Download succeeded but file is empty or missing!"
+                rm -f backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+                return 1
               fi
             fi
             
-            if [ $attempt -eq $max_attempts ]; then
-              echo "Failed to connect to MongoDB after $max_attempts attempts"
-              exit 1
-            fi
-            
-            echo "MongoDB not ready. Waiting 20 seconds before retry..."
-            sleep 20
+            echo "Download failed. Waiting 5 seconds before retry..."
+            sleep 5
             attempt=$((attempt + 1))
           done
-          
-          # Final verification
-          echo "\nVerifying database state:"
-          mongosh "$MONGO_CONNECTION_STRING" --eval '
-            const stats = db.stats();
-            const collections = db.getCollectionNames();
-            print("\nDatabase stats:");
-            print(JSON.stringify(stats, null, 2));
-            print("\nCollections:");
-            print(JSON.stringify(collections, null, 2));
-          '
+          echo "Failed to download after $max_attempts attempts"
+          return 1
+        }
 
-      # Cleanup Azure resources
-      - name: Cleanup
-        if: always()
-        run: |
-          echo "Cleaning up Azure resources..."
-          az group delete --name $PR_RG --yes --no-wait || true
+        # Try to download with retries
+        if download_with_retry; then
+          # Set proper permissions
+          chmod 600 backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+          echo "Firebase credentials downloaded and secured successfully"
+        else
+          echo "Failed to download Firebase credentials after all retries"
+          exit 1
+        fi
 
-      # Setup test environment
-      - name: Setup test environment
-        run: |
-          cd backend
-          # Create .env file for tests
-          echo "PORT=3000" > .env
-          echo "DB_URI=${MONGO_CONNECTION_STRING}/biteswipe_test" >> .env
-          echo "NODE_ENV=test" >> .env
-          echo "TEST_TYPE=unmocked" >> .env
-          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" >> .env
-          echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=./backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json" >> .env
+    - name: Create .env file
+      working-directory: ./backend
+      run: |
+        cat > .env << EOF
+        PORT=3000
+        # Now including authSource parameter since unmocked_setup.ts has been fixed to handle it
+        DB_URI=mongodb://test:test@${{ env.MONGO_FQDN }}:27017/biteswipe?authSource=admin
+        NODE_ENV=test
+        GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
+        FIREBASE_CREDENTIALS_JSON_PATHNAME=${{ github.workspace }}/backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+        EOF
+        cat .env
+      
+    - name: Run unmocked tests
+      working-directory: ./backend
+      run: |
+        echo "Running unmocked tests with coverage..."
+        npm run test:coverage:unmocked
 
-      - name: Download Firebase Credentials
-        working-directory: ${{ github.workspace }}
-        run: |
-          # Create directory if it doesn't exist
-          mkdir -p backend
+  # cleanup:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   if: always()
+  #   steps:
+  #   - name: Azure Login
+  #     uses: azure/login@v1
+  #     with:
+  #       creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-          # Try to download using Azure CLI with key authentication
-          if az storage blob download \
-            --account-name productionstorageaccoun2 \
-            --container-name production-container \
-            --name biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
-            --file backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
-            --auth-mode key 2>/dev/null; then
-            # Verify the file exists and is not empty
-            if [ -s backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json ]; then
-              echo "Download successful and file is valid!"
-              chmod 600 backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
-            else
-              echo "Downloaded file is empty or invalid"
-              rm -f backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
-              exit 1
-            fi
-          else
-            echo "Failed to download Firebase credentials"
-            exit 1
-          fi
-
-      - name: Run unmocked tests with coverage
-        id: test_coverage
-        run: |
-          cd backend
-          echo "Running unmocked tests..."
-          npm run test:coverage:unmocked -- --coverageReporters="json-summary" "text" --no-cache --forceExit --maxWorkers=2
-          
-          # Save test results for reporting
-          mkdir -p test-results
-          cp coverage/coverage-summary.json test-results/
-        env:
-          CI: true
-
-      # Display coverage summary in logs
-      - name: Display coverage summary
-        working-directory: ./backend
-        run: |
-          # Display coverage summary in the logs
-          node -e "
-            const fs = require('fs');
-            const summary = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
-            
-            // Create summary table header
-            let summaryTable = '| Metric | Coverage | Covered/Total |\n|--------|----------|---------------|';
-            
-            // Add rows for each metric in a specific order to ensure consistent output
-            const metrics = ['lines', 'statements', 'functions', 'branches', 'branchesTrue'];
-            for (const key of metrics) {
-              if (summary.total[key]) {
-                const value = summary.total[key];
-                summaryTable += '\n| ' + key + ' | ' + value.pct + '% | ' + value.covered + '/' + value.total + ' |';
-              }
-            }
-            
-            // Print the table to the GitHub Actions log
-            console.log('\n\n--- Coverage Summary ---');
-            console.log(summaryTable.replace(/\\n/g, '\n'));
-            console.log('------------------------\n');
-            
-            // Print files with less than 80% coverage
-            console.log('\n--- Files with Less Than 80% Coverage ---');
-            Object.entries(summary)
-              .filter(([key, value]) => key !== 'total' && value.lines.pct < 80)
-              .forEach(([file, coverage]) => {
-                console.log(`\n${file}:`);
-                console.log(`  Lines: ${coverage.lines.pct}% (${coverage.lines.covered}/${coverage.lines.total})`);
-                console.log(`  Statements: ${coverage.statements.pct}% (${coverage.statements.covered}/${coverage.statements.total})`);
-                console.log(`  Functions: ${coverage.functions.pct}% (${coverage.functions.covered}/${coverage.functions.total})`);
-                console.log(`  Branches: ${coverage.branches.pct}% (${coverage.branches.covered}/${coverage.branches.total})`);
-              });
-          "
-
-      - name: Restore original setup file
-        if: always()
-        run: |
-          cd backend
-          mv src/__tests__/unmocked/unmocked_setup.ts.bak src/__tests__/unmocked/unmocked_setup.ts
-
-      - name: Cleanup Azure Resources
-        if: always()
-        run: |
-          # Delete the resource group and all resources
-          echo "Cleaning up Azure resources..."
-          PR_RG="pr${{ github.event.pull_request.number }}-mongodb-rg"
-          az group delete --name $PR_RG --yes --no-wait
-
-
+  #   - name: Delete MongoDB Container App
+  #     run: |
+  #       echo "Cleaning up MongoDB Container App..."
+  #       # Check if the container app exists before trying to delete it
+  #       if az containerapp show --resource-group ${{ env.RESOURCE_GROUP }} --name biteswipe-mongodb-test-pr${{ env.PR_NUMBER }} &> /dev/null; then
+  #         echo "Deleting container app biteswipe-mongodb-test-pr${{ env.PR_NUMBER }}..."
+  #         az containerapp delete \
+  #           --resource-group ${{ env.RESOURCE_GROUP }} \
+  #           --name biteswipe-mongodb-test-pr${{ env.PR_NUMBER }} \
+  #           --yes
+  #       else
+  #         echo "Container app biteswipe-mongodb-test-pr${{ env.PR_NUMBER }} doesn't exist or was already deleted"
+  #       fi
+        
+  #       # Note: We're not deleting the resource group or environment as they may be shared
+  #       # between different workflow runs
+  #     # Azure login is already done at the beginning of the job

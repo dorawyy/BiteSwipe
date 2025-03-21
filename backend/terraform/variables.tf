@@ -52,3 +52,13 @@ variable "ubuntu_sku" {
   type        = string
   default     = "22_04-lts-gen2"  # gen2 for better performance
 }
+
+variable "run_mode" {
+  description = "Mode to run the deployment in: 'test' for running tests, 'app' for running the application"
+  type        = string
+  default     = "app"
+  validation {
+    condition     = contains(["test", "app"], var.run_mode)
+    error_message = "The run_mode must be either 'test' or 'app'."
+  }
+}

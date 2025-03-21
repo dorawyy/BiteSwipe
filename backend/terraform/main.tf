@@ -239,7 +239,7 @@ resource "null_resource" "deploy_backend" {
     on_failure = fail
     command = <<EOF
       #!/bin/bash
-      set -x  # Enable debug output
+      # set -x  # Enable debug output
       set -e  # Exit on error
       echo [**********************] Setup and initial connectivity checks [**********************]
       # --- Configuration ---
@@ -320,7 +320,7 @@ EOF
     on_failure = fail
     command = <<EOF
       #!/bin/bash
-      set -x  # Enable debug output
+      # set -x  # Enable debug output
       set -e  # Exit on error
       echo [**********************] Environment preparation [**********************]
       # --- Configuration ---
@@ -349,7 +349,7 @@ EOF
     on_failure = fail
     command = <<EOF
       #!/bin/bash
-      set -x  # Enable debug output
+      # set -x  # Enable debug output
       set -e  # Exit on error
       echo [**********************] File deployment [**********************]
 
@@ -430,7 +430,7 @@ EOF
     on_failure = fail
     command = <<EOF
       #!/bin/bash
-      set -x  # Enable debug output
+      # set -x  # Enable debug output
       # Don't exit on error immediately to allow for retries
       set +e
       echo [**********************] Service deployment and validation [**********************]
@@ -465,7 +465,7 @@ EOF
         echo "[Deploy] Deployment attempt $deploy_attempt of 3"
         
         ssh $SSH_OPTS -i $SSH_KEY adminuser@$VM_IP "
-          set -x
+          # set -x
           cd $BACKEND_REMOTE_PATH || { echo 'Failed to change directory to $BACKEND_REMOTE_PATH'; exit 1; }
           pwd
           ls -la
@@ -483,18 +483,38 @@ EOF
           echo '[Deploy] Stopping existing containers...'
           docker-compose down --remove-orphans || true
           
-          echo '[Deploy] Building and starting containers...'
-          docker-compose up -d --build
-          if [ \$? -ne 0 ]; then
-            echo \"[Deploy] ERROR: Docker-compose failed\"
-            docker-compose logs
-            exit 1
+          # Determine which service to run based on run_mode
+          if [ "${var.run_mode}" = "test" ]; then
+            echo '[Deploy] Building and starting test containers...'
+            docker-compose up --build test
+            if [ \$? -ne 0 ]; then
+              echo \"[Deploy] ERROR: Docker-compose failed\"
+              docker-compose logs
+              exit 1
+            fi
+            echo '[Deploy] Test containers started successfully!'
+            
+            # Wait for containers to stabilize
+            echo '[Deploy] Waiting for containers to be ready...'
+            sleep 15
+            
+            # Follow test logs
+            echo '[Deploy] Following test logs...'
+            docker-compose logs -f test
+          else
+            echo '[Deploy] Building and starting nginx container...'
+            docker-compose up -d --build nginx
+            if [ \$? -ne 0 ]; then
+              echo \"[Deploy] ERROR: Docker-compose failed\"
+              docker-compose logs
+              exit 1
+            fi
+            echo '[Deploy] Application containers started successfully!'
+            
+            # Wait for containers to stabilize
+            echo '[Deploy] Waiting for containers to be ready...'
+            sleep 15
           fi
-          echo '[Deploy] Containers started successfully!'
-          
-          # Wait for containers to stabilize
-          echo '[Deploy] Waiting for containers to be ready...'
-          sleep 15
           
           # Check if containers are running
           RUNNING_CONTAINERS=\$(docker ps --format '{{.Names}}' | wc -l)

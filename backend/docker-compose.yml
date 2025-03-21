@@ -49,6 +49,23 @@ services:
       retries: 3
     logging:
       driver: "json-file"
+      
+  test:
+    build:
+      context: .
+      dockerfile: dockerfile
+      args:
+        - PORT=${PORT}
+    container_name: test
+    env_file:
+      - .env
+    command: ["npm", "run", "test:coverage:unmocked"]
+    depends_on:
+      - mongo
+    volumes:
+      - ./coverage:/app/backend/coverage
+    logging:
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
