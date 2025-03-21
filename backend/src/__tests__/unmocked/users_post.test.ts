@@ -45,6 +45,15 @@ describe("POST /users - Unmocked", () => {
    * Expected output: User object with 201 status code
    */
   test("should create a new user with valid data", async () => {
+
+    // unsupported Http methos
+
+    const res = await agent
+      .post("/user")
+      .send({})
+    
+    expect(res.status).toBe(404)
+
     const userData = {
       email: "test@example.com",
       displayName: "Test User"

@@ -53,9 +53,6 @@ export function createApp(): Express {
       case 'post':
         app.post(path, validation, validateRequest, asyncHandler(action));
         break;
-      case 'put':
-        app.put(path, validation, validateRequest, asyncHandler(action));
-        break;
       case 'delete':
         app.delete(path, validation, validateRequest, asyncHandler(action));
         break;

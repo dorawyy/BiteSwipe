@@ -5,7 +5,6 @@ import request from 'supertest';
 import { Express } from "express";
 import { createApp } from '../../app';
 
-import { UserModel } from '../../models/user';
 import { Session } from '../../models/session';
 
 describe('POST /sessions - Unmocked', () => {
@@ -149,6 +148,25 @@ describe('POST /sessions - Unmocked', () => {
       longitude: -123.1207,
       radius: 1000
     });
+
+    // Checking Restaurants in the session
+
+    // Invalid session Id 
+
+    const getRestaurantResponse1 = await agent
+      .get(`/sessions/invalid-session-id/restaurants`)
+      
+    expect(getRestaurantResponse1.status).toBe(400);
+
+    const getRestaurantResponse2 = await agent
+      .get(`/sessions/67bfa9a78de8ce6824fb56cd/restaurants`);
+    
+    expect(getRestaurantResponse2.status).toBe(404);
+
+    const getRestaurantResponse3 = await agent 
+      .get(`/sessions/${response.body._id}/restaurants`)
+
+    expect(getRestaurantResponse3.status).toBe(200);
   });
 
   /**
@@ -451,6 +469,21 @@ describe('POST /sessions - Unmocked', () => {
       .expect('Content-Type', /json/)
       .expect(400);
 
+    expect(response.body).toHaveProperty('error');
+  });
+
+  // Invalid user ID format 
+  test('Invalid user Id format', async () => {
+    // Create a test user first
+    const userId = 'invalid-user-id';
+    const response = await agent
+      .post('/sessions')
+      .send({
+        userId,
+        email: 'test.invalid.lat@example.com',
+        displayName: 'Test Invalid Latitude'
+      });
+  
     expect(response.body).toHaveProperty('error');
   });
 });

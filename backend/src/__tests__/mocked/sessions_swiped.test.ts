@@ -158,6 +158,16 @@ jest.mock('../../models/session', () => {
   Object.assign(SessionModel, {
     findOne: jest.fn().mockImplementation((query) => {
       // Mock for checking if join code exists
+      if(query._id === '67db3be580163bf1328c0250'){
+        return Promise.reject(null);
+      }
+      if (query._id === '67db3be580163bf1328c0220'){
+        return Promise.resolve({
+          _id: '67db3be580163bf1328c0220',
+          joinCode: 'EXIST',
+          status: 'CREATED'
+        });
+      }
       if (query.joinCode === 'EXIST') {
         return Promise.resolve({
           _id: 'existingSessionId',
@@ -234,6 +244,14 @@ jest.mock('../../models/session', () => {
       }
       if(query?.['participants.userId'].toString() === 'invalid-id') {
         return Promise.reject(new Error('Invalid user ID'));
+      }
+
+      if(query._id.toString() === '67db3be580163bf1328c0250'){
+        return Promise.resolve(null);
+      }
+
+      if(query._id.toString() === '67db3be580163bf1328c0250'){
+        return Promise.resolve(null);
       }
 
       if (query._id && query.status?.$eq === 'MATCHING') {
@@ -354,7 +372,7 @@ jest.mock('../../models/session', () => {
   };
 });
 
-describe("POST /sessions  - Mocked", () => {
+describe("POST /sessions/:sessionId/votes - Mocked", () => {
   let app: Express;
   let agent: request.Agent;
 
@@ -382,80 +400,51 @@ describe("POST /sessions  - Mocked", () => {
     jest.clearAllMocks();
   });
 
-  test('POST /sessions - Invalid-id', async () => {
+  test('Invalid session ID', async () => {
     const response = await agent
-      .post(`/sessions`)
-      .send({
-        userId: 'invalid-id',
-        latitude: 1.0,
-        longitude: 1.0, 
-        radius: 1000,
-      });
-      expect(response.status).toBe(500);
-      expect(response.body.error).toBe('Internal server error');
-  });
-
-  test('POST /session - user does not exists', async () => {
-    const response = await agent
-      .post('/sessions')
-      .send({
-        userId: '67db3be580163bf1328c0250',
-        latitude: 1.0,
-        longitude: 1.0, 
-        radius: 1000,
-      })
-    expect(response.status).toBe(400);
-    expect(response.body.error).toBe('User not found');
-  });
-
-  test('POST /session - DB Error', async () => {
-    const response = await agent  
-      .post('/sessions')
-      .send({
-        userId: '67db3be580163bf1328c0251',
-        latitude: 1.0,
-        longitude: 1.0, 
-        radius: 1000,
-      })
-      expect(response.status).toBe(500);
-      expect(response.body.error).toBe('Internal server error');
-  });
-
-  test('POST /session - DB Error while creating new session', async () => {
-    const response = await agent
-      .post('/sessions')
-      .send({
-        userId: '67db3be580163bf1328c0213',
-        latitude: 1.0,
-        longitude: 1.0, 
-        radius: 1000,
-      });
+        .post('/sessions/invalid-id/votes')
+        .send({
+            userId: 'userId1',
+            restaurantId: 'restaurant1',
+            liked: true
+        });
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe('Internal server error');
   });
 
-  test('POST /sessions - Session success', async() => {
-    const response1 = await agent
-      .post('/sessions')
-      .send({
-        userId: '67db3be580163bf1328c0249',
-        latitude: 1.0,
-        longitude: 1.0,
-        radius: 1000,
-      });
-    expect(response1.status).toBe(201);
+  test('Invalid user Id ', async () => {
+    const response = await agent
+        .post('/sessions/67db3be580163bf1328c0250/votes')
+        .send({
+            userId: 'invalid-id',
+            restaurantId: 'restaurant1',
+            liked: true
+        });
+    expect(response.status).toBe(500);
+  });
 
-    const response2 = await agent
-      .post('/sessions')
-      .send({
-        userId: '67db3be580163bf1328c0249',
-        latitude: 1.0,
-        longitude: 1.0,
-        radius: 1000,
-      });
-    expect(response2.status).toBe(201);
+  test('Session does not exists', async () => {
+    const response = await agent 
+        .post('/sessions/67db3be580163bf1328c0250/votes')
+        .send({
+            userId: 'userId1',
+            restaurantId: 'restaurant1',
+            liked: true
+        });
 
-    expect(response1.body.joinCode).not.toBe(response2.body.joinCode);
+    expect(response.status).toBe(500);
+  });
+
+  test('User already swiped on this restaurant', async () => {
+    const response = await agent
+        .post('/sessions/67db3be580163bf1328c0220/votes')
+        .send({
+            userId: 'userId1',
+            restaurantId: 'restaurant1',
+            liked: true
+        });
+
+    expect(response.status).toBe(500);
+   
   });
 
 });

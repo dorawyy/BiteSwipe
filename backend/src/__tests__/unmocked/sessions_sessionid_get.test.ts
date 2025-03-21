@@ -1,6 +1,5 @@
 import './unmocked_setup';
 import supertest from 'supertest';
-import { Express } from 'express';
 import { createApp } from '../../app';
 import { UserModel } from '../../models/user';
 import mongoose from 'mongoose';
@@ -110,5 +109,15 @@ describe('GET /sessions/:sessionId - Unmocked', () => {
       .expect(404);
 
     expect(response.body).toEqual({ error: 'Session not found' });
+  });
+  // Invalid session ID 
+  test('should return 404 for non-existent session ID', async () => {
+    const sessionId = 'test-session-id';
+    const response = await agent
+      .get(`/sessions/${sessionId}`)
+      .expect('Content-Type', /json/)
+      .expect(400);
+
+    expect(response.body).toEqual({ error: 'Invalid session ID format' });
   });
 });

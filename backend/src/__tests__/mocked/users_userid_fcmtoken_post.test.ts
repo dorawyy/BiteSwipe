@@ -5,7 +5,24 @@ import { Express } from "express";
 import { createApp } from "../../app";
 import mongoose from 'mongoose';
 import { Types } from 'mongoose';
-import { mockUserService } from './mocked_setup';
+
+// ---------------------------------------------------------
+// User Service
+//
+const mockUserService = {
+  getUserById: jest.fn(),
+  getUserByUsername: jest.fn(),
+  getUserByEmail: jest.fn(),
+  createUser: jest.fn(),
+  updateUser: jest.fn(),
+  deleteUser: jest.fn(),
+  updateFCMToken: jest.fn()
+};
+
+jest.mock("../../services/userService", () => ({
+  UserService: jest.fn().mockImplementation(() => mockUserService)
+}));
+
 
 describe("POST /users/:userId/fcm-token - Mocked", () => {
   let app: Express;

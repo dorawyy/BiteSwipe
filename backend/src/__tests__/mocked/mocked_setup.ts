@@ -108,45 +108,7 @@ jest.mock("../../config/firebase", () => ({
   }),
 }));
 
-// ---------------------------------------------------------
-// Session Manager
-//
-const mockSessionManager = {
-  createSession: jest.fn(),
-  getSession: jest.fn(),
-  startSession: jest.fn(),
-  addPendingInvitation: jest.fn(),
-  rejectInvitation: jest.fn(),
-  joinSession: jest.fn(),
-  leaveSession: jest.fn(),
-  sessionSwiped: jest.fn(),
-  userDoneSwiping: jest.fn(),
-  getRestaurantsInSession: jest.fn(),
-  getResultForSession: jest.fn()
-};
 
-jest.mock("../../services/sessionManager", () => ({
-  SessionManager: jest.fn().mockImplementation(() => mockSessionManager)
-}));
-
-// ---------------------------------------------------------
-// User Service
-//
-const mockUserService = {
-  getUserById: jest.fn(),
-  getUserByUsername: jest.fn(),
-  getUserByEmail: jest.fn(),
-  createUser: jest.fn(),
-  updateUser: jest.fn(),
-  deleteUser: jest.fn(),
-  updateFCMToken: jest.fn()
-};
-
-jest.mock("../../services/userService", () => ({
-  UserService: jest.fn().mockImplementation(() => mockUserService)
-}));
-
-// ---------------------------------------------------------
 // Export mocks
 //
-export { mockGooglePlacesService, mockSessionManager, mockUserService };
+export { mockGooglePlacesService };

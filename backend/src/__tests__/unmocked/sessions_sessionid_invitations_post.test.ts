@@ -100,6 +100,39 @@ describe('POST /sessions/:sessionId/invitations - Unmocked', () => {
     
     expect(getSessionResponse.body).toHaveProperty('pendingInvitations');
     expect(getSessionResponse.body.pendingInvitations).toHaveLength(1);
+
+    // invitee joining the session 
+    const joinSession = await agent
+      .post(`/sessions/${getSessionResponse.body.joinCode}/participants`)
+      .send({
+        userId: inviteeResponse.body._id,
+      });
+
+    expect(joinSession.status).toBe(200);
+    
+    // testing leaving session functionality 
+    const leaveSession1 = await agent
+      .delete(`/sessions/invalid-id/participants/${inviteeResponse.body._id}`)
+
+    expect(leaveSession1.status).toBe(400);
+
+    const leaveSession2 = await agent
+      .delete(`/sessions/${getSessionResponse.body.joinCode}/participants/invalid-id`)
+    
+    expect(leaveSession2.status).toBe(400);
+
+    const leaveSession3 = await agent
+      .delete(`/sessions/67bfa9a78de8ce6824fb56cd/participants/${inviteeResponse.body._id}`)
+    
+    expect(leaveSession3.status).toBe(404); 
+    
+    const leaveSession5 = await agent 
+      .delete(`/sessions/${getSessionResponse.body._id}/participants/${creatorResponse.body._id}`)
+    expect(leaveSession5.status).toBe(400); 
+
+    const leaveSession4 = await agent
+      .delete(`/sessions/${getSessionResponse.body._id}/participants/${inviteeResponse.body._id}`)
+    expect(leaveSession4.status).toBe(200);
   });
 
   /**
