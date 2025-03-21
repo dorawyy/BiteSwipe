@@ -221,11 +221,43 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
 - **Test Logs:**
 
-```
+<div style="margin-left: 40px;">
 
-[Placeholder for Espresso test execution logs]
 
-```
+| Timestamp               | Thread ID | Component            | Package                          | Log Level | Message                                                                                   |
+|-------------------------|-----------|----------------------|----------------------------------|-----------|-------------------------------------------------------------------------------------------|
+| 2025-03-21 02:00:41.685 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | started: testA_WorkingUI(com.example.biteswipe.DSwipeTest)                               |
+| 2025-03-21 02:00:52.043 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=(view has effective visibility <VISIBLE> and view.getGlobalVisibleRect() to return non-empty rectangle)}' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:00:52.046 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=view has effective visibility <INVISIBLE>}' assertion on view view.getId() is <2131231305/com.example.biteswipe:id/waiting_for_finish_text> |
+| 2025-03-21 02:00:52.049 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=an instance of android.view.ViewGroup and viewGroup.getChildCount() to be at least <1>}' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:00:52.424 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | finished: testA_WorkingUI(com.example.biteswipe.DSwipeTest)                               |
+| 2025-03-21 02:00:52.833 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | started: testB_SwipeLeftTest(com.example.biteswipe.DSwipeTest)                           |
+| 2025-03-21 02:01:03.289 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'com.example.biteswipe.DSwipeTest$$ExternalSyntheticLambda1@b16d10' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:03.293 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:03.546 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=an instance of android.view.ViewGroup and viewGroup.getChildCount() to be at least <8>}' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:04.001 | 11146-11163 | TestRunner           | com.example.biteswipe            | E         | failed: testB_SwipeLeftTest(com.example.biteswipe.DSwipeTest)                             |
+| 2025-03-21 02:01:04.004 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | finished: testB_SwipeLeftTest(com.example.biteswipe.DSwipeTest)                           |
+| 2025-03-21 02:01:14.808 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'com.example.biteswipe.DSwipeTest$$ExternalSyntheticLambda2@c18f548' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:14.811 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:15.061 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=an instance of android.view.ViewGroup and viewGroup.getChildCount() to be at least <8>}' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:15.384 | 11146-11163 | TestRunner           | com.example.biteswipe            | E         | failed: testC_SwipeRightTest(com.example.biteswipe.DSwipeTest)                            |
+| 2025-03-21 02:01:15.387 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | finished: testC_SwipeRightTest(com.example.biteswipe.DSwipeTest)                           |
+| 2025-03-21 02:01:15.736 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | started: testD_FinishSwipingTest(com.example.biteswipe.DSwipeTest)                        |
+| 2025-03-21 02:01:26.144 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'com.example.biteswipe.DSwipeTest$$ExternalSyntheticLambda0@3b90686' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:26.148 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:28.394 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:30.643 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:32.892 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:35.141 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:37.390 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:39.641 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:41.895 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:44.142 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:47.392 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=view has effective visibility <INVISIBLE>}' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:47.621 | 11146-11163 | TestRunner           | com.example.biteswipe            | E         | failed: testD_FinishSwipingTest(com.example.biteswipe.DSwipeTest)                         |
+| 2025-03-21 02:01:47.624 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | finished: testD_FinishSwipingTest(com.example.biteswipe.DSwipeTest)                       |
+
+</div>
 
   
 
