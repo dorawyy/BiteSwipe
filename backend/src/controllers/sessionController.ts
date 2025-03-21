@@ -46,12 +46,12 @@ export class SessionController {
             //     return res.status(404).json({ error: 'Session not found' });
             // }
             res.status(200).json(session);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error fetching session:', error);
 
-            if (error.message === 'Invalid session ID format') {
+            if ((error as CodedError).message === 'Invalid session ID format') {
                 return res.status(400).json({ error: 'Invalid session ID format' });
-            } else if (error.code === 'SESSION_NOT_FOUND') {
+            } else if ((error as CodedError).code === 'SESSION_NOT_FOUND') {
                 return res.status(404).json({ error: 'Session not found' });
             }
 
@@ -275,7 +275,7 @@ export class SessionController {
         } catch (error) {
             console.error(error);
 
-            res.status(500).json({ error: error });
+            res.status(500).json({ error });
         }
     }
 
