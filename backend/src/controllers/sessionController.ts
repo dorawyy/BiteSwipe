@@ -9,6 +9,7 @@ interface CodedError extends Error {
     code?: string;
 }
 
+
 export class SessionController {
     private sessionManager: SessionManager;
     // private notificationService: NotificationService;
@@ -41,9 +42,9 @@ export class SessionController {
         try {
             const sessionId = req.params.sessionId;
             const session = await this.sessionManager.getSession(sessionId) as unknown as MongoDocument;
-            if (!session) {
-                return res.status(404).json({ error: 'Session not found' });
-            }
+            // if (!session) {
+            //     return res.status(404).json({ error: 'Session not found' });
+            // }
             res.status(200).json(session);
         } catch (error: any) {
             console.error('Error fetching session:', error);
@@ -68,9 +69,9 @@ export class SessionController {
             };
 
             // Check for missing required parameters
-            if (latitude === undefined || longitude === undefined || radius === undefined) {
-                return res.status(400).json({ error: 'Missing required location parameters' });
-            }
+            // if (latitude === undefined || longitude === undefined || radius === undefined) {
+            //     return res.status(400).json({ error: 'Missing required location parameters' });
+            // }
 
             // Convert coordinates to numbers
             const lat = typeof latitude === 'string' ? parseFloat(latitude) : latitude;
@@ -104,7 +105,7 @@ export class SessionController {
                 if (error.message === 'Invalid user ID format') {
                     return res.status(400).json({ error: error.message });
                 }
-                if ((error as any).code === 'USER_NOT_FOUND') {
+                if ((error as CodedError).code === 'USER_NOT_FOUND') {
                     return res.status(400).json({ error: 'User not found' });
                 }
             }
@@ -259,7 +260,7 @@ export class SessionController {
         } catch (error) {
             console.error(error);
 
-            res.status(500).json({ error: error });
+            res.status(500).json({ error });
         }
     }
 
