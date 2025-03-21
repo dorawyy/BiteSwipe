@@ -29,6 +29,10 @@ class HomePage : AppCompatActivity() {
         val userName = intent.getStringExtra("displayName") ?: "Unknown User"
         userId = intent.getStringExtra("userId") ?: ""
 
+//        FOR TESTING PURPOSES ONLY, save username to temp testing file. Not for use in PROD
+        var testUserId = findViewById<TextView>(R.id.test_user_id)
+        testUserId.text = userId
+
         tvLoggedInUser.text = "Welcome,\n$userName!"
         val friendsButton: ImageButton = findViewById(R.id.main_friends_button)
         friendsButton.setOnClickListener {

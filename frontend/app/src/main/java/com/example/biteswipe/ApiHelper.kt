@@ -18,6 +18,8 @@ import com.example.biteswipe.jsonFormats.UserId
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.io.InputStream
@@ -47,6 +49,16 @@ interface ApiHelper {
         Log.e("API_ERROR", "Error Code: $code, Message: $message")
     }
 
+
+    fun logLongMessage(tag: String, message: String) {
+        val chunkSize = 4000  // Logcat limit is ~4076 characters
+        var i = 0
+        while (i < message.length) {
+            val end = minOf(i + chunkSize, message.length)
+            Log.d(tag, message.substring(i, end))
+            i += chunkSize
+        }
+    }
     /**
      * Makes a general API request with support for all HTTP methods, headers, and JSON body.
      */
@@ -85,7 +97,7 @@ interface ApiHelper {
         }
 
         val request = requestBuilder.build()
-
+        Log.d("ApiHelper", "making request: $method to $endpoint")
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 (context as? AppCompatActivity)?.runOnUiThread {
@@ -97,11 +109,31 @@ interface ApiHelper {
 
             override fun onResponse(call: Call, response: Response) {
                 val responseBody = response.body?.string()
+                logLongMessage("ApiHelper", "received response: $responseBody")
                 try {
                     if (response.isSuccessful && responseBody != null) {
-                        val jsonResponse = JSONObject(responseBody)
+                        val jsonResponse = when {
+                            // Check if the response is a JSONObject
+                            responseBody.trim().startsWith("{") -> {
+                                JSONObject(responseBody) // JSONObject
+                            }
+                            // Check if the response is a JSONArray
+                            responseBody.trim().startsWith("[") -> {
+                                JSONArray(responseBody) // JSONArray
+                            }
+                            else -> {
+                                throw JSONException("Invalid JSON format")
+                            }
+                        }
+
                         (context as? AppCompatActivity)?.runOnUiThread {
-                            onSuccess(jsonResponse)
+                            if(jsonResponse is JSONArray){
+                                val wrappedJson = JSONObject().put("result", jsonResponse)
+                                onSuccess(wrappedJson)
+                            }
+                            else if (jsonResponse is JSONObject){
+                                onSuccess(jsonResponse)
+                            }
                         }
                     } else {
                         (context as? AppCompatActivity)?.runOnUiThread {
@@ -111,6 +143,7 @@ interface ApiHelper {
                         Log.e("API_ERROR", "Response Code: ${response.code}, Response: $responseBody")
                     }
                 } catch (e: Exception) {
+
                     (context as? AppCompatActivity)?.runOnUiThread {
                         onError?.invoke(response.code, "Parsing error")
                             ?: defaultOnError(context, response.code, "Parsing error")
@@ -152,8 +185,8 @@ interface ApiHelper {
     }
 
 
-    fun parseSessionData(json: JSONObject): sessionDetails {
-        Log.d("JoinGroupPage", "Parsing session data: $json")
+    fun parseSessionData(json: JSONObject, TAG: String = "ApiHelper"): sessionDetails {
+        Log.d(TAG, "Parsing session data: $json")
 
         // Parse the creator, which is just a string ID (not a full object)
         val creatorId = json.getString("creator")
@@ -161,7 +194,7 @@ interface ApiHelper {
             _id = creatorId,          // Assuming the creator's ID is the string itself
             displayName = creatorId   // You can replace this with the actual display name if it's available elsewhere
         )
-
+        Log.d(TAG, "Creator Parsed")
         // Parse the settings and location objects
         val settingsJson = json.getJSONObject("settings")
         val locationJson = settingsJson.getJSONObject("location")
@@ -203,7 +236,7 @@ interface ApiHelper {
                 positiveVotes = restaurantJson.getInt("positiveVotes")
             ))
         }
-
+        Log.d(TAG, "Session Data Parsed")
         // Create the sessionDetails object
         return sessionDetails(
             _id = json.getString("_id"),
@@ -217,11 +250,17 @@ interface ApiHelper {
         )
     }
 
-    fun parseRestaurants(jsonString: String): MutableList<RestaurantData> {
+    fun parseRestaurants(jsonString: String, TAG: String = "ApiHelper"): MutableList<RestaurantData> {
+        Log.d(TAG, "Parsing restaurants data: $jsonString")
+
         val restaurantList = mutableListOf<RestaurantData>()
 
         val jsonObject = JSONObject(jsonString)
-        val restaurantsArray = jsonObject.optJSONArray("restaurants") ?: return restaurantList
+        val restaurantsArray = jsonObject.getJSONArray("result")
+        if (restaurantsArray.length() == 0) {
+            Log.d(TAG, "No restaurants data found.")
+            return restaurantList
+        }
 
         for (i in 0 until restaurantsArray.length()) {
             val restaurantJson = restaurantsArray.getJSONObject(i)
@@ -234,14 +273,12 @@ interface ApiHelper {
             val restaurantId = restaurantJson.optString("_id", "")
 
             // Get the first image from the gallery if available
-            val imageGallery = restaurantJson.optJSONObject("images")?.optJSONArray("gallery")
-            val picture = if (imageGallery != null && imageGallery.length() > 0) {
-                imageGallery.optString(0)
-            } else {
-                "0"
-            }
+            val imagesJson = restaurantJson.optJSONObject("images")
+            val primaryImage = imagesJson?.optString("primary", null)
+            val galleryImages = imagesJson?.optJSONArray("gallery")
+            val imageUrl = primaryImage ?: galleryImages?.optString(0) ?: "No Image Available"
 
-            restaurantList.add(RestaurantData(name, address, contactNumber, price, rating, picture, restaurantId))
+            restaurantList.add(RestaurantData(name, address, contactNumber, price, rating, imageUrl, restaurantId))
         }
 
         return restaurantList

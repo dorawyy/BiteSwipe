@@ -61,7 +61,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
         CuisineCard("Caribbean", false),
         CuisineCard("European", false),
     )
-    private val selectedCuisines = mutableListOf<CuisineCard>()
+    private val selectedCuisines = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,12 +84,16 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
         recyclerView = findViewById(R.id.cuisine_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
         cuisineAdapter = CuisineAdapter(this, cuisines) { cuisine ->
-            cuisine.isSelected = !cuisine.isSelected
+            Log.d(TAG, "Cuisine ${cuisine.name} initial ${cuisine.isSelected}")
+
             if (cuisine.isSelected) {
-                selectedCuisines.add(cuisine)
+                if(!selectedCuisines.contains(cuisine.name)){
+                    selectedCuisines.add(cuisine.name)
+                }
             } else {
-                selectedCuisines.remove(cuisine)
+                selectedCuisines.remove(cuisine.name)
             }
+            Log.d(TAG, "selected cuisines: $selectedCuisines")
         }
         recyclerView.adapter = cuisineAdapter
 
@@ -113,12 +117,14 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
 
         val createGroupButton = findViewById<Button>(R.id.create_group_button)
         createGroupButton.setOnClickListener {
-//
-//            TODO: Handle Cuisines Later
+            if(selectedCuisines.isEmpty()){
+                Toast.makeText(this, "Please select at least one cuisine", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val searchRadius = findViewById<EditText>(R.id.searchRadiusText).text.toString()
 
             val endpoint = "/sessions/"
-
+//            TODO: body for cuisine preferences (API)
             val body = JSONObject().apply {
                 put("userId", userId)
                 put("latitude", latitude)
