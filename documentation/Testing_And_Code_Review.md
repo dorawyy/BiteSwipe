@@ -10,8 +10,8 @@
 | **Change Date** | **Modified Sections** | **Rationale** |
 | ----------------- | --------------------- | ------------- |
 | _10 March 2025_ | created document | N/A |
-| _17 March 2025_ | Added Frontend Components to doc | for submission |
-| _21 March 2025_ | Added Espresso Logs to doc | for submission |
+| _17 March 2025_ | Added Frontend Components to doc | TODO|
+
 ---
 
   
@@ -31,15 +31,28 @@
 | **Interface** | **Describe Group Location, No Mocks** | **Describe Group Location, With Mocks** | **Mocked Components** |
 | ----------------------------- | ---------------------------------------------------- | -------------------------------------------------- | ---------------------------------- |
 | **POST /user/login** | [`tests/unmocked/authenticationLogin.test.js#L1`](#) | [`tests/mocked/authenticationLogin.test.js#L1`](#) | Google Authentication API, User DB |
-| **POST /study-groups/create** | ... | ... | Study Group DB |
-| ... | ... | ... | ... |
-| ... | ... | ... | ... |
+| **GET /sessions/:sessionId** |[`/backend/src/__tests__/unmocked/sessions_sessionid_get.test.ts#L38`](#) | [`/backend/src/__tests__/mocked/sessions_post.test.ts#L36`](#) | Restaurant DB, User DB |
+| **POST /sessions** | [`/backend/src/__tests__/unmocked/sessions_post.test.ts#L59`](#) | [`/backend/src/__tests__/mocked/sessions_post.test.ts#L36`](#) | Restaurant DB, User DB, Google API |
+| **POST /sessions/:sessionId/invitations** | [`/backend/src/__test__/unmocked/sessions_sessionid_invitations_post.test.ts#L55`](#) |   |  |
+| **DELETE /sessions/:sessionId/invitations/:userId** | [`/backend/src/__tests__/unmocked/sessions_sessionid_invitations_userid_delete.test.ts#L52`](#) |  |  |
+| **DELETE /sessions/:sessionId/participants/:userId** | [`/backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L285`](#) | [`/backend/src/__tests__/mocked/sessions_leave_delete.test.ts#L117`](#) | Session DB |
+| **POST /sessions/:joinCode/participants** | [`/backend/src/__tests__/unmocked/sessions_session_join_post.test.ts#L131`](#) | [`/backend/src/__tests__/mocked/sessions_joinSession_post.test.ts#L135`](#) | Session DB |
+| **POST /sessions/:sessionId/votes** | [`/backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L199`](#) | [`/backend/src/__tests__/mocked/sessions_swiped.test.ts#L378`](#)  | User DB, Session DB |
+| **POST /sessions/:sessionId/start** | [`/backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L162`](#) |  |  |
+| **POST /sessions/:sessionId/doneSwiping** | [`/backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L264`](#) | [`/backend/src/__tests__/mocked/sessions_doneSwiping_post.test.ts#L128`](#) | Session DB |
+| **GET /sessions/:sessionId/result** | [`/backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L281`](#) | [`/backend/src/__tests__/mocked/sessions_result_get.test.ts#L114`](#) | Session DB |
+| **GET /users/:userId** | [`/backend/src/__tests__/unmocked/users_userid_get.test.ts#L53`](#)  | [`/backend/src/__tests__/mocked/create_get_user.test.ts#L219`](#) | User DB |
+| **POST /users** | [`/backend/src/__tests__/unmocked/users_post.test.ts#L66`](#) | [`/backend/src/__tests__/mocked/create_get_user.test.ts#L161`](#) | User DB |
+| **POST /users/:userId/fcm-token** | [`/backend/src/__tests__/unmocked/users_userid_fcmtoken_post.test.ts#L49`](#) | [`/backend/src/__tests__/mocked/users_userid_fcmtoken_post.test.ts#L75`](#) | User DB |
+| **GET /users/:userId/sessions** | [`/backend/src/__tests__/unmocked/users_userid_sessions_get.test.ts#L52`](#) |  |  |
+| **GET /users/emails/:email** | [`/backend/src/__tests__/unmocked/users_emails_email_get.test.ts#L56`](#) | [`/backend/src/__tests__/mocked/create_get_user.test.ts#L252`](#) [`/backend/src/__tests__/mocked/users_emails_email_get.test.ts#L66`](#)  | User DB |
+
 
 #### 2.1.2. Commit Hash Where Tests Run
 
   
 
-`[Insert Commit SHA here]`
+`18925975d1eeb65c73d4bc9cf6548f6f5dffb0b4`
 
   
 
@@ -55,14 +68,55 @@
 
 ```
 
-git clone https://github.com/example/your-project.git
+git clone https://github.com/BiteSwipe321/BiteSwipe.git
 
 ```
 
   
 
-2. **...**
+2. **Set up environment variables at .env**
 
+```
+# Backend port
+PORT=3000
+
+# Databases 
+DB_URI=mongodb://mongo:27017/biteswipe
+
+# Maps
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+
+# Firebase
+# Note: Firebase authentication now uses the service account JSON file
+# located at the backend root directory (biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json)
+FIREBASE_CREDENTIALS_JSON_PATHNAME=<repo_root>/backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+
+```
+
+3. **In backend, put the file biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json, contact our group to obtain the file**
+
+4. **Running Tests**
+
+`Mock Test and Coverage Commands`
+
+```
+npm run test:coverage:mocked
+
+```
+
+`UnMock Test and Coverage Commands`
+
+```
+npm run test:coverage:unmocked
+
+```
+
+`Combined Mock and Unmock Test and Coverage Commands`
+
+```
+npm run test:coverage
+
+```
   
 
 ### 2.2. GitHub Actions Configuration Location
@@ -76,8 +130,22 @@ git clone https://github.com/example/your-project.git
 ### 2.3. Jest Coverage Report Screenshots With Mocks
 
   
+![Enter image alt description](Images/jest_mock.png)
+For the app.js there are two uncoverd lines, **line 15** is not covered since that line is in async error handler and this relies on next function from express middleware chain, and their is no proper way to mock the entire express middleware chain also the error handling is part of a higher-order function that wraps route handlers, making it an implementation detail rather than directly exposed functionality, whereas for **line 60**
+the requirement is to hit a non http endpoint which can't be simulate through the jest framework
 
-_(Placeholder for Jest coverage screenshot with mocks enabled)_
+for SessionManager all the Errors are comming from the same checking condition (Types.Object.isValid()) and although we are hitting that condition using our unmock testing and for instance in mock testing as well, it is still showing to be uncovered in coverag, there were some online post regarding this validation check in jest, which was saying that the Types.Object.isValid() validation is executed within branching logic that Jest's code instrumentation has difficulty tracking properly, resulting in reported coverage gaps despite functional execution. Additionally, this validation is often part of error handling paths that may execute conditionally based on MongoDB's internal implementation details, making consistent coverage reporting challenging across different test environments.
+
+also a screenshoot showing that we are indeed hitting that statement using our testing suite 
+![Enter image alt description](Images/invalid-id.png)
+
+for UserService all the Errors are comming form the same checking condition as the sessionManager and have the same reasoning
+
+for SessionController -->
+
+for UserController -->
+
+for googleMapsAPI --> 
 
   
 
@@ -85,13 +153,12 @@ _(Placeholder for Jest coverage screenshot with mocks enabled)_
 
   
 
-_(Placeholder for Jest coverage screenshot without mocks)_
+![Enter image alt description](Images/jest_unmock.png)
 
   
 
 ---
 
-  
 
 ## 3. Back-end Test Specification: Tests of Non-Functional Requirements
 
