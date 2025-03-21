@@ -138,7 +138,7 @@ class CJoinGroupTest {
     }
 
     @Test
-    fun testC_JoinButton() {
+    fun testD_JoinButton() {
 //        initialize page
         startPage()
 
@@ -157,7 +157,7 @@ class CJoinGroupTest {
     }
 
     @Test
-    fun testD_BadCode() {
+    fun testC_BadCode() {
 //        initialize page
         startPage()
 
