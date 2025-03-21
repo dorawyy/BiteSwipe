@@ -9,7 +9,7 @@ let agent: any;
 
 describe('GET /sessions/:sessionId - Unmocked', () => {
   beforeAll(async () => {
-    const app = await createApp();
+    const app = createApp();
     agent = supertest(app);
   });
 
@@ -102,7 +102,7 @@ describe('GET /sessions/:sessionId - Unmocked', () => {
    *   - Content-Type: application/json
    */
   test('should return 404 for non-existent session ID', async () => {
-    const nonExistentId = new mongoose.Types.ObjectId();
+    const nonExistentId = new mongoose.Types.ObjectId().toString();
     const response = await agent
       .get(`/sessions/${nonExistentId}`)
       .expect('Content-Type', /json/)

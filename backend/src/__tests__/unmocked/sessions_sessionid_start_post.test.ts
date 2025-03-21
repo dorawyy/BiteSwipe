@@ -14,10 +14,15 @@ describe('POST /sessions/:sessionId/start - Unmocked', () => {
 
     // Connect to test database
     try {
-      await mongoose.connect(process.env.DB_URI!);
+      const dbUri = process.env.DB_URI;
+      if (!dbUri) {
+        throw new Error("Missing environment variable: DB_URI");
+      }
+
+      await mongoose.connect(dbUri);
     } catch (error) {
-      console.error(`Failed to connect to database: ${error}`);
-      process.exit(1);
+      console.error(`Failed to connect to database: ${String(error)}`);
+      throw new Error("Failed to connect to database");
     }
   });
 
@@ -214,7 +219,7 @@ describe('POST /sessions/:sessionId/start - Unmocked', () => {
     const userId = createUserResponse.body._id;
 
     const seconds = 2;
-    const nonExistentId = new mongoose.Types.ObjectId();
+    const nonExistentId = new mongoose.Types.ObjectId().toString();
     const response = await agent
       .post(`/sessions/${nonExistentId}/start`)
       .send({
