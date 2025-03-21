@@ -430,12 +430,10 @@ export class SessionManager {
                         { status: 'COMPLETED' },
                         { runValidators: true }
                     );
-                    // console.log(`Session: ${sessionId} Completed !!`);
                 } catch (error) {
                     console.error(error);
-                    // console.log(`Failed to complete session: ${sessionId}`);
                 }
-            })().catch((error) => {
+            })().catch((error: unknown) => {
                 console.error('Error in completing session:', error);
             });
         }, time * 60 * 1000);  // No need for ?? 5        

@@ -27,7 +27,6 @@ export class UserService {
         restaurantInteractions: []
       });
 
-      console.log('User created successfully:', user);
       return user;
     } catch (error) {
       console.error('Error creating user:', error);
@@ -62,7 +61,7 @@ export class UserService {
     try {
       // Simple, clean implementation focused on production code
       return await this.userModel.findOne({ email }).lean();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching user by email:', error);
       throw new Error('Failed to fetch user by email');
     }
