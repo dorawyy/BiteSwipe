@@ -39,7 +39,7 @@ describe('POST /sessions/:sessionId/start - Unmocked', () => {
       await collection.deleteMany({});
     }
     // Create app using shared createApp function
-    app = await createApp();
+    app = createApp();
     agent = request.agent(app);
   });
 

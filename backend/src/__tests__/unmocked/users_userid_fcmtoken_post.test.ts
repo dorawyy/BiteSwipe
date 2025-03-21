@@ -1,7 +1,7 @@
 import "./unmocked_setup";
 
 import mongoose from "mongoose";
-import request, { SuperTest, Test } from "supertest";
+import request from "supertest";
 import { Express } from "express";
 import { createApp } from "../../app";
 import { UserModel } from "../../models/user";
@@ -16,10 +16,15 @@ describe("POST /users/:userId/fcm-token - Unmocked", () => {
 
     // Connect to test database
     try {
-      await mongoose.connect(process.env.DB_URI!);
+      const dbUri = process.env.DB_URI;
+      if (!dbUri) {
+        throw new Error("Missing environment variable: DB_URI");
+      }
+
+      await mongoose.connect(dbUri);
     } catch (error) {
-      console.error(`Failed to connect to database: ${error}`);
-      process.exit(1);
+      console.error(`Failed to connect to database: ${String(error)}`);
+      throw new Error("Failed to connect to database");
     }
   });
 
@@ -37,7 +42,7 @@ describe("POST /users/:userId/fcm-token - Unmocked", () => {
     }
 
     // Create app using shared createApp function
-    app = await createApp();
+    app = createApp();
     agent = request.agent(app);
 
     // Create a test user for each test
@@ -68,7 +73,7 @@ describe("POST /users/:userId/fcm-token - Unmocked", () => {
       .send({ fcmToken })
       .expect("Content-Type", /json/)
       .expect(200);
-
+      
     // Verify token was saved
     const updatedUser = await UserModel.findById(userId).lean();
     expect(updatedUser).toHaveProperty("fcmTokens", [fcmToken]);

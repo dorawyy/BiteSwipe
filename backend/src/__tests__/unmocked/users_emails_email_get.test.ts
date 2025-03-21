@@ -5,7 +5,6 @@ import request from "supertest";
 import { Express } from "express";
 import { createApp } from '../../app';
 
-let agent: any;
 
 describe('GET /users/emails/:email - Unmocked', () => {
   let app: Express;
@@ -15,10 +14,15 @@ describe('GET /users/emails/:email - Unmocked', () => {
 
     // Connect to test database
     try {
-      await mongoose.connect(process.env.DB_URI!);
+      const dbUri = process.env.DB_URI;
+      if (!dbUri) {
+        throw new Error("Missing environment variable: DB_URI");
+      }
+
+      await mongoose.connect(dbUri);
     } catch (error) {
-      console.error(`Failed to connect to database: ${error}`);
-      process.exit(1);
+      console.error(`Failed to connect to database: ${String(error)}`);
+      throw new Error("Failed to connect to database");
     }
   });
 
@@ -35,7 +39,7 @@ describe('GET /users/emails/:email - Unmocked', () => {
       await collection.deleteMany({});
     }
     // Create app using shared createApp function
-    app = await createApp();
+    app = createApp();
     agent = request.agent(app);
   });
 

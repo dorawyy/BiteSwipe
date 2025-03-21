@@ -39,7 +39,7 @@ describe('DELETE /sessions/:sessionId/invitations/:userId - Unmocked', () => {
       await collection.deleteMany({});
     }
     // Create app using shared createApp function
-    app = await createApp();
+    app = createApp();
     agent = request.agent(app);
   });
 

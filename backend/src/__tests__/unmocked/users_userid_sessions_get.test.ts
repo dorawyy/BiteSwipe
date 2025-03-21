@@ -1,8 +1,6 @@
 import './unmocked_setup';
 
 import supertest from 'supertest';
-import type { Response } from 'supertest';
-import { Express } from 'express';
 import { createApp } from '../../app';
 import { UserModel } from '../../models/user';
 import mongoose from 'mongoose';
@@ -12,7 +10,7 @@ let agent: any;
 
 describe('GET /users/:userId/sessions - Unmocked', () => {
   beforeAll(async () => {
-    const app = await createApp();
+    const app = createApp();
     agent = supertest(app);
   });
 
@@ -89,7 +87,7 @@ describe('GET /users/:userId/sessions - Unmocked', () => {
    *   - Content-Type: application/json
    */
   test('should return 400 for non-existent user ID', async () => {
-    const nonExistentId = new mongoose.Types.ObjectId();
+    const nonExistentId = new mongoose.Types.ObjectId().toString();
     const response = await agent
       .get(`/users/${nonExistentId}/sessions`)
       .expect('Content-Type', /json/)
@@ -123,7 +121,7 @@ describe('GET /users/:userId/sessions - Unmocked', () => {
     const sessionResponse = await agent
       .post('/sessions')
       .send({
-        userId: userId,
+        userId,
         latitude: 49.2827,
         longitude: -123.1207,
         radius: 1000
@@ -460,7 +458,6 @@ describe('GET /users/:userId/sessions - Unmocked', () => {
         radius: 1000
       });
     expect(session1Response.status).toBe(201);
-    const session1Time = new Date();
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -473,7 +470,6 @@ describe('GET /users/:userId/sessions - Unmocked', () => {
         radius: 1000
       });
     expect(session2Response.status).toBe(201);
-    const session2Time = new Date();
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -486,7 +482,7 @@ describe('GET /users/:userId/sessions - Unmocked', () => {
         radius: 1000
       });
     expect(session3Response.status).toBe(201);
-    const session3Time = new Date();
+    
 
     const response = await agent
       .get(`/users/${userId}/sessions`)
