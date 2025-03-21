@@ -8,7 +8,7 @@ import { RestaurantService } from './services/restaurantService';
 import { validateRequest } from './middleware/validateRequest';
 
 // Wrapper for async handlers to properly catch errors
-const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown> | void) =>
+const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown> | Promise<void>) =>
   (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)) // Ensure it always resolves a Promise
       .then(() => undefined) // Normalize `void` return type
