@@ -14,10 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: "Deploy Infrastructure"
+  run-unmocked-tests:
     runs-on: ubuntu-latest
-    environment: production
     timeout-minutes: 15  # Set a timeout for the entire job
 
     steps:
@@ -103,45 +101,45 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           
-      # - name: Download Test Results
-      #   run: |
-      #     # Get VM IP from Terraform output
-      #     cd backend/terraform
-      #     VM_IP=$(terraform output -raw vm_public_ip)
-      #     echo "VM IP: $VM_IP"
+      - name: Download Test Results
+        run: |
+          # Get VM IP from Terraform output
+          cd backend/terraform
+          VM_IP=$(terraform output -raw vm_public_ip)
+          echo "VM IP: $VM_IP"
           
-      #     # Create directory for test results
-      #     mkdir -p test-results
+          # Create directory for test results
+          mkdir -p test-results
           
-      #     # Download coverage reports from VM
-      #     echo "Downloading test results from VM..."
-      #     scp -o StrictHostKeyChecking=no -i ~/.ssh/to_azure/CPEN321.pem -r adminuser@${VM_IP}:/app/backend/coverage/* test-results/
+          # Download coverage reports from VM
+          echo "Downloading test results from VM..."
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/to_azure/CPEN321.pem -r adminuser@${VM_IP}:/app/backend/coverage/* test-results/
           
-      #     # Check if download was successful
-      #     if [ $? -eq 0 ]; then
-      #       echo "Test results downloaded successfully"
-      #       ls -la test-results/
-      #     else
-      #       echo "Failed to download test results"
-      #       exit 1
-      #     fi
-      #   continue-on-error: true
+          # Check if download was successful
+          if [ $? -eq 0 ]; then
+            echo "Test results downloaded successfully"
+            ls -la test-results/
+          else
+            echo "Failed to download test results"
+            exit 1
+          fi
+        continue-on-error: true
         
-      # - name: Upload Test Results
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: test-coverage-report
-      #     path: test-results
-      #     retention-days: 14
-      #   continue-on-error: true
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage-report
+          path: test-results
+          retention-days: 14
+        continue-on-error: true
         
-      # - name: Destroy Infrastructure
-      #   if: always()
-      #   run: |
-      #     cd backend/scripts
-      #     python3 deploy_infra.py --prefix pr${{ env.PR_NUMBER}} --destroy
-      #   env:
-      #     ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      #     ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-      #     ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      #     ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      - name: Destroy Infrastructure
+        if: always()
+        run: |
+          cd backend/scripts
+          python3 deploy_infra.py --prefix pr${{ env.PR_NUMBER}} --destroy
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
