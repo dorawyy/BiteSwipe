@@ -56,10 +56,38 @@ jobs:
         echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=/app/backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json" >> backend/.env
 
     - name: Deploy New Infrastructure
+      timeout-minutes: 12  # Set a 12-minute timeout for tests
+      id: deploy
       run: |
         cd backend/scripts
         chmod +x import_resource_group.sh
+        echo "::group::Deploying infrastructure"
         python3 deploy_infra.py
+        DEPLOY_EXIT_CODE=$?
+        echo "::endgroup::"
+        echo "deploy_status=$DEPLOY_EXIT_CODE" >> $GITHUB_OUTPUT
+        if [ $DEPLOY_EXIT_CODE -ne 0 ]; then
+          echo "::error::Infrastructure deployment failed with exit code $DEPLOY_EXIT_CODE"
+          echo "::group::Terraform logs (last 50 lines)"
+          cd ../terraform
+          if [ -f terraform.log ]; then
+            echo "Last 50 lines of terraform.log:"
+            tail -n 50 terraform.log
+            # Check for specific error patterns in logs
+            if grep -q "Docker Compose\|SSH connection" terraform.log; then
+              echo "::warning::Deployment issues detected with Docker Compose or SSH connections"
+            fi
+            if grep -q "Server IP found\|Successfully retrieved server IP" terraform.log; then
+              echo "::warning::Partial deployment detected: VM created but services failed to start"
+            fi
+          else
+            echo "No terraform.log file found"
+          fi
+          echo "::endgroup::"
+          exit $DEPLOY_EXIT_CODE
+        else
+          echo "✅ Infrastructure deployment completed successfully"
+        fi
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}

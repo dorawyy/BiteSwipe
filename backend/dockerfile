@@ -18,8 +18,9 @@ RUN npm install -g nodemon ts-node dotenv-cli
 # Now copy everything from the current directory to the working directory
 COPY . .
 
-# Make the startup script executable
+# Make the startup scripts executable
 RUN chmod +x src/scripts/initializeDbAndStartApp.sh
+RUN chmod +x src/scripts/runTests.sh
 
 # Install dev dependencies as well
 RUN npm install --only=dev
