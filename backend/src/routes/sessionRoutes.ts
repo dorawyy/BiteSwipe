@@ -7,14 +7,14 @@ import * as express from 'express';
 
 
 // Reusable validator functions
-const isValidObjectId: CustomValidator = (value: any) => {
+const isValidObjectId: CustomValidator = (value: string ) => {
     if (!Types.ObjectId.isValid(value)) {
         throw new Error('Invalid user ID format');
     }
     return true;
 };
 
-const isValidSessionId: CustomValidator = (value: any) => {
+const isValidSessionId: CustomValidator = (value: string) => {
     if (!Types.ObjectId.isValid(value)) {
         throw new Error('Invalid session ID format');
     }

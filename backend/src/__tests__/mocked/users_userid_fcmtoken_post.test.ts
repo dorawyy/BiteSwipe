@@ -3,8 +3,7 @@ import './mocked_setup';
 import request from "supertest";
 import { Express } from "express";
 import { createApp } from "../../app";
-import mongoose from 'mongoose';
-import { Types } from 'mongoose';
+import mongoose, {Types} from 'mongoose';
 
 // ---------------------------------------------------------
 // User Service
@@ -28,7 +27,7 @@ describe("POST /users/:userId/fcm-token - Mocked", () => {
   let app: Express;
   let agent: request.Agent;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     // No setup needed in beforeAll
   });
 
@@ -37,12 +36,12 @@ describe("POST /users/:userId/fcm-token - Mocked", () => {
     jest.resetAllMocks();
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
-    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
+    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as unknown as typeof mongoose);
 
     // Create app using shared createApp function
-    app = await createApp();
+    app = createApp();
     agent = request.agent(app);
 
 

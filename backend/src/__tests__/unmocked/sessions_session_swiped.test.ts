@@ -9,11 +9,11 @@ describe('POST /sessions - Unmocked', () => {
   let app: Express;
   let agent: request.Agent;
   let server: any;
-  const pendingTimeouts:any = [];
+  const pendingTimeouts: any = [];
 
 // Mock the setTimeout function to track timeouts
     const originalSetTimeout = global.setTimeout;
-    const mockedSetTimeout = (fn:any, ms:number) => {
+    const mockedSetTimeout = (fn: any, ms:number) => {
       const timeoutId = originalSetTimeout(fn, ms);
       pendingTimeouts.push(timeoutId);
       return timeoutId;
@@ -25,18 +25,22 @@ describe('POST /sessions - Unmocked', () => {
     jest.setTimeout(60000); // 60 seconds timeout
 
     // Connect to test database
-    try {
-      await mongoose.connect(process.env.DB_URI!);
-    } catch (error) {
-      console.error(`Failed to connect to database: ${error}`);
-      process.exit(1);
-    }
+   try {
+         const dbUri = process.env.DB_URI;
+         if (!dbUri) {
+           throw new Error("Missing environment variable: DB_URI");
+         }
+   
+         await mongoose.connect(dbUri);
+       } catch (error) {
+         console.error(`Failed to connect to database: ${String(error)}`);
+         throw new Error("Failed to connect to database");
+       }
   });
 
 
   afterAll(async () => {
     // Clean up database and close connection
-    console.log('Closing server', pendingTimeouts);
     pendingTimeouts.forEach(clearTimeout);
     await mongoose.connection.db.dropDatabase();
     await mongoose.connection.close();
@@ -49,7 +53,7 @@ describe('POST /sessions - Unmocked', () => {
       await collection.deleteMany({});
     }
     // Create app using shared createApp function
-    app = await createApp();
+    app =  createApp();
     agent = request.agent(app);
     server = app.listen(0);
   });
@@ -130,7 +134,6 @@ describe('POST /sessions - Unmocked', () => {
       .send({
         userId: inviteeResponse.body._id,
       });
-    console.log(joinSession.body);
 
     expect(joinSession.status).toBe(500);
 
@@ -200,7 +203,7 @@ describe('POST /sessions - Unmocked', () => {
         .send({
           userId: inviteeResponse.body._id,
           restaurantId: restId,
-          liked: count === 1 ? true : false
+          liked: count === 1 
         });
       expect(swiped1.status).toBe(200);
       const swiped2 = await agent
@@ -208,7 +211,7 @@ describe('POST /sessions - Unmocked', () => {
         .send({
           userId: creatorResponse.body._id,
           restaurantId: restId,
-          liked: count === 1 ? true : false
+          liked: count === 1
         });
       expect(swiped2.status).toBe(200);
 
@@ -216,7 +219,6 @@ describe('POST /sessions - Unmocked', () => {
         .get(`/sessions/${getSessionResponse.body._id}/result`);
       //session not completed error
       expect(result.status).toBe(500);
-      console.log(result.body);
     }
 
     //condition where user already swiped the session and trying to swipe again

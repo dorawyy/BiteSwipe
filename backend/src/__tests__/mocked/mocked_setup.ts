@@ -35,7 +35,7 @@ jest.mock("mongoose", () => {
       return this.str;
     }
 
-    equals(other: any) {
+    equals(other: unknown) {
       return other?.toString() === this.str;
     }
 
@@ -47,7 +47,7 @@ jest.mock("mongoose", () => {
   return {
     ...jest.requireActual("mongoose"),
     connect: jest.fn().mockResolvedValue({}),
-    model: jest.fn().mockImplementation((modelName) => {
+    model: jest.fn().mockImplementation(() => {
       // Default model mock for other models
       return {
         findById: jest.fn(),
