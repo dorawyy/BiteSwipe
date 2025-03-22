@@ -172,6 +172,7 @@ for googleMapsAPI -->
 | ------------------------------- | ------------------------------------------------ |
 | **Performance (App Load Time)** | [`frontend/app/src/androidTest/java/com/example/biteswipe/FNFRTests.kt`](#) |
 | **Uptime** | [`frontend/app/src/androidTest/java/com/example/biteswipe/FNFRTests.kt`](#) |  
+| **Usability** | ['frontend/app/src/androidTest/java/com/example/biteswipe/EUsabilityNFRTest.kt'](#) |
 
 ### 3.2. Test Verification and Logs
 
@@ -185,7 +186,8 @@ for googleMapsAPI -->
 
 - **Log Output**
 
-```
+<div style="margin-left: 40px;">
+
 
 | Timestamp               | PID         | Tag         | Package               | Level | Message                                                                 |
 |-------------------------|-------------|-------------|------------------------|-------|-------------------------------------------------------------------------|
@@ -193,7 +195,7 @@ for googleMapsAPI -->
 | 2025-03-21 17:38:25.357 | 11440-11457 | TestRunner  | com.example.biteswipe | I     | finished: loginScreenLoadsUnder5Seconds(com.example.biteswipe.FNFRTests) |
 
 
-```
+</div>
 
   
 
@@ -205,10 +207,33 @@ for googleMapsAPI -->
 
 ```
 
-[Placeholder for chat security test logs]
+[Placeholder for uptime test logs]
 
 ```
+- **Usability**
+- **Verification: ** This test verifies the user is able to access all menu items correctly and smoothly under an appropriate response time. This test is sufficient as we are simply looking to see if the user can access all the menus smoothly, rather than checking the functionality of each page.
 
+- **Log Output**
+
+  <div style="margin-left: 40px;">
+
+
+
+| Timestamp               | Process ID | Thread ID | Component        | Package                         | Level | Message                                                                 |
+|-------------------------|-----------|----------|------------------|--------------------------------|-------|-------------------------------------------------------------------------|
+| 2025-03-21 20:48:59.060 | 27928     | 27945    | TestRunner       | com.example.biteswipe         | I     | started: testA_Navigation(com.example.biteswipe.EUsabilityNFRTest)     |
+| 2025-03-21 20:49:00.499 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131231185/com.example.biteswipe:id/sign_in_button> |
+| 2025-03-21 20:49:25.117 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Checking 'MatchesViewAssertion{viewMatcher=(view has effective visibility <VISIBLE> and view.getGlobalVisibleRect() to return non-empty rectangle)}' assertion on view view.getId() is <2131231008/com.example.biteswipe:id/main_join_group_button> |
+| 2025-03-21 20:49:25.136 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131231007/com.example.biteswipe:id/main_friends_button> |
+| 2025-03-21 20:49:27.095 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131230942/com.example.biteswipe:id/friends_back_button> |
+| 2025-03-21 20:49:28.911 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131231008/com.example.biteswipe:id/main_join_group_button> |
+| 2025-03-21 20:49:30.611 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131230986/com.example.biteswipe:id/join_back_button> |
+| 2025-03-21 20:49:31.111 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131231006/com.example.biteswipe:id/main_create_group_button> |
+| 2025-03-21 20:49:37.238 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131230868/com.example.biteswipe:id/create_back_button> |
+| 2025-03-21 20:49:38.185 | 27928     | 27945    | TestRunner       | com.example.biteswipe         | I     | finished: testA_Navigation(com.example.biteswipe.EUsabilityNFRTest)     |
+| 2025-03-21 20:49:38.625 | 27928     | 27945    | TestRunner       | com.example.biteswipe         | I     | run finished: 1 tests, 0 failed, 0 ignored                             |
+
+</div>
   
 
 ---
