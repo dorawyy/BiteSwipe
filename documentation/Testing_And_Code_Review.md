@@ -170,32 +170,36 @@ for googleMapsAPI -->
 
 | **Non-Functional Requirement** | **Location in Git** |
 | ------------------------------- | ------------------------------------------------ |
-| **Performance (Response Time)** | [`tests/nonfunctional/response_time.test.js`](#) |
-| **Chat Data Security** | [`tests/nonfunctional/chat_security.test.js`](#) |  
+| **Performance (App Load Time)** | [`frontend/app/src/androidTest/java/com/example/biteswipe/FNFRTests.kt`](#) |
+| **Uptime** | [`frontend/app/src/androidTest/java/com/example/biteswipe/FNFRTests.kt`](#) |  
 
 ### 3.2. Test Verification and Logs
 
   
 
-- **Performance (Response Time)**
+- **Performance (Load Time)**
 
   
 
-- **Verification:** This test suite simulates multiple concurrent API calls using Jest along with a load-testing utility to mimic real-world user behavior. The focus is on key endpoints such as user login and study group search to ensure that each call completes within the target response time of 2 seconds under normal load. The test logs capture metrics such as average response time, maximum response time, and error rates. These logs are then analyzed to identify any performance bottlenecks, ensuring the system can handle expected traffic without degradation in user experience.
+- **Verification:** This test ensures that our application is responsive and does not load unnessacry bloat at startup. The 5 second treshhold is defined by Google's recommended app performance metrics.
 
 - **Log Output**
 
 ```
 
-[Placeholder for response time test logs]
+| Timestamp               | PID         | Tag         | Package               | Level | Message                                                                 |
+|-------------------------|-------------|-------------|------------------------|-------|-------------------------------------------------------------------------|
+| 2025-03-21 17:38:24.137 | 11440-11457 | TestRunner  | com.example.biteswipe | I     | started: loginScreenLoadsUnder5Seconds(com.example.biteswipe.FNFRTests) |
+| 2025-03-21 17:38:25.357 | 11440-11457 | TestRunner  | com.example.biteswipe | I     | finished: loginScreenLoadsUnder5Seconds(com.example.biteswipe.FNFRTests) |
+
 
 ```
 
   
 
-- **Chat Data Security**
+- **Uptime**
 
-- **Verification:** ...
+- **Verification:** This test verifies that the server is up and running at the time of the test. This test is sufficient because the NFR only requires verifying that the server is accessible when the app is in use. Successfully reaching the server confirms it is operational and able to support user actions, which satisfies the availability requirement for a course-level project. The only real way to measure uptime over time would be to use an external monitoring service, which is beyond the scope of this test suite.
 
 - **Log Output**
 
