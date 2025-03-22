@@ -28,4 +28,5 @@ export DB_URI
 
 # Run the tests with coverage
 echo "Running unmocked tests with coverage..."
-exec npm run test:coverage:unmocked
+# Use --silent flag to suppress console output during tests
+exec npm run test:coverage:unmocked -- --silent
