@@ -80,13 +80,13 @@ async function seedDatabase() {
     try {
         // Connect to MongoDB
         await mongoose.connect(DB_URI);
-        console.log('[Mongoose] Connected to', DB_URI);
+
 
         // Clear existing data
         await UserModel.deleteMany({});
         await Restaurant.deleteMany({});
         await Session.deleteMany({});
-        console.log('Cleared existing data');
+      
 
         // Read and insert users
         const usersPath = path.join(__dirname, '..', 'data', INITIAL_USERS_FILE);
@@ -133,8 +133,8 @@ async function seedDatabase() {
             }));
 
         const insertedRestaurants = await Restaurant.insertMany(transformedRestaurants);
-        //console.log(`Successfully imported ${insertedRestaurants.length} restaurants`);
-
+        console.log(`Successfully imported ${insertedRestaurants.length} restaurants`);
+    
         // Read and insert sessions
         const sessionsPath = path.join(__dirname, '..', 'data', INITIAL_SESSIONS_FILE);
         const sessionsData = fs.readFileSync(sessionsPath, 'utf-8');
@@ -147,9 +147,8 @@ async function seedDatabase() {
 
         // Insert sessions
         const insertedSessions = await Session.insertMany(sessions);
-        //(`Successfully imported ${insertedSessions.length} sessions`);
+        console.log(`Successfully imported ${insertedSessions.length} sessions`);
 
-        //console.log('Database seeding completed!');
     } catch (error) {
         console.error('Error seeding database:', error);
         if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {

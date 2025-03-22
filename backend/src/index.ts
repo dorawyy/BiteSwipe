@@ -15,7 +15,7 @@ const dbUrl = process.env.DB_URI ?? 'mongodb://localhost:27017/biteswipe';
 // Basic startup info
 console.log('\n=== Server Configuration ===');
 console.log(`HTTPS Port: ${port}`);
-console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`Environment: ${process.env.NODE_ENV ?? 'development'}`);
 console.log('=========================\n');
 
 // TODO : attempted to fix the codacy warning but could not. 
