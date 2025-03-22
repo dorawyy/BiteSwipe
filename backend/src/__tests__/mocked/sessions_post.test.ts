@@ -3,12 +3,7 @@ import './mocked_setup';
 import request from "supertest";
 import { Express } from "express";
 import { createApp } from "../../app";
-interface UserDocument {
-  _id?: string | null;
-  email?: string | null;
-  displayName?: string | null;
-  // other user properties can be added as needed
-}
+
 jest.mock('mongoose', () => {
   class ObjectId {
     private str: string;

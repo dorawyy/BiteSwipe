@@ -1,4 +1,4 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 import './mocked_setup';
 import request from "supertest";
 import { Express } from "express";

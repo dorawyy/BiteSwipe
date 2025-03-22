@@ -73,7 +73,7 @@ describe("POST /users/:userId/fcm-token - Unmocked", () => {
       .send({ fcmToken })
       .expect("Content-Type", /json/)
       .expect(200);
-      
+    expect(response.body).not.toBeNull();
     // Verify token was saved
     const updatedUser = await UserModel.findById(userId).lean();
     expect(updatedUser).toHaveProperty("fcmTokens", [fcmToken]);
