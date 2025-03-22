@@ -15,7 +15,7 @@ const dbUrl = process.env.DB_URI ?? 'mongodb://localhost:27017/biteswipe';
 // Basic startup info
 console.log('\n=== Server Configuration ===');
 console.log(`HTTPS Port: ${port}`);
-console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`Environment: ${process.env.NODE_ENV ?? 'development'}`);
 console.log('=========================\n');
 
 // TODO : attempted to fix the codacy warning but could not. 
@@ -32,7 +32,7 @@ typedMongoose.connect(dbUrl, {
     socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
     family: 4 // Use IPv4, skip trying IPv6
 })
-    .then(async() => {
+    .then(() => {
         console.log('\n=== MongoDB Connection Info ===');
         console.log('Connection Status: Connected');
         console.log(`Full URL: \x1b[34m${dbUrl}\x1b[0m`);
