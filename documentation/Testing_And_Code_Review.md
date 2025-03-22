@@ -103,6 +103,7 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
 | **Non-Functional Requirement** | **Location in Git** |
 | ------------------------------- | ------------------------------------------------ |
+| ** Usability (navigation) ** | [`frontend/]
 | **Performance (Response Time)** | [`tests/nonfunctional/response_time.test.js`](#) |
 | **Chat Data Security** | [`tests/nonfunctional/chat_security.test.js`](#) |  
 
