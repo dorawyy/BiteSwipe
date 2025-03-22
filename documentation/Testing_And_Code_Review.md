@@ -474,7 +474,7 @@ for UserService all the Errors are comming form the same checking condition as t
 
   
 
-`[Insert Commit SHA here]`
+`3d23318e1382e201f22995309490083e6a1d2c92`
 
   
 
@@ -798,3 +798,12 @@ Code Pattern : Others
 - **Location in Git:** [`backend/src/__tests__/unmocked/unmocked_setup.ts#L23`](#)
 
 - **Justification:** The `randomHash` is used to create a short, unique identifier for testing purposes. Since this value is not used for security-sensitive operations (e.g., authentication, cryptographic purposes), `Math.random()` is a suitable choice. Switching to a cryptographically secure random generator is unnecessary for this use case.
+
+---
+
+- **Code Pattern: [Error Prone - Unused Variable](#)**
+
+1. **'usedDefault' is assigned a value but never used.**  
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L62`](#)  
+- **Justification:**  
+  The variable `usedDefault` is assigned `false` when `session.createdAt` and `session.expiresAt` exist, and it later referenced in deployment to populate the database with initial values 
