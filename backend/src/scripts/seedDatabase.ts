@@ -66,8 +66,7 @@ function updateSessionDates(session: any): any {
     const expires = new Date(now.getTime() + timeDelta);
 
     // Log timing details
-    const minutes = Math.round(timeDelta / (60 * 1000));
-    console.log(`Session timing: ${usedDefault ? '(using default) ' : ''}created at ${now.toISOString()}, expires in ${minutes} minutes`);
+    //console.log(`Session timing: ${usedDefault ? '(using default) ' : ''}created at ${now.toISOString()}, expires in ${minutes} minutes`);
 
     return {
         ...session,
