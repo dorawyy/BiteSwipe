@@ -7,7 +7,7 @@ import { createApp } from '../../app';
 let app: Express;
 
 beforeAll(async () => {
-  app = await createApp();
+  app = createApp();
 });
 
 describe('Mocked: GET /', () => {

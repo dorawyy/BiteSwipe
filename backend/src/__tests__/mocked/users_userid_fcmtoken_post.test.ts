@@ -28,7 +28,7 @@ describe("POST /users/:userId/fcm-token - Mocked", () => {
   let app: Express;
   let agent: request.Agent;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     // No setup needed in beforeAll
   });
 
@@ -37,12 +37,12 @@ describe("POST /users/:userId/fcm-token - Mocked", () => {
     jest.resetAllMocks();
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
     jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
 
     // Create app using shared createApp function
-    app = await createApp();
+    app = createApp();
     agent = request.agent(app);
 
 

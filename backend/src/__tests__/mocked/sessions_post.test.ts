@@ -20,7 +20,7 @@ jest.mock('mongoose', () => {
       return other?.toString() === this.str;
     }
 
-    static isValid(str: string) {
+    static isValid() {
       return true;
     }
   }
@@ -34,7 +34,7 @@ jest.mock('mongoose', () => {
 });
 
 jest.mock('../../models/restaurant', () => {
-  const RestaurantModel = jest.fn().mockImplementation(function (this: any, data) {
+  const RestaurantModel = jest.fn().mockImplementation(function (this: Record<string, unknown>, data) {
     this.name = data.name;
     this.location = data.location;
     this.contact = data.contact;
@@ -51,7 +51,7 @@ jest.mock('../../models/restaurant', () => {
 })
 
 jest.mock('../../models/user', () => {
-  const UserModel = jest.fn().mockImplementation(function (this: any, data) {
+  const UserModel = jest.fn().mockImplementation(function (this: Record<string, unknown>, data) {
     // Mock the constructor instance variables
     this.email = data.email;
     this.displayName = data.displayName;
@@ -71,7 +71,7 @@ jest.mock('../../models/user', () => {
   // Mock static methods (findOne, findById, create, findByIdAndUpdate)
   Object.assign(UserModel, {
       findOne: jest.fn().mockImplementation((query) => {
-          const createResponse = (data: any) => ({
+          const createResponse = (data: Record<string, unknown>) => ({
             lean: () => Promise.resolve(data),
             select: () => ({
               lean: () => Promise.resolve(data),
@@ -88,11 +88,10 @@ jest.mock('../../models/user', () => {
               displayName: 'Test User',
             });
           }
-          return createResponse(null);
+          return createResponse(null as any);
         }),
 
     findById: jest.fn().mockImplementation((id) => {
-      console.log('findById mock called with id:', id.toString());
       const response = {
           select: () => response, // Ensure select() is always chainable
           lean: () => Promise.resolve({
@@ -137,7 +136,7 @@ jest.mock('../../models/user', () => {
 });
 
 jest.mock('../../models/session', () => {
-  const SessionModel = jest.fn().mockImplementation(function (this: any, data) {
+  const SessionModel = jest.fn().mockImplementation(function (this: Record<string, unknown>, data) {
     if(data.creator === '67db3be580163bf1328c0213') {
       throw new Error('Database error while creating session');
     }
@@ -171,8 +170,8 @@ jest.mock('../../models/session', () => {
         return Promise.resolve({
           _id: 'sessionWithInvites',
           status: 'CREATED',
-          participants: [{ userId: { equals: (id: any) => id === 'userId1' } }],
-          pendingInvitations: [{ equals: (id: any) => id === 'invitedUserId' }]
+          participants: [{ userId: { equals: (id: unknown) => id === 'userId1' } }],
+          pendingInvitations: [{ equals: (id: unknown) => id === 'invitedUserId' }]
         });
       }
       
@@ -207,27 +206,27 @@ jest.mock('../../models/session', () => {
           ],
           restaurants: [{ restaurantId: 'restaurant1', positiveVotes: 0, totalVotes: 0, score: 0 }],
           doneSwiping: [] as string[],
-          save: jest.fn().mockResolvedValue({}) as jest.Mock<Promise<{}>>
+          save: jest.fn().mockResolvedValue({}) as jest.Mock<Promise<object>>
         });
       }
       
       return Promise.resolve({
         _id: id,
         status: 'MATCHING',
-        creator: { equals: (userId: any) => userId === 'creatorId' },
+        creator: { equals: (userId: unknown) => userId === 'creatorId' },
         participants: [
           { 
-            userId: { equals: (userId: any) => userId === 'userId1' || userId === 'creatorId' },
+            userId: { equals: (userId: unknown) => userId === 'userId1' || userId === 'creatorId' },
             preferences: []
           }
         ],
         restaurants: [{ restaurantId: { toString: () => 'restaurant1' }, positiveVotes: 0, totalVotes: 0, score: 0 }],
-        doneSwiping: [{ equals: (userId: any) => userId === 'userId1' }],
+        doneSwiping: [{ equals: (userId: unknown) => userId === 'userId1' }],
         save: jest.fn().mockResolvedValue({})
       });
     }),
     
-    findOneAndUpdate: jest.fn().mockImplementation((query, update, options) => {
+    findOneAndUpdate: jest.fn().mockImplementation((query, update) => {
       // Mock for sessionSwiped
       if(query._id.toString() === 'invalid-id') {
         return Promise.reject(new Error('Invalid session ID'));
@@ -254,7 +253,7 @@ jest.mock('../../models/session', () => {
       }
       
       // Mock for addPendingInvitation
-      if (query.pendingInvitations && query.pendingInvitations.$ne) {
+      if (query.pendingInvitations?.$ne) {
         return Promise.resolve({
           _id: query._id,
           pendingInvitations: [...(update.$push?.pendingInvitations ? [update.$push.pendingInvitations] : [])],
@@ -312,7 +311,7 @@ jest.mock('../../models/session', () => {
       return Promise.resolve(null);
     }),
     
-    find: jest.fn().mockImplementation((query) => {
+    find: jest.fn().mockImplementation(() => {
       return {
         sort: () => Promise.resolve([
           {
@@ -335,7 +334,7 @@ jest.mock('../../models/session', () => {
       };
     }),
     
-    findByIdAndUpdate: jest.fn().mockImplementation((id, update, options) => {
+    findByIdAndUpdate: jest.fn().mockImplementation((id, update) => {
       return Promise.resolve({
         _id: id,
         ...update
@@ -358,7 +357,7 @@ describe("POST /sessions  - Mocked", () => {
   let app: Express;
   let agent: request.Agent;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     // No setup needed in beforeAll
     jest.clearAllMocks();
   });
@@ -368,7 +367,7 @@ describe("POST /sessions  - Mocked", () => {
     jest.resetAllMocks();
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
     jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
 
@@ -377,7 +376,7 @@ describe("POST /sessions  - Mocked", () => {
     agent = request.agent(app);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     // Clear all mocks after each test
     jest.clearAllMocks();
   });

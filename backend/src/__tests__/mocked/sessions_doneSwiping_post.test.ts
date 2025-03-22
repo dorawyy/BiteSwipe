@@ -20,7 +20,7 @@ jest.mock('mongoose', () => {
       return other?.toString() === this.str;
     }
 
-    static isValid(str: string) {
+    static isValid() {
       return true;
     }
   }
@@ -35,7 +35,7 @@ jest.mock('mongoose', () => {
 
 
 jest.mock('../../models/session', () => {
-  const SessionModel = jest.fn().mockImplementation(function (this: any, data) {
+  const SessionModel = jest.fn().mockImplementation(function (this: Record<string, unknown>, data) {
     if(data.creator === '67db3be580163bf1328c0213') {
       throw new Error('Database error while creating session');
     }
@@ -55,7 +55,7 @@ jest.mock('../../models/session', () => {
   
   Object.assign(SessionModel, {
     
-    findOneAndUpdate: jest.fn().mockImplementation((query, update, options) => {
+    findOneAndUpdate: jest.fn().mockImplementation((query, update) => {
       // Mock for sessionSwiped
       if(query._id.toString() === '67db3be580163bf1328c0211') {
         return Promise.resolve(null);
@@ -101,7 +101,7 @@ describe("POST /sessions/:sessionId/votes - Mocked", () => {
   let app: Express;
   let agent: request.Agent;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     // No setup needed in beforeAll
     jest.clearAllMocks();
   });
@@ -111,7 +111,7 @@ describe("POST /sessions/:sessionId/votes - Mocked", () => {
     jest.resetAllMocks();
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
     jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
 
@@ -120,7 +120,7 @@ describe("POST /sessions/:sessionId/votes - Mocked", () => {
     agent = request.agent(app);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     // Clear all mocks after each test
     jest.clearAllMocks();
   });

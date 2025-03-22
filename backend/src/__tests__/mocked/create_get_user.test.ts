@@ -20,13 +20,14 @@ jest.mock('mongoose', () => {
         return this.str;
       }
   
-      equals(other: any) {
+      equals(other: unknown) {
         return other?.toString() === this.str;
       }
-  
-      static isValid(str: string) {
+      
+      static isValid() {
         return true;
       }
+  
     }
   
     return {
@@ -37,7 +38,7 @@ jest.mock('mongoose', () => {
   });
   
   jest.mock('../../models/user', () => {
-    const UserModel = jest.fn().mockImplementation(function (this: any, data) {
+    const UserModel = jest.fn().mockImplementation(function (this: Record<string, any>, data) {
       // Mock the constructor instance variables
       this.email = data.email;
       this.displayName = data.displayName;
@@ -65,7 +66,7 @@ jest.mock('mongoose', () => {
             });
             
             if(query.email === 'test@test.com'){
-              return Promise.resolve(null);
+              return Promise.resolve<null>(null);
             }
             if (query.email === 'test@example.com') {
               return createResponse({
@@ -126,7 +127,7 @@ describe("POST /users and GET /users/:userId - Mocked", () => {
   let app: Express;
   let agent: request.Agent;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     // No setup needed in beforeAll
     jest.clearAllMocks();
   });
@@ -136,7 +137,7 @@ describe("POST /users and GET /users/:userId - Mocked", () => {
     jest.resetAllMocks();
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
     jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
 
@@ -145,7 +146,7 @@ describe("POST /users and GET /users/:userId - Mocked", () => {
     agent = request.agent(app);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     // Clear all mocks after each test
     jest.clearAllMocks();
   });
