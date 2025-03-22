@@ -1,0 +1,12 @@
+-- M5
+1. update the requirements document
+2. Codacy
+3. test documentation
+4. unmock test run on github actions
+
+-- M6
+1. firebase + notification service 
+2. complex matching code
+3. encryption with google (check if it is doable)
+4. friend list (check if it is doable)
+5. 

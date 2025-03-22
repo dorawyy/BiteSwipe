@@ -10,8 +10,8 @@
 | **Change Date** | **Modified Sections** | **Rationale** |
 | ----------------- | --------------------- | ------------- |
 | _10 March 2025_ | created document | N/A |
-| _17 March 2025_ | Added Frontend Components to doc | for submission |
-| _21 March 2025_ | Added Espresso Logs to doc | for submission |
+| _17 March 2025_ | Added Frontend Components to doc | TODO|
+
 ---
 
   
@@ -31,15 +31,28 @@
 | **Interface** | **Describe Group Location, No Mocks** | **Describe Group Location, With Mocks** | **Mocked Components** |
 | ----------------------------- | ---------------------------------------------------- | -------------------------------------------------- | ---------------------------------- |
 | **POST /user/login** | [`tests/unmocked/authenticationLogin.test.js#L1`](#) | [`tests/mocked/authenticationLogin.test.js#L1`](#) | Google Authentication API, User DB |
-| **POST /study-groups/create** | ... | ... | Study Group DB |
-| ... | ... | ... | ... |
-| ... | ... | ... | ... |
+| **GET /sessions/:sessionId** |[`/backend/src/__tests__/unmocked/sessions_sessionid_get.test.ts#L38`](#) | [`/backend/src/__tests__/mocked/sessions_post.test.ts#L36`](#) | Restaurant DB, User DB |
+| **POST /sessions** | [`/backend/src/__tests__/unmocked/sessions_post.test.ts#L59`](#) | [`/backend/src/__tests__/mocked/sessions_post.test.ts#L36`](#) | Restaurant DB, User DB, Google API |
+| **POST /sessions/:sessionId/invitations** | [`/backend/src/__test__/unmocked/sessions_sessionid_invitations_post.test.ts#L55`](#) |   |  |
+| **DELETE /sessions/:sessionId/invitations/:userId** | [`/backend/src/__tests__/unmocked/sessions_sessionid_invitations_userid_delete.test.ts#L52`](#) |  |  |
+| **DELETE /sessions/:sessionId/participants/:userId** | [`/backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L285`](#) | [`/backend/src/__tests__/mocked/sessions_leave_delete.test.ts#L117`](#) | Session DB |
+| **POST /sessions/:joinCode/participants** | [`/backend/src/__tests__/unmocked/sessions_session_join_post.test.ts#L131`](#) | [`/backend/src/__tests__/mocked/sessions_joinSession_post.test.ts#L135`](#) | Session DB |
+| **POST /sessions/:sessionId/votes** | [`/backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L199`](#) | [`/backend/src/__tests__/mocked/sessions_swiped.test.ts#L378`](#)  | User DB, Session DB |
+| **POST /sessions/:sessionId/start** | [`/backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L162`](#) |  |  |
+| **POST /sessions/:sessionId/doneSwiping** | [`/backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L264`](#) | [`/backend/src/__tests__/mocked/sessions_doneSwiping_post.test.ts#L128`](#) | Session DB |
+| **GET /sessions/:sessionId/result** | [`/backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L281`](#) | [`/backend/src/__tests__/mocked/sessions_result_get.test.ts#L114`](#) | Session DB |
+| **GET /users/:userId** | [`/backend/src/__tests__/unmocked/users_userid_get.test.ts#L53`](#)  | [`/backend/src/__tests__/mocked/create_get_user.test.ts#L219`](#) | User DB |
+| **POST /users** | [`/backend/src/__tests__/unmocked/users_post.test.ts#L66`](#) | [`/backend/src/__tests__/mocked/create_get_user.test.ts#L161`](#) | User DB |
+| **POST /users/:userId/fcm-token** | [`/backend/src/__tests__/unmocked/users_userid_fcmtoken_post.test.ts#L49`](#) | [`/backend/src/__tests__/mocked/users_userid_fcmtoken_post.test.ts#L75`](#) | User DB |
+| **GET /users/:userId/sessions** | [`/backend/src/__tests__/unmocked/users_userid_sessions_get.test.ts#L52`](#) |  |  |
+| **GET /users/emails/:email** | [`/backend/src/__tests__/unmocked/users_emails_email_get.test.ts#L56`](#) | [`/backend/src/__tests__/mocked/create_get_user.test.ts#L252`](#) [`/backend/src/__tests__/mocked/users_emails_email_get.test.ts#L66`](#)  | User DB |
+
 
 #### 2.1.2. Commit Hash Where Tests Run
 
   
 
-`[Insert Commit SHA here]`
+`18925975d1eeb65c73d4bc9cf6548f6f5dffb0b4`
 
   
 
@@ -55,14 +68,55 @@
 
 ```
 
-git clone https://github.com/example/your-project.git
+git clone https://github.com/BiteSwipe321/BiteSwipe.git
 
 ```
 
   
 
-2. **...**
+2. **Set up environment variables at .env**
 
+```
+# Backend port
+PORT=3000
+
+# Databases 
+DB_URI=mongodb://mongo:27017/biteswipe
+
+# Maps
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+
+# Firebase
+# Note: Firebase authentication now uses the service account JSON file
+# located at the backend root directory (biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json)
+FIREBASE_CREDENTIALS_JSON_PATHNAME=<repo_root>/backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+
+```
+
+3. **In backend, put the file biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json, contact our group to obtain the file**
+
+4. **Running Tests**
+
+`Mock Test and Coverage Commands`
+
+```
+npm run test:coverage:mocked
+
+```
+
+`UnMock Test and Coverage Commands`
+
+```
+npm run test:coverage:unmocked
+
+```
+
+`Combined Mock and Unmock Test and Coverage Commands`
+
+```
+npm run test:coverage
+
+```
   
 
 ### 2.2. GitHub Actions Configuration Location
@@ -76,8 +130,22 @@ git clone https://github.com/example/your-project.git
 ### 2.3. Jest Coverage Report Screenshots With Mocks
 
   
+![Enter image alt description](Images/jest_mock.png)
+For the app.js there are two uncoverd lines, **line 15** is not covered since that line is in async error handler and this relies on next function from express middleware chain, and their is no proper way to mock the entire express middleware chain also the error handling is part of a higher-order function that wraps route handlers, making it an implementation detail rather than directly exposed functionality, whereas for **line 60**
+the requirement is to hit a non http endpoint which can't be simulate through the jest framework
 
-_(Placeholder for Jest coverage screenshot with mocks enabled)_
+for SessionManager all the Errors are comming from the same checking condition (Types.Object.isValid()) and although we are hitting that condition using our unmock testing and for instance in mock testing as well, it is still showing to be uncovered in coverag, there were some online post regarding this validation check in jest, which was saying that the Types.Object.isValid() validation is executed within branching logic that Jest's code instrumentation has difficulty tracking properly, resulting in reported coverage gaps despite functional execution. Additionally, this validation is often part of error handling paths that may execute conditionally based on MongoDB's internal implementation details, making consistent coverage reporting challenging across different test environments.
+
+also a screenshoot showing that we are indeed hitting that statement using our testing suite 
+![Enter image alt description](Images/invalid-id.png)
+
+for UserService all the Errors are comming form the same checking condition as the sessionManager and have the same reasoning
+
+for SessionController -->
+
+for UserController -->
+
+for googleMapsAPI --> 
 
   
 
@@ -85,13 +153,12 @@ _(Placeholder for Jest coverage screenshot with mocks enabled)_
 
   
 
-_(Placeholder for Jest coverage screenshot without mocks)_
+![Enter image alt description](Images/jest_unmock.png)
 
   
 
 ---
 
-  
 
 ## 3. Back-end Test Specification: Tests of Non-Functional Requirements
 
@@ -103,42 +170,71 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
 | **Non-Functional Requirement** | **Location in Git** |
 | ------------------------------- | ------------------------------------------------ |
-| ** Usability (navigation) ** | [`frontend/]
-| **Performance (Response Time)** | [`tests/nonfunctional/response_time.test.js`](#) |
-| **Chat Data Security** | [`tests/nonfunctional/chat_security.test.js`](#) |  
+
+| **Performance (App Load Time)** | [`frontend/app/src/androidTest/java/com/example/biteswipe/FNFRTests.kt`](#) |
+| **Uptime** | [`frontend/app/src/androidTest/java/com/example/biteswipe/FNFRTests.kt`](#) |  
+| **Usability** | ['frontend/app/src/androidTest/java/com/example/biteswipe/EUsabilityNFRTest.kt'](#) |
 
 ### 3.2. Test Verification and Logs
 
   
 
-- **Performance (Response Time)**
+- **Performance (Load Time)**
 
   
 
-- **Verification:** This test suite simulates multiple concurrent API calls using Jest along with a load-testing utility to mimic real-world user behavior. The focus is on key endpoints such as user login and study group search to ensure that each call completes within the target response time of 2 seconds under normal load. The test logs capture metrics such as average response time, maximum response time, and error rates. These logs are then analyzed to identify any performance bottlenecks, ensuring the system can handle expected traffic without degradation in user experience.
+- **Verification:** This test ensures that our application is responsive and does not load unnessacry bloat at startup. The 5 second treshhold is defined by Google's recommended app performance metrics.
+
+- **Log Output**
+
+<div style="margin-left: 40px;">
+
+
+| Timestamp               | PID         | Tag         | Package               | Level | Message                                                                 |
+|-------------------------|-------------|-------------|------------------------|-------|-------------------------------------------------------------------------|
+| 2025-03-21 17:38:24.137 | 11440-11457 | TestRunner  | com.example.biteswipe | I     | started: loginScreenLoadsUnder5Seconds(com.example.biteswipe.FNFRTests) |
+| 2025-03-21 17:38:25.357 | 11440-11457 | TestRunner  | com.example.biteswipe | I     | finished: loginScreenLoadsUnder5Seconds(com.example.biteswipe.FNFRTests) |
+
+
+</div>
+
+  
+
+- **Uptime**
+
+- **Verification:** This test verifies that the server is up and running at the time of the test. This test is sufficient because the NFR only requires verifying that the server is accessible when the app is in use. Successfully reaching the server confirms it is operational and able to support user actions, which satisfies the availability requirement for a course-level project. The only real way to measure uptime over time would be to use an external monitoring service, which is beyond the scope of this test suite.
 
 - **Log Output**
 
 ```
 
-[Placeholder for response time test logs]
+[Placeholder for uptime test logs]
 
 ```
-
-  
-
-- **Chat Data Security**
-
-- **Verification:** ...
+- **Usability**
+- **Verification: ** This test verifies the user is able to access all menu items correctly and smoothly under an appropriate response time. This test is sufficient as we are simply looking to see if the user can access all the menus smoothly, rather than checking the functionality of each page.
 
 - **Log Output**
 
-```
+  <div style="margin-left: 40px;">
 
-[Placeholder for chat security test logs]
 
-```
 
+| Timestamp               | Process ID | Thread ID | Component        | Package                         | Level | Message                                                                 |
+|-------------------------|-----------|----------|------------------|--------------------------------|-------|-------------------------------------------------------------------------|
+| 2025-03-21 20:48:59.060 | 27928     | 27945    | TestRunner       | com.example.biteswipe         | I     | started: testA_Navigation(com.example.biteswipe.EUsabilityNFRTest)     |
+| 2025-03-21 20:49:00.499 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131231185/com.example.biteswipe:id/sign_in_button> |
+| 2025-03-21 20:49:25.117 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Checking 'MatchesViewAssertion{viewMatcher=(view has effective visibility <VISIBLE> and view.getGlobalVisibleRect() to return non-empty rectangle)}' assertion on view view.getId() is <2131231008/com.example.biteswipe:id/main_join_group_button> |
+| 2025-03-21 20:49:25.136 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131231007/com.example.biteswipe:id/main_friends_button> |
+| 2025-03-21 20:49:27.095 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131230942/com.example.biteswipe:id/friends_back_button> |
+| 2025-03-21 20:49:28.911 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131231008/com.example.biteswipe:id/main_join_group_button> |
+| 2025-03-21 20:49:30.611 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131230986/com.example.biteswipe:id/join_back_button> |
+| 2025-03-21 20:49:31.111 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131231006/com.example.biteswipe:id/main_create_group_button> |
+| 2025-03-21 20:49:37.238 | 27928     | 27928    | ViewInteraction  | com.example.biteswipe         | I     | Performing 'single click' action on view view.getId() is <2131230868/com.example.biteswipe:id/create_back_button> |
+| 2025-03-21 20:49:38.185 | 27928     | 27945    | TestRunner       | com.example.biteswipe         | I     | finished: testA_Navigation(com.example.biteswipe.EUsabilityNFRTest)     |
+| 2025-03-21 20:49:38.625 | 27928     | 27945    | TestRunner       | com.example.biteswipe         | I     | run finished: 1 tests, 0 failed, 0 ignored                             |
+
+</div>
   
 
 ---
@@ -222,11 +318,43 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
 - **Test Logs:**
 
-```
+<div style="margin-left: 40px;">
 
-[Placeholder for Espresso test execution logs]
 
-```
+| Timestamp               | Thread ID | Component            | Package                          | Log Level | Message                                                                                   |
+|-------------------------|-----------|----------------------|----------------------------------|-----------|-------------------------------------------------------------------------------------------|
+| 2025-03-21 02:00:41.685 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | started: testA_WorkingUI(com.example.biteswipe.DSwipeTest)                               |
+| 2025-03-21 02:00:52.043 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=(view has effective visibility <VISIBLE> and view.getGlobalVisibleRect() to return non-empty rectangle)}' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:00:52.046 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=view has effective visibility <INVISIBLE>}' assertion on view view.getId() is <2131231305/com.example.biteswipe:id/waiting_for_finish_text> |
+| 2025-03-21 02:00:52.049 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=an instance of android.view.ViewGroup and viewGroup.getChildCount() to be at least <1>}' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:00:52.424 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | finished: testA_WorkingUI(com.example.biteswipe.DSwipeTest)                               |
+| 2025-03-21 02:00:52.833 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | started: testB_SwipeLeftTest(com.example.biteswipe.DSwipeTest)                           |
+| 2025-03-21 02:01:03.289 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'com.example.biteswipe.DSwipeTest$$ExternalSyntheticLambda1@b16d10' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:03.293 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:03.546 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=an instance of android.view.ViewGroup and viewGroup.getChildCount() to be at least <8>}' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:04.001 | 11146-11163 | TestRunner           | com.example.biteswipe            | E         | failed: testB_SwipeLeftTest(com.example.biteswipe.DSwipeTest)                             |
+| 2025-03-21 02:01:04.004 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | finished: testB_SwipeLeftTest(com.example.biteswipe.DSwipeTest)                           |
+| 2025-03-21 02:01:14.808 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'com.example.biteswipe.DSwipeTest$$ExternalSyntheticLambda2@c18f548' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:14.811 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:15.061 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=an instance of android.view.ViewGroup and viewGroup.getChildCount() to be at least <8>}' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:15.384 | 11146-11163 | TestRunner           | com.example.biteswipe            | E         | failed: testC_SwipeRightTest(com.example.biteswipe.DSwipeTest)                            |
+| 2025-03-21 02:01:15.387 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | finished: testC_SwipeRightTest(com.example.biteswipe.DSwipeTest)                           |
+| 2025-03-21 02:01:15.736 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | started: testD_FinishSwipingTest(com.example.biteswipe.DSwipeTest)                        |
+| 2025-03-21 02:01:26.144 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'com.example.biteswipe.DSwipeTest$$ExternalSyntheticLambda0@3b90686' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:26.148 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:28.394 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:30.643 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:32.892 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:35.141 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:37.390 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:39.641 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:41.895 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:44.142 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Performing 'actionOnItemAtPosition performing ViewAction: fast swipe on item at position: 0' action on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:47.392 | 11146-11146 | ViewInteraction      | com.example.biteswipe            | I         | Checking 'MatchesViewAssertion{viewMatcher=view has effective visibility <INVISIBLE>}' assertion on view view.getId() is <2131231135/com.example.biteswipe:id/recycler_view> |
+| 2025-03-21 02:01:47.621 | 11146-11163 | TestRunner           | com.example.biteswipe            | E         | failed: testD_FinishSwipingTest(com.example.biteswipe.DSwipeTest)                         |
+| 2025-03-21 02:01:47.624 | 11146-11163 | TestRunner           | com.example.biteswipe            | I         | finished: testD_FinishSwipingTest(com.example.biteswipe.DSwipeTest)                       |
+
+</div>
 
   
 

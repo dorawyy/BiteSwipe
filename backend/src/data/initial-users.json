@@ -19,4 +19,18 @@
   "sessionHistory": [],
   "restaurantInteractions": [],
   "__v": 0
-}]
+}
+,
+{
+  "_id": {
+    "$oid": "5ecd3bbf875e60b4166f6699"
+  },
+  "email": "amodghimera2345@gmail.com",
+  "displayName": "Amode the man",
+  "fcmToken": "",
+  "sessionHistory": [],
+  "restaurantInteractions": [],
+  "__v": 0
+}
+
+]

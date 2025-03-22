@@ -1,110 +1,151 @@
 import { SessionController } from '../controllers/sessionController';
 import { SessionManager } from '../services/sessionManager';
 import { UserService } from '../services/userService';
-import { body, param } from 'express-validator'; 
+import { body, param, CustomValidator, ValidationChain} from 'express-validator';
+import { Types } from 'mongoose';
+import * as express from 'express';
+
+
+// Reusable validator functions
+const isValidObjectId: CustomValidator = (value: string ) => {
+    if (!Types.ObjectId.isValid(value)) {
+        throw new Error('Invalid user ID format');
+    }
+    return true;
+};
+
+const isValidSessionId: CustomValidator = (value: string) => {
+    if (!Types.ObjectId.isValid(value)) {
+        throw new Error('Invalid session ID format');
+    }
+    return true;
+};
+
+const validateUserIdBody = () => body('userId')
+    .notEmpty().withMessage('User ID is required')
+    .custom(isValidObjectId).withMessage('Invalid user ID format');
+
+const validateSessionIdParam = () => param('sessionId')
+    .notEmpty().withMessage('Session ID is required')
+    .custom(isValidSessionId).withMessage('Invalid session ID format');
+
+const validateUserIdParam = () => param('userId')
+    .notEmpty().withMessage('User ID is required')
+    .custom(isValidObjectId).withMessage('Invalid user ID format');
 
 export const sessionRoutes = (sessionManager: SessionManager, userService: UserService) => {
     const sessionController = new SessionController(sessionManager, userService);
 
+    // Define interface for route definitions
+    interface RouteDefinition {
+        method: 'get' | 'post' | 'put' | 'delete' | 'patch';
+        route: string;
+        action: (req: express.Request, res: express.Response, next?: express.NextFunction) => Promise<unknown>;
+        validation: ValidationChain[];
+    }
+
     return [
         {
-            method: 'get',
+            method: 'get' as const,
             route: '/sessions/:sessionId',
-            action: sessionController.getSession,
+            action: (req: express.Request, res: express.Response) => sessionController.getSession(req, res),
             validation: [
                 param('sessionId').exists().withMessage('Session ID is required')
                     .notEmpty().withMessage('Session ID cannot be empty')
+                    .custom(isValidSessionId)
             ]
         },
         {
-            method: 'post',
+            method: 'post' as const,
             route: '/sessions',
-            action: sessionController.createSession,
+            action: (req: express.Request, res: express.Response) => sessionController.createSession(req, res),
             validation: [
-                body('userId').notEmpty().withMessage('User ID is required'),
+                validateUserIdBody(),
                 body('latitude').isNumeric().withMessage('Latitude must be a number'),
                 body('longitude').isNumeric().withMessage('Longitude must be a number'),
                 body('radius').isNumeric().withMessage('Radius must be a number')
             ]
         },
         {
-            method: 'post',
+            method: 'post' as const,
             route: '/sessions/:sessionId/invitations',
-            action: sessionController.inviteUser,
+            action: (req: express.Request, res: express.Response) => sessionController.inviteUser(req, res),
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required'),
+                validateSessionIdParam(),
                 body('email').notEmpty().withMessage('Email is required')
             ]
         },
         {
-            method: 'delete',
+            method: 'delete' as const,
             route: '/sessions/:sessionId/invitations/:userId',
-            action: sessionController.rejectInvitation,
+            action: (req: express.Request, res: express.Response) => sessionController.rejectInvitation(req, res),
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required'),
-                param('userId').notEmpty().withMessage('User ID is required')
+                validateSessionIdParam(),
+                validateUserIdParam()
             ]
         },
         {
-            method: 'delete',
+            method: 'delete' as const,
             route: '/sessions/:sessionId/participants/:userId',
-            action: sessionController.leaveSession,
+            action: (req: express.Request, res: express.Response) => sessionController.leaveSession(req, res),
             validation: [
-                param('sessionId').notEmpty().withMessage('Session ID is required'),
-                param('userId').notEmpty().withMessage('User ID is required')
+                validateSessionIdParam(),
+                validateUserIdParam()
             ]
         },
         {
-            method: 'post',
+            method: 'post' as const,
             route: '/sessions/:joinCode/participants',
-            action: sessionController.joinSession,
+            action: (req: express.Request, res: express.Response) => sessionController.joinSession(req, res),
             validation: [
-                param('joinCode').notEmpty().withMessage('Session ID is required'),
-                body('userId').notEmpty().withMessage('User ID is required')
+                param('joinCode').notEmpty().withMessage('Join code is required'),
+                validateUserIdBody()
             ]
         },
         {
-            method: 'get',
+            method: 'get' as const,
             route: '/sessions/:sessionId/restaurants',
-            action: sessionController.getRestaurantsInSession,
+            action: (req: express.Request, res: express.Response) => sessionController.getRestaurantsInSession(req, res),
             validation: [
-                param('sessionId').notEmpty()
+                validateSessionIdParam()
             ]
         },
         {
-            method: 'post',
+            method: 'post' as const,
             route: '/sessions/:sessionId/votes',
-            action: sessionController.sessionSwiped,
+            action: (req: express.Request, res: express.Response) => sessionController.sessionSwiped(req, res),
             validation: [
-                param('sessionId').notEmpty(),
-                body('restaurantId').notEmpty(),
-                body('liked').isBoolean()
+                validateSessionIdParam(),
+                body('restaurantId').notEmpty().withMessage('Restaurant ID is required'),
+                body('liked').isBoolean().withMessage('Liked must be a boolean')
             ]
         },
         {
-            method: 'post',
+            method: 'post' as const,
             route: '/sessions/:sessionId/start',
-            action: sessionController.startSession,
+            action: (req: express.Request, res: express.Response) => sessionController.startSession(req, res),
             validation: [
-                param('sessionId').notEmpty()
+                validateSessionIdParam(),
+                validateUserIdBody(),
+                body('time').isNumeric().withMessage('Time must be a number')
             ]
         },
         {
-            method: 'post',
+            method: 'post' as const,
             route: '/sessions/:sessionId/doneSwiping',
-            action: sessionController.userDoneSwiping,
+            action: (req: express.Request, res: express.Response) => sessionController.userDoneSwiping(req, res),
             validation: [
-                param('sessionId').notEmpty(),
-                body('userId').notEmpty()
+                validateSessionIdParam(),
+                validateUserIdBody()
             ]
         },
         {
-            method: 'get',
+            method: 'get' as const,
             route: '/sessions/:sessionId/result',
-            action: sessionController.getResultForSession,
+            action: (req: express.Request, res: express.Response) => sessionController.getResultForSession(req, res),
             validation: [
-                param('sessionId').notEmpty()   
+                validateSessionIdParam()
             ]
         }
-    ];
+    ] as RouteDefinition[];
 };

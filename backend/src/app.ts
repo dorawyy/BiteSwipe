@@ -8,12 +8,15 @@ import { RestaurantService } from './services/restaurantService';
 import { validateRequest } from './middleware/validateRequest';
 
 // Wrapper for async handlers to properly catch errors
-const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) => 
+const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown> | Promise<void>) =>
   (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch((error: unknown) => {next(error)});
+    Promise.resolve(fn(req, res, next)) // Ensure it always resolves a Promise
+      .then(() => undefined) // Normalize `void` return type
+      .catch((error: unknown) => { next(error); });
   };
 
-export async function createApp(): Promise<Express> {
+
+export function createApp(): Express {
   const app = express();
 
   // Use Morgan for request logging
@@ -41,7 +44,7 @@ export async function createApp(): Promise<Express> {
     const { method, route: path, action, validation } = route;
     // TODO : attempted to fix the codacy warning but could not. 
     // Maybe we will just remove the logs on the marking day
-    console.log("Registering route: ",method.toUpperCase(), path);
+    //console.log("Registering route: ",method.toUpperCase(), path);
     
     switch(method) {
       case 'get':
@@ -50,17 +53,11 @@ export async function createApp(): Promise<Express> {
       case 'post':
         app.post(path, validation, validateRequest, asyncHandler(action));
         break;
-      case 'put':
-        app.put(path, validation, validateRequest, asyncHandler(action));
-        break;
       case 'delete':
         app.delete(path, validation, validateRequest, asyncHandler(action));
         break;
-      case 'patch':
-        app.patch(path, validation, validateRequest, asyncHandler(action));
-        break;
       default:
-        console.warn(`Unsupported HTTP method: ${method}`);
+        console.warn(`Unsupported HTTP method: ${method as string}`);
     }
   });
 
@@ -73,11 +70,6 @@ export async function createApp(): Promise<Express> {
       version: '1.0.0',
       status: 'online',
     });
-  });
-
-  // Add health check endpoint for Docker
-  app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'healthy' });
   });
 
   return app;

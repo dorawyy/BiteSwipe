@@ -2,22 +2,20 @@ import 'dotenv/config';
 import mongoose, { Mongoose } from 'mongoose';
 import { createApp } from './app';
 
-// ---------------------------------------------------------
-// ENV
-// ---------------------------------------------------------
-const port = process.env.PORT;
-if (!port) {
-    throw new Error('Missing environment variable: PORT. Add PORT=<number> to .env');
-}
+// Configure mongoose
+mongoose.set('strictQuery', true);
 
-const dbUrl = process.env.DB_URI;
-if (!dbUrl) {
-    throw new Error('Missing environment variable: DB_URI. Add DB_URI=<url> to .env');
-}
+const port = process.env.PORT ?? 3000;
+const dbUrl = process.env.DB_URI ?? 'mongodb://localhost:27017/biteswipe';
+
+// Define SSL certificate paths
+//const sslCertPath = process.env.SSL_CERT_PATH ?? path.join(__dirname, '..', '..', 'cert.pem');
+//const sslKeyPath = process.env.SSL_KEY_PATH ?? path.join(__dirname, '..', '..', 'key.pem');
 
 // Basic startup info
 console.log('\n=== Server Configuration ===');
-console.log(`HTTP Port: ${port}`);
+console.log(`HTTPS Port: ${port}`);
+console.log(`Environment: ${process.env.NODE_ENV ?? 'development'}`);
 console.log('=========================\n');
 
 // TODO : attempted to fix the codacy warning but could not. 
@@ -34,14 +32,18 @@ typedMongoose.connect(dbUrl, {
     socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
     family: 4 // Use IPv4, skip trying IPv6
 })
-.then(async () => {
-    console.log('\n=== MongoDB Connection Info ===');
-    console.log('Connection Status: Connected');
-    console.log(`Full URL: \x1b[34m${dbUrl}\x1b[0m`);
-    console.log('===========================\n');
+    .then(() => {
+        console.log('\n=== MongoDB Connection Info ===');
+        console.log('Connection Status: Connected');
+        console.log(`Full URL: \x1b[34m${dbUrl}\x1b[0m`);
+        console.log(`Database: ${mongoose.connection.name}`);
+        console.log(`Host: ${mongoose.connection.host}`);
+        console.log(`Port: ${mongoose.connection.port}`);
+        console.log(`Clickable URL: \x1b[34mhttp://${mongoose.connection.host}:${mongoose.connection.port}/${mongoose.connection.name}\x1b[0m`);
+        console.log('============================\n');
 
     // Create and start HTTP server
-    const app = await createApp();
+    const app = createApp();
     app.listen(port, () => {
         console.log(`\n=== Server Started ===`);
         console.log(`Server is running on http://localhost:${port}`);

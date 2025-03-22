@@ -1,31 +1,109 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Attach to local Process",
-            "type": "node",
-            "request": "attach",
-            "restart": true,
-            "port": 9229
-        },
-        {
-            "name": "Attach to Remote Backend",
-            "type": "node",
-            "request": "attach",
-            "port": 9229,
-            "address": "hamaney-biteswipe.westus2.cloudapp.azure.com",
-            "localRoot": "${workspaceFolder}",
-            "remoteRoot": "/app/backend",
-            "preLaunchTask": "SSHTunnel",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        }
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to local Process",
+      "type": "node",
+      "request": "attach",
+      "restart": true,
+      "port": 9229
+    },
+    {
+      "name": "Attach to Remote Backend",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "address": "hamaney-biteswipe.westus2.cloudapp.azure.com",
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/app/backend",
+      "preLaunchTask": "SSHTunnel",
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "name": "Unmocked: ALL",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/node_modules/.bin/jest",
+        "--runInBand",
+        "--coverage",
+        "--testPathPattern=src/__tests__/unmocked",
+        "--verbose"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "name": "Mocked: ALL",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/node_modules/.bin/jest",
+        "--runInBand",
+        "--coverage",
+        "--testPathPattern=src/__tests__/mocked",
+        "--verbose"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "name": "Test: SOME TEST",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/node_modules/.bin/jest",
+        "--runInBand",
+        "--coverage",
+        "src/__tests__/unmocked/users_userid_fcmtoken_post.test.ts",
+        "-t",
+        "should return 400 when FCM token is null",
+        "--verbose"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "name": "Mocked Tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/node_modules/.bin/jest",
+        "--runInBand",
+        "--coverage",
+        "--collectCoverageFrom=src/**/*session*",
+        "src/__tests__/mocked/sessions_post.test.ts",
+        "--verbose"
+      ],
+      "console": "integratedTerminal",
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "smartStep": true,
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "test"
+      }
+    }
+  ]
 }

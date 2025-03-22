@@ -1,53 +1,75 @@
 import { UserController } from '../controllers/userController';
-import { body, param } from 'express-validator';
+import { body, param, CustomValidator, ValidationChain } from 'express-validator';
 import { SessionManager } from '../services/sessionManager';
 import { UserService } from '../services/userService';
+import { Types } from 'mongoose';
+import * as express from 'express';
+
+// Reusable validator functions
+const isValidObjectId: CustomValidator = (value: string) => {
+    if (!Types.ObjectId.isValid(value)) {
+        throw new Error('Invalid user ID format');
+    }
+    return true;
+};
+
+const validateUserIdParam = () => param('userId')
+    .notEmpty().withMessage('User ID is required')
+    .custom(isValidObjectId).withMessage('Invalid user ID format');
 
 export const userRoutes = (userService: UserService, sessionManager: SessionManager) => {
     const userController = new UserController(userService, sessionManager);
 
+    // Define interfaces for route definitions
+    interface RouteDefinition {
+        method: 'get' | 'post' | 'put' | 'delete' | 'patch';
+        route: string;
+        action: (req: express.Request, res: express.Response, next: express.NextFunction) => Promise<unknown>;
+        validation: ValidationChain[];
+    }
+
     return [
         {
-            method: 'get',
+            method: 'get' as const,
             route: '/users/:userId',
-            action: userController.getUser,
+            action: (req: express.Request, res: express.Response) => userController.getUser(req, res),
             validation: [
-                param('userId').notEmpty().withMessage('User ID is required')
+                validateUserIdParam()
             ]
         },
         {
-            method: 'post',
+            method: 'post' as const,
             route: '/users',
-            action: userController.createUser,
+            action: (req: express.Request, res: express.Response) => userController.createUser(req, res),
             validation: [
                 body('email').isEmail().withMessage('Valid email is required'),
                 body('displayName').notEmpty().withMessage('Display name is required')
             ]
         },
         {
-            method: 'post',
+            method: 'post' as const,
             route: '/users/:userId/fcm-token',
-            action: userController.updateFCMToken,
+            action: (req: express.Request, res: express.Response) => userController.updateFCMToken(req, res),
             validation: [
-                param('userId').notEmpty().withMessage('User ID is required'),
+                validateUserIdParam(),
                 body('fcmToken').notEmpty().withMessage('FCM token is required')
             ]
         },
         {
-            method: 'get',
+            method: 'get' as const,
             route: '/users/:userId/sessions',
-            action: userController.getUserSessions,
+            action: (req: express.Request, res: express.Response) => userController.getUserSessions(req, res),
             validation: [
-                param('userId').notEmpty().withMessage('User ID is required')
+                validateUserIdParam()
             ]
         },
         {
-            method: 'get',
+            method: 'get' as const,
             route: '/users/emails/:email',
-            action: userController.getUserByEmail,
+            action: (req: express.Request, res: express.Response) => userController.getUserByEmail(req, res),
             validation: [
-                param('email').isEmail()
+                param('email').isEmail().withMessage('Valid email is required')
             ]
         }
-    ];
+    ] as RouteDefinition[];
 };

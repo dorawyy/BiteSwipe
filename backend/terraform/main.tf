@@ -216,6 +216,18 @@ data "azurerm_storage_blob" "firebase_cert" {
   storage_container_name = "production-container"
 }
 
+data "azurerm_storage_blob" "ssl_cert" {
+  name                   = "selfsigned.crt"
+  storage_account_name   = data.azurerm_storage_account.certs.name
+  storage_container_name = "production-container"
+}
+
+data "azurerm_storage_blob" "ssl_key" {
+  name                   = "selfsigned.key"
+  storage_account_name   = data.azurerm_storage_account.certs.name
+  storage_container_name = "production-container"
+}
+
 # Separate deployment resource that can be triggered independently
 resource "null_resource" "deploy_backend" {
   triggers = {
@@ -361,6 +373,26 @@ EOF
         --file $BACKEND_PATH/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
         --account-key "${data.azurerm_storage_account.certs.primary_access_key}"
       
+      # Download SSL certificate files from Azure Storage
+      echo "[Deploy] Downloading SSL certificate files from Azure Storage..."
+      mkdir -p $BACKEND_PATH/nginx/certs
+      
+      # Download selfsigned.crt
+      az storage blob download \
+        --account-name ${data.azurerm_storage_account.certs.name} \
+        --container-name ${data.azurerm_storage_blob.ssl_cert.storage_container_name} \
+        --name ${data.azurerm_storage_blob.ssl_cert.name} \
+        --file $BACKEND_PATH/nginx/certs/selfsigned.crt \
+        --account-key "${data.azurerm_storage_account.certs.primary_access_key}"
+      
+      # Download selfsigned.key
+      az storage blob download \
+        --account-name ${data.azurerm_storage_account.certs.name} \
+        --container-name ${data.azurerm_storage_blob.ssl_key.storage_container_name} \
+        --name ${data.azurerm_storage_blob.ssl_key.name} \
+        --file $BACKEND_PATH/nginx/certs/selfsigned.key \
+        --account-key "${data.azurerm_storage_account.certs.primary_access_key}"
+      
       # Copy files to VM
       scp $SSH_OPTS -i $SSH_KEY -r $BACKEND_PATH/* adminuser@$VM_IP:$BACKEND_REMOTE_PATH/
       
@@ -373,6 +405,17 @@ EOF
         else
           echo '[Deploy] FATAL ERROR: Firebase credentials file not found!'
           echo '[Deploy] Deployment cannot continue without Firebase credentials.'
+          exit 1
+        fi
+        
+        # Verify SSL certificate files
+        echo '[Deploy] Verifying SSL certificate files...'
+        if [ -f $BACKEND_REMOTE_PATH/nginx/certs/selfsigned.crt ] && [ -f $BACKEND_REMOTE_PATH/nginx/certs/selfsigned.key ]; then
+          echo '[Deploy] SSL certificate files found'
+          ls -la $BACKEND_REMOTE_PATH/nginx/certs/selfsigned.crt
+          ls -la $BACKEND_REMOTE_PATH/nginx/certs/selfsigned.key
+        else
+          echo '[Deploy] ERROR: SSL certificate files not found!'
           exit 1
         fi
       "

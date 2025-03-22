@@ -1,19 +1,23 @@
 import { Request, Response } from 'express';
-import { Types } from 'mongoose';
 import { SessionManager } from '../services/sessionManager';
-import { NotificationService } from '../services/notificationService';
-import { UserModel } from '../models/user';
+// import { NotificationService } from '../services/notificationService';
 import { MongoDocument } from '../models/appTypes';
 import { UserService } from '../services/userService';
+import { ObjectId } from 'mongoose';
+
+interface CodedError extends Error {
+    code?: string;
+}
+
 
 export class SessionController {
     private sessionManager: SessionManager;
-    private notificationService: NotificationService;
+    // private notificationService: NotificationService;
     private userService: UserService;
 
     constructor(sessionManager: SessionManager, userService: UserService) {
         this.sessionManager = sessionManager;
-        this.notificationService = new NotificationService();
+        // this.notificationService = new NotificationService();
         this.userService = userService;
 
         // Bind methods
@@ -37,36 +41,52 @@ export class SessionController {
     async getSession(req: Request, res: Response) {
         try {
             const sessionId = req.params.sessionId;
-            console.log('Session ID from params:', sessionId);
-            
-            const session = await this.sessionManager.getSession(sessionId);
-            res.json(session);
-        } catch (error) {
+            const session = await this.sessionManager.getSession(sessionId) as unknown as MongoDocument;
+            // if (!session) {
+            //     return res.status(404).json({ error: 'Session not found' });
+            // }
+            res.status(200).json(session);
+        } catch (error: unknown) {
             console.error('Error fetching session:', error);
-            if (error instanceof Error && (error as any).code === 'SESSION_NOT_FOUND') {
+
+            if ((error as CodedError).message === 'Invalid session ID format') {
+                return res.status(400).json({ error: 'Invalid session ID format' });
+            } else if ((error as CodedError).code === 'SESSION_NOT_FOUND') {
                 return res.status(404).json({ error: 'Session not found' });
             }
+
             res.status(500).json({ error: 'Internal server error' });
         }
     }
 
     async createSession(req: Request, res: Response) {
         try {
-            const { userId, latitude, longitude, radius } = req.body as { 
-                userId: string, 
-                latitude: string | number, 
-                longitude: string | number, 
-                radius: string | number 
+            const { userId, latitude, longitude, radius } = req.body as {
+                userId: string,
+                latitude: string | number,
+                longitude: string | number,
+                radius: string | number;
             };
-            
+
+            // Check for missing required parameters
+            // if (latitude === undefined || longitude === undefined || radius === undefined) {
+            //     return res.status(400).json({ error: 'Missing required location parameters' });
+            // }
+
             // Convert coordinates to numbers
             const lat = typeof latitude === 'string' ? parseFloat(latitude) : latitude;
             const lng = typeof longitude === 'string' ? parseFloat(longitude) : longitude;
             const rad = typeof radius === 'string' ? parseFloat(radius) : radius;
 
-            // Validate userId is a valid ObjectId
-            if (!Types.ObjectId.isValid(userId)) {
-                return res.status(400).json({ error: 'Invalid user ID format' });
+            // Validate coordinates
+            if (isNaN(lat) || lat < -90 || lat > 90) {
+                return res.status(400).json({ error: 'Invalid latitude value' });
+            }
+            if (isNaN(lng) || lng < -180 || lng > 180) {
+                return res.status(400).json({ error: 'Invalid longitude value' });
+            }
+            if (isNaN(rad) || rad <= 0) {
+                return res.status(400).json({ error: 'Invalid radius value' });
             }
 
             const session = await this.sessionManager.createSession(
@@ -81,6 +101,14 @@ export class SessionController {
             res.status(201).json(session);
         } catch (error) {
             console.error('Error creating session:', error);
+            if (error instanceof Error) {
+                if (error.message === 'Invalid user ID format') {
+                    return res.status(400).json({ error: error.message });
+                }
+                if ((error as CodedError).code === 'USER_NOT_FOUND') {
+                    return res.status(400).json({ error: 'User not found' });
+                }
+            }
             res.status(500).json({ error: 'Internal server error' });
         }
     }
@@ -90,28 +118,28 @@ export class SessionController {
             const sessionId = req.params.sessionId;
             const { email } = req.body;
             const user = await this.userService.getUserByEmail(String(email)) as unknown as MongoDocument;
-            
+
             if (!user) {
-                return res.status(404).json({ error: 'No user found with this email'});
+                return res.status(404).json({ error: 'No user found with this email' });
             }
-            
+
             if (!user._id) {
                 return res.status(400).json({ error: 'User has no ID' });
             }
 
             const session = await this.sessionManager.addPendingInvitation(
                 sessionId,
-                user._id.toString()
+                (user._id as unknown as ObjectId).toString()
             );
 
             // Send notification to invited user
-            if (user.fcmToken && typeof user.fcmToken === 'string') {
-                await this.notificationService.sendNotification(
-                    user.fcmToken,
-                    'Session Invitation',
-                    'You have been invited to join a BiteSwipe session!'
-                );
-            }
+            // if (user.fcmToken && typeof user.fcmToken === 'string') {
+            //     await this.notificationService.sendNotification(
+            //         user.fcmToken,
+            //         'Session Invitation',
+            //         'You have been invited to join a BiteSwipe session!'
+            //     );
+            // }
 
             res.json(session);
         } catch (error: unknown) {
@@ -135,7 +163,7 @@ export class SessionController {
                 String(userId)
             );
 
-            res.json(session);
+            res.status(200).json(session);
         } catch (error) {
             console.error('Error joining session:', error);
             if (error instanceof Error) {
@@ -153,7 +181,7 @@ export class SessionController {
 
             const session = await this.sessionManager.rejectInvitation(sessionId, userId);
 
-            res.json(session);
+            res.status(200).json(session);
         } catch (error) {
             console.error('Error rejecting invitation:', error);
             if (error instanceof Error) {
@@ -199,7 +227,7 @@ export class SessionController {
             res.json(restaurants);
         } catch (error) {
             console.error('Error fetching restaurants:', error);
-            if (error instanceof Error && (error as any).code === 'SESSION_NOT_FOUND') {
+            if (error instanceof Error && (error as CodedError).code === 'SESSION_NOT_FOUND') {
                 return res.status(404).json({ error: 'Session not found' });
             }
             res.status(500).json({ error: 'Internal server error' });
@@ -209,15 +237,15 @@ export class SessionController {
     async sessionSwiped(req: Request, res: Response) {
         try {
             const { sessionId } = req.params;
-            const { userId, restaurantId, liked} = req.body;
+            const { userId, restaurantId, liked } = req.body;
 
             const session = await this.sessionManager.sessionSwiped(sessionId, String(userId), String(restaurantId), Boolean(liked));
 
             res.json({ success: true, session: session._id });
         } catch (error) {
-            console.log(error);
+            console.error(error);
 
-            res.status(500).json({ error: error }); 
+            res.status(500).json({ error });
         }
     }
 
@@ -230,9 +258,9 @@ export class SessionController {
 
             res.json({ success: true, session: session._id });
         } catch (error) {
-            console.log(error);
+            console.error(error);
 
-            res.status(500).json({ error: error });
+            res.status(500).json({ error });
         }
     }
 
@@ -245,9 +273,9 @@ export class SessionController {
 
             res.json({ success: true, session: session._id });
         } catch (error) {
-            console.log(error);
+            console.error(error);
 
-            res.status(500).json({ error: error });
+            res.status(500).json({ error });
         }
     }
 
@@ -258,9 +286,9 @@ export class SessionController {
             const result = await this.sessionManager.getResultForSession(sessionId);
             res.json({ success: true, result });
         } catch (error) {
-            console.log(error);
+            console.error(error);
 
-            res.status(500).json({ error: error });
+            res.status(500).json({ error });
         }
     }
 }
