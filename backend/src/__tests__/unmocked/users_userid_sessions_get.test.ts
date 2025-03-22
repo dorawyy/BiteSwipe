@@ -208,7 +208,7 @@ describe('GET /users/:userId/sessions - Unmocked', () => {
     const session2Response = await agent
       .post('/sessions')
       .send({
-        userId: userId,
+        userId,
         latitude: 49.2827,
         longitude: -123.1207,
         radius: 1000

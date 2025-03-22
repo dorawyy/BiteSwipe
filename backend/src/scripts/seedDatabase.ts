@@ -6,18 +6,18 @@ import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
 import { MongoDocument } from '../models/appTypes';
-import { IRestaurant } from '../models/restaurant';
+
 
 // Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 // Global configuration
-const DATA_DIR = path.join(__dirname, '../../data');
+
 const INITIAL_RESTAURANTS_FILE = 'initial-restaurants.json';
 const INITIAL_USERS_FILE = 'initial-users.json';
 const INITIAL_SESSIONS_FILE = 'initial-sessions.json';
 const DB_URI = process.env.DB_URI ?? 'mongodb://localhost:27017/biteswipe';
-console.log(`Database URI: ${DB_URI} [Source: ${process.env.DB_URI ? 'ENV' : 'DEFAULT'}]`);
+//(`Database URI: ${DB_URI} [Source: ${process.env.DB_URI ? 'ENV' : 'DEFAULT'}]`);
 
 
 function transformMongoId(doc: MongoDocument): MongoDocument {
@@ -133,7 +133,7 @@ async function seedDatabase() {
             }));
 
         const insertedRestaurants = await Restaurant.insertMany(transformedRestaurants);
-        console.log(`Successfully imported ${insertedRestaurants.length} restaurants`);
+        //console.log(`Successfully imported ${insertedRestaurants.length} restaurants`);
 
         // Read and insert sessions
         const sessionsPath = path.join(__dirname, '..', 'data', INITIAL_SESSIONS_FILE);
@@ -147,9 +147,9 @@ async function seedDatabase() {
 
         // Insert sessions
         const insertedSessions = await Session.insertMany(sessions);
-        console.log(`Successfully imported ${insertedSessions.length} sessions`);
+        //(`Successfully imported ${insertedSessions.length} sessions`);
 
-        console.log('Database seeding completed!');
+        //console.log('Database seeding completed!');
     } catch (error) {
         console.error('Error seeding database:', error);
         if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
@@ -166,4 +166,4 @@ async function seedDatabase() {
 }
 
 // Run the seeding
-seedDatabase();
+void seedDatabase();

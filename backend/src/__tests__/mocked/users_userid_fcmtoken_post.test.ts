@@ -47,7 +47,7 @@ describe("POST /users/:userId/fcm-token - Mocked", () => {
 
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     // Clear all mocks after each test
     jest.clearAllMocks();
     // This will reset all mock implementations to their default values

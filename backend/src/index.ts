@@ -32,7 +32,7 @@ typedMongoose.connect(dbUrl, {
     socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
     family: 4 // Use IPv4, skip trying IPv6
 })
-    .then(async() => {
+    .then(() => {
         console.log('\n=== MongoDB Connection Info ===');
         console.log('Connection Status: Connected');
         console.log(`Full URL: \x1b[34m${dbUrl}\x1b[0m`);
