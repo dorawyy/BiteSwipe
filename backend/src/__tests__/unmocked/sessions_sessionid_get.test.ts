@@ -60,7 +60,7 @@ describe('GET /sessions/:sessionId - Unmocked', () => {
     const response = await agent
       .get(`/sessions/${sessionId}`)
       .expect('Content-Type', /json/)
-      .expect(250);
+      .expect(200);
 
     expect(response.body).toHaveProperty('_id', sessionId);
     expect(response.body).toHaveProperty('creator', userId);
