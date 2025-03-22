@@ -33,7 +33,6 @@ services:
       args:
         - PORT=${PORT}
     container_name: test
-    restart: unless-stopped
     env_file:
       - .env
     expose:
