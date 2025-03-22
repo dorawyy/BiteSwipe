@@ -44,7 +44,7 @@ const testDbUri = `${baseUri}/${dbName}_test_${randomHash}`;
 beforeAll(async () => {
     try {
         await mongoose.connect(testDbUri);
-        console.log('Connected to test database:', testDbUri);
+        //console.log('Connected to test database:', testDbUri);
         // Update DB_URI with test database URI
         process.env.DB_URI = testDbUri;
     } catch (error) {

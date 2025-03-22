@@ -8,7 +8,7 @@ import { Session } from '../../models/session';
 let agent: any;
 
 describe('GET /sessions/:sessionId - Unmocked', () => {
-  beforeAll(async () => {
+  beforeAll(() => {
     const app = createApp();
     agent = supertest(app);
   });

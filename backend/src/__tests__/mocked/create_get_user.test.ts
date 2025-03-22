@@ -23,7 +23,7 @@ jest.mock('mongoose', () => {
       equals(other: unknown) {
         return other?.toString() === this.str;
       }
-      
+
       static isValid() {
         return true;
       }
@@ -38,7 +38,7 @@ jest.mock('mongoose', () => {
   });
   
   jest.mock('../../models/user', () => {
-    const UserModel = jest.fn().mockImplementation(function (this: Record<string, any>, data) {
+    const UserModel = jest.fn().mockImplementation(function (this: Record<string, unknown>, data) {
       // Mock the constructor instance variables
       this.email = data.email;
       this.displayName = data.displayName;
@@ -58,11 +58,12 @@ jest.mock('mongoose', () => {
     // Mock static methods (findOne, findById, create, findByIdAndUpdate)
     Object.assign(UserModel, {
         findOne: jest.fn().mockImplementation((query) => {
-            const createResponse = (data: any) => ({
+            const createResponse = (data: Record<string, unknown>) => ({
               lean: () => Promise.resolve(data),
               select: () => ({
                 lean: () => Promise.resolve(data),
               }),
+
             });
             
             if(query.email === 'test@test.com'){
@@ -75,7 +76,7 @@ jest.mock('mongoose', () => {
                 displayName: 'Test User',
               });
             }
-            return createResponse(null);
+            return createResponse(null as any);
           }),
   
       findById: jest.fn().mockImplementation((id) => {
@@ -139,7 +140,7 @@ describe("POST /users and GET /users/:userId - Mocked", () => {
 
   beforeEach(() => {
     // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
-    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
+    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as unknown as typeof mongoose);
 
     // Create app using shared createApp function
     app = createApp();

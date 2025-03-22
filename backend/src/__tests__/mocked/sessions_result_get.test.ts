@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import './mocked_setup';
 import request from "supertest";
 import { Express } from "express";
@@ -98,7 +98,7 @@ jest.mock('../../models/session', () => {
   
     beforeEach(() => {
       // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
-      jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
+      jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as unknown as typeof mongoose);
   
       // Create app using shared createApp function
       app = createApp();
@@ -114,7 +114,7 @@ jest.mock('../../models/session', () => {
       const response = await agent
             .get('/sessions/67db3be580163bf1328c0211/result');
 
-        console.log(response.body);
+        expect(response.body).not.toBeNull();
     });
   
   });

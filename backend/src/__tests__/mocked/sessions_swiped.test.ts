@@ -219,7 +219,7 @@ jest.mock('../../models/session', () => {
           ],
           restaurants: [{ restaurantId: 'restaurant1', positiveVotes: 0, totalVotes: 0, score: 0 }],
           doneSwiping: [] as string[],
-          save: jest.fn().mockResolvedValue({}) as jest.Mock<Promise<{}>>
+          save: jest.fn().mockResolvedValue({}) as jest.Mock<Promise<object>>
         });
       }
       
@@ -274,7 +274,7 @@ jest.mock('../../models/session', () => {
       }
       
       // Mock for addPendingInvitation
-      if (query.pendingInvitations && query.pendingInvitations.$ne) {
+      if (query.pendingInvitations?.$ne) {
         return Promise.resolve({
           _id: query._id,
           pendingInvitations: [...(update.$push?.pendingInvitations ? [update.$push.pendingInvitations] : [])],
@@ -390,7 +390,7 @@ describe("POST /sessions/:sessionId/votes - Mocked", () => {
 
   beforeEach(() => {
     // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
-    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
+    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as unknown as typeof mongoose);
 
     // Create app using shared createApp function
     app = createApp();

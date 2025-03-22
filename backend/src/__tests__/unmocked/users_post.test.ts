@@ -160,6 +160,16 @@ describe("POST /users - Unmocked", () => {
     });
 
     // Reconnect to database for cleanup
-    await mongoose.connect(process.env.DB_URI!);
+    try {
+          const dbUri = process.env.DB_URI;
+          if (!dbUri) {
+            throw new Error("Missing environment variable: DB_URI");
+          }
+    
+          await mongoose.connect(dbUri);
+        } catch (error) {
+          console.error(`Failed to connect to database: ${String(error)}`);
+          throw new Error("Failed to connect to database");
+        }
   });
 });

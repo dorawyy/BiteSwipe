@@ -25,12 +25,17 @@ describe('POST /sessions - Unmocked', () => {
     jest.setTimeout(60000); // 60 seconds timeout
 
     // Connect to test database
-    try {
-      await mongoose.connect(process.env.DB_URI!);
-    } catch (error) {
-      console.error(`Failed to connect to database: ${error}`);
-      process.exit(1);
-    }
+   try {
+         const dbUri = process.env.DB_URI;
+         if (!dbUri) {
+           throw new Error("Missing environment variable: DB_URI");
+         }
+   
+         await mongoose.connect(dbUri);
+       } catch (error) {
+         console.error(`Failed to connect to database: ${String(error)}`);
+         throw new Error("Failed to connect to database");
+       }
   });
 
 
@@ -198,7 +203,7 @@ describe('POST /sessions - Unmocked', () => {
         .send({
           userId: inviteeResponse.body._id,
           restaurantId: restId,
-          liked: count === 1 ? true : false
+          liked: count === 1 
         });
       expect(swiped1.status).toBe(200);
       const swiped2 = await agent

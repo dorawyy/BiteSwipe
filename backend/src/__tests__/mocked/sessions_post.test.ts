@@ -3,7 +3,12 @@ import './mocked_setup';
 import request from "supertest";
 import { Express } from "express";
 import { createApp } from "../../app";
-
+interface UserDocument {
+  _id?: string | null;
+  email?: string | null;
+  displayName?: string | null;
+  // other user properties can be added as needed
+}
 jest.mock('mongoose', () => {
   class ObjectId {
     private str: string;
@@ -369,7 +374,7 @@ describe("POST /sessions  - Mocked", () => {
 
   beforeEach(() => {
     // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
-    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
+    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as unknown as typeof mongoose);
 
     // Create app using shared createApp function
     app = createApp();

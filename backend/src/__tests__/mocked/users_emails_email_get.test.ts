@@ -38,7 +38,7 @@ describe("GET /users/emails/:email - Mocked", () => {
 
   beforeEach(() => {
     // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
-    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
+    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as unknown as typeof mongoose);
 
     // Create app using shared createApp function
     app = createApp();

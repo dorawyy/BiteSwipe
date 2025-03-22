@@ -113,7 +113,7 @@ describe("POST /sessions/:sessionId/votes - Mocked", () => {
 
   beforeEach(() => {
     // Ensure mongoose.connect is mocked and doesn't try to connect to a real DB
-    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
+    jest.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as unknown as typeof mongoose);
 
     // Create app using shared createApp function
     app = createApp();
@@ -140,7 +140,7 @@ describe("POST /sessions/:sessionId/votes - Mocked", () => {
         .send({
             userId: '67db3be580163bf1328c0213',
         });
-        console.log(response.body);
+       
         expect(response.status).toBe(200);
   });
 

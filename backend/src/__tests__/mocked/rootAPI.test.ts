@@ -6,7 +6,7 @@ import { createApp } from '../../app';
 
 let app: Express;
 
-beforeAll(async () => {
+beforeAll(() => {
   app = createApp();
 });
 

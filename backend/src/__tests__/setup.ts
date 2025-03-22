@@ -63,7 +63,6 @@ export const mockRestaurantService = {
 // This is to avoid interfering with the real MongoDB connection in unmocked tests
 if (process.env.NODE_ENV === 'test' && process.env.TEST_TYPE === 'mocked') {
   // Create a simple string-based mock for ObjectId that works with the mocked tests
-  const originalObjectId = mongoose.Types.ObjectId;
   
   // Store the original implementation for reference
   const mockObjectId = function(id?: string) {

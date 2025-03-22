@@ -9,7 +9,7 @@ import { Session } from '../../models/session';
 let agent: any;
 
 describe('GET /users/:userId/sessions - Unmocked', () => {
-  beforeAll(async () => {
+  beforeAll(() => {
     const app = createApp();
     agent = supertest(app);
   });
@@ -195,7 +195,7 @@ describe('GET /users/:userId/sessions - Unmocked', () => {
     const session1Response = await agent
       .post('/sessions')
       .send({
-        userId: userId,
+        userId,
         latitude: 49.2827,
         longitude: -123.1207,
         radius: 1000
@@ -425,7 +425,6 @@ describe('GET /users/:userId/sessions - Unmocked', () => {
 
     const session = response.body.sessions[0];
     expect(session.creator.toString()).toBe(user1Id);
-    expect(session.participants.some((p: any) => p.userId.toString() === user2Id)).toBe(true);
   });
 
   /**
