@@ -170,6 +170,7 @@ for googleMapsAPI -->
 
 | **Non-Functional Requirement** | **Location in Git** |
 | ------------------------------- | ------------------------------------------------ |
+
 | **Performance (App Load Time)** | [`frontend/app/src/androidTest/java/com/example/biteswipe/FNFRTests.kt`](#) |
 | **Uptime** | [`frontend/app/src/androidTest/java/com/example/biteswipe/FNFRTests.kt`](#) |  
 | **Usability** | ['frontend/app/src/androidTest/java/com/example/biteswipe/EUsabilityNFRTest.kt'](#) |
