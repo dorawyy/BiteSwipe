@@ -75,6 +75,7 @@ jobs:
             tail -n 50 terraform.log
             # Check for specific error patterns in logs
             if grep -q "Docker Compose\|SSH connection" terraform.log; then
+              echo "::warning::Deployment issues detected with Docker Compose or SSH connections"
             fi
             if grep -q "Server IP found\|Successfully retrieved server IP" terraform.log; then
               echo "::warning::Partial deployment detected: VM created but services failed to start"
