@@ -42,7 +42,7 @@ beforeAll(async () => {
 afterAll(async () => {
     try {
         await mongoose.connection.close();
-        console.log('Disconnected from test database');
+        //console.log('Disconnected from test database');
     } catch (error) {
         console.error('Error disconnecting from test database:', error);
     }
