@@ -112,6 +112,7 @@ npm run test:coverage:unmocked
 ```
 
 `Combined Mock and Unmock Test and Coverage Commands`
+> ⚠️ **IMPORTANT:** Please Comment out the seedDatbase file, it is just for populating database when code is pushed to production, it will cause the coverage to go down 
 
 ```
 npm run test:coverage
@@ -461,15 +462,30 @@ for googleMapsAPI -->
 
   
 
-_(Placeholder for screenshots of Codacy’s Category Breakdown table in Overview)_
-
+Issue category: Error Prone 
+![Enter image alt description](Images/error-prone.png)
   
-
+Issue category: Security
+![Enter image alt description](Images/security.png)
 ### 5.3. Unfixed Issues per Codacy Code Pattern
 
   
-
-_(Placeholder for screenshots of Codacy’s Issues page)_
+Code Pattern : @typescript eslint: No explicit any
+![Enter image alt description](Images/CE1.1.png)
+![Enter image alt description](Images/CE1.2.png)
+Code Pattern : @typescript eslint: No unnecessary condition
+![Enter image alt description](Images/C2.png)
+Code Pattern : One method should have one responsibility. Long methods tend to handle many things at once. Prefer smaller methods to make them easier to understand.
+![Enter image alt description](Images/C3.png)
+Code Pattern : Security: Detect object injection
+![Enter image alt description](Images/C4.png)
+Code Pattern : Security node: Detect crlf
+![Enter image alt description](Images/C5.png)
+Code Pattern : Security node: Detect insecure randomness
+![Enter image alt description](Images/C6.png)
+Code Pattern : Multiline ternary
+![Enter image alt description](Images/C7.png)
+Code Pattern : The caught exception is too generic. Prefer catching specific exceptions to the case that is currently handled.
 
   
 
