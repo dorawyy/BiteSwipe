@@ -201,11 +201,15 @@ for UserService all the Errors are comming form the same checking condition as t
 
 - **Log Output**
 
-```
 
-[Placeholder for uptime test logs]
+| Timestamp               | PID         | Tag         | Package               | Level | Message                                                                 |
+|-------------------------|-------------|-------------|------------------------|-------|-------------------------------------------------------------------------|
+| 2025-03-21 22:30:37.304 | 14585-14602 | TestRunner  | com.example.biteswipe | I     | run started: 1 tests                                                    |
+| 2025-03-21 22:30:37.308 | 14585-14602 | TestRunner  | com.example.biteswipe | I     | started: serverIsReachable(com.example.biteswipe.FNFRTests)            |
+| 2025-03-21 22:30:39.131 | 14585-14602 | TestRunner  | com.example.biteswipe | I     | finished: serverIsReachable(com.example.biteswipe.FNFRTests)           |
+| 2025-03-21 22:30:39.443 | 14585-14602 | TestRunner  | com.example.biteswipe | I     | run finished: 1 tests, 0 failed, 0 ignored                              |
 
-```
+
 - **Usability**
 - **Verification: ** This test verifies the user is able to access all menu items correctly and smoothly under an appropriate response time. This test is sufficient as we are simply looking to see if the user can access all the menus smoothly, rather than checking the functionality of each page.
 
