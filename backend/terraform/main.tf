@@ -461,97 +461,89 @@ EOF
       
       # Start application services with retry logic
       echo "[Deploy] Starting Docker services..."
-      for deploy_attempt in {1..3}; do
-        echo "[Deploy] Deployment attempt $deploy_attempt of 3"
+
+      ssh $SSH_OPTS -i $SSH_KEY adminuser@$VM_IP "
+        set -x
+        cd $BACKEND_REMOTE_PATH || { echo 'Failed to change directory to $BACKEND_REMOTE_PATH'; exit 1; }
+        pwd
+        ls -la
         
-        ssh $SSH_OPTS -i $SSH_KEY adminuser@$VM_IP "
-          set -x
-          cd $BACKEND_REMOTE_PATH || { echo 'Failed to change directory to $BACKEND_REMOTE_PATH'; exit 1; }
-          pwd
+        # Check if docker-compose.test.yml exists
+        if [ ! -f docker-compose.test.yml ]; then
+          echo '[Deploy] ERROR: docker-compose.test.yml not found!'
           ls -la
-          
-          # Check if docker-compose.yml exists
-          if [ ! -f docker-compose.yml ]; then
-            echo '[Deploy] ERROR: docker-compose.yml not found!'
-            ls -la
-            exit 1
-          fi
-          
-          echo '[Deploy] Verifying environment variables:'
-          cat .env || echo 'Warning: .env file not found or cannot be read'
-          
-          echo '[Deploy] Stopping existing containers...'
-          docker-compose down --remove-orphans || true
-          
-          echo '[Deploy] Building and starting containers...'
-          docker-compose up -d --build
-          if [ \$? -ne 0 ]; then
-            echo \"[Deploy] ERROR: Docker-compose failed\"
-            docker-compose logs
-            exit 1
-          fi
-          echo '[Deploy] Containers started successfully!'
-          
-          # Wait for containers to stabilize
-          echo '[Deploy] Waiting for containers to be ready...'
-          sleep 15
-          
-          # Check if containers are running
-          RUNNING_CONTAINERS=\$(docker ps --format '{{.Names}}' | wc -l)
-          echo \"[Deploy] Number of running containers: \$RUNNING_CONTAINERS\"
-          
-          # We're looking for at least 1 container (the app) instead of exactly 2
-          # This makes the check more flexible
-          if [ \"\$RUNNING_CONTAINERS\" -lt 1 ]; then
-            echo \"[Deploy] ERROR: No containers running\"
-            docker ps -a
-            docker-compose logs
-            exit 1
-          fi
-          
-          # Verify that the app is responding
-          echo '[Deploy] Verifying API health...'
-          MAX_RETRIES=6
-          RETRY_COUNT=0
-          API_HEALTHY=false
-          
-          while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
-            if curl -s http://localhost:3000/health | grep -q 'healthy'; then
-              API_HEALTHY=true
-              break
-            fi
-            echo \"[Deploy] API health check attempt \$((RETRY_COUNT+1))/\$MAX_RETRIES failed, retrying in 5 seconds...\"
-            RETRY_COUNT=\$((RETRY_COUNT+1))
-            sleep 5
-          done
-          
-          if [ \"\$API_HEALTHY\" != \"true\" ]; then
-            echo \"[Deploy] ERROR: API health check failed after \$MAX_RETRIES attempts\"
-            docker ps -a
-            docker-compose logs
-            exit 1
-          fi
-          
-          echo \"[Deploy] Deployment validation successful - containers are running and API is healthy!\"
-          docker ps
-          exit 0
-        "
-        
-        # Check if the SSH command was successful
-        SSH_RESULT=$?
-        if [ $SSH_RESULT -eq 0 ]; then
-          echo "[Deploy] Service deployment successful!"
-          break
-        else
-          echo "[Deploy] Service deployment attempt $deploy_attempt failed with exit code $SSH_RESULT"
-          if [ $deploy_attempt -eq 3 ]; then
-            echo "[Deploy] All deployment attempts failed"
-            exit 1
-          fi
-          echo "[Deploy] Waiting 30 seconds before next attempt..."
-          sleep 30
+          exit 1
         fi
-      done
+        
+        echo '[Deploy] Verifying environment variables:'
+        cat .env || echo 'Warning: .env file not found or cannot be read'
+        
+        echo '[Deploy] Restarting containers...'
+        (docker-compose -f docker-compose.test.yml down --remove-orphans || true) && \
+        docker-compose -f docker-compose.test.yml up -d --build
+        if [ \$? -ne 0 ]; then
+          echo \"[Deploy] ERROR: Docker-compose failed\"
+          docker-compose -f docker-compose.test.yml logs
+          exit 1
+        fi
+        echo '[Deploy] Containers started successfully!'
+        
+        # Wait for containers to stabilize
+        echo '[Deploy] Waiting for containers to be ready...'
+        sleep 15
+        
+        # Check if containers are running
+        RUNNING_CONTAINERS=\$(docker ps --format '{{.Names}}' | wc -l)
+        echo \"[Deploy] Number of running containers: \$RUNNING_CONTAINERS\"
+        
+        # We're looking for at least 1 container (the app) instead of exactly 2
+        # This makes the check more flexible
+        if [ \"\$RUNNING_CONTAINERS\" -lt 1 ]; then
+          echo \"[Deploy] ERROR: No containers running\"
+          docker ps -a
+          docker-compose -f docker-compose.test.yml logs
+          exit 1
+        fi
+        
+        # Verify that the app is responding
+        echo '[Deploy] Verifying API health...'
+        MAX_RETRIES=6
+        RETRY_COUNT=0
+        API_HEALTHY=false
+        
+        while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
+          if curl -s http://localhost:3000/health | grep -q 'healthy'; then
+            API_HEALTHY=true
+            break
+          fi
+          echo \"[Deploy] API health check attempt \$((RETRY_COUNT+1))/\$MAX_RETRIES failed, retrying in 5 seconds...\"
+          RETRY_COUNT=\$((RETRY_COUNT+1))
+          sleep 5
+        done
+        
+        if [ \"\$API_HEALTHY\" != \"true\" ]; then
+          echo \"[Deploy] ERROR: API health check failed after \$MAX_RETRIES attempts\"
+          docker ps -a
+          docker-compose -f docker-compose.test.yml logs
+          exit 1
+        fi
+        
+        echo \"[Deploy] Deployment validation successful - containers are running and API is healthy!\"
+        docker ps
+        exit 0
+      "
+      
+      # Check if the SSH command was successful
+      SSH_RESULT=$?
+      if [ $SSH_RESULT -eq 0 ]; then
+        echo "[Deploy] Service deployment successful!"
+      else
+        echo "[Deploy] Service deployment failed with exit code $SSH_RESULT"
+        echo "[Deploy] This could indicate a Docker Compose failure or other deployment issue"
+        # Force a non-zero exit code to ensure GitHub Actions workflow fails
+        exit $SSH_RESULT
+      fi
+      
       
       echo "[Deploy] Service deployment phase completed successfully!"
       echo "[Deploy] Deployment completed successfully!"

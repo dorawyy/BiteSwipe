@@ -26,13 +26,13 @@ services:
     networks:
       - app_network
 
-  app:
+  test:
     build:
       context: .
       dockerfile: dockerfile
       args:
         - PORT=${PORT}
-    container_name: app
+    container_name: test
     restart: unless-stopped
     env_file:
       - .env
@@ -42,11 +42,6 @@ services:
       - "9229:9229" # Debug port
     depends_on:
       - mongo
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://app:${PORT}/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     logging:
       driver: "json-file"
       options:
@@ -54,29 +49,8 @@ services:
         max-file: "3"
     networks:
       - app_network
-  nginx:
-    image: nginx:latest
-    container_name: nginx_https
-    restart: unless-stopped
-    ports:
-      - "443:443"
-      - "80:80"
-    volumes:
-      - ./nginx/nginx-entrypoint/nginx-entrypoint.sh:/nginx-entrypoint-inside-container.sh
-      - ./nginx/certs:/etc/ssl
-    entrypoint: ["/nginx-entrypoint-inside-container.sh"]
-    command: ["nginx", "-g", "daemon off;"]
-    environment:
-      - PORT=${PORT}
-    networks:
-      - app_network
-    depends_on:
-      - app
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+
+
 
 volumes:
   mongo_data:
