@@ -112,6 +112,7 @@ npm run test:coverage:unmocked
 ```
 
 `Combined Mock and Unmock Test and Coverage Commands`
+> ⚠️ **IMPORTANT:** Please Comment out the seedDatbase file, it is just for populating database when code is pushed to production, it will cause the coverage to go down 
 
 ```
 npm run test:coverage
@@ -140,12 +141,6 @@ also a screenshoot showing that we are indeed hitting that statement using our t
 ![Enter image alt description](Images/invalid-id.png)
 
 for UserService all the Errors are comming form the same checking condition as the sessionManager and have the same reasoning
-
-for SessionController -->
-
-for UserController -->
-
-for googleMapsAPI --> 
 
   
 
@@ -487,15 +482,55 @@ for googleMapsAPI -->
 
   
 
-_(Placeholder for screenshots of Codacy’s Category Breakdown table in Overview)_
+Issue category: Error Prone 
 
+![Enter image alt description](Images/error-prone.png)
   
+Issue category: Security
+
+![Enter image alt description](Images/security.png)
 
 ### 5.3. Unfixed Issues per Codacy Code Pattern
 
   
+Code Pattern : @typescript eslint: No explicit any
 
-_(Placeholder for screenshots of Codacy’s Issues page)_
+![Enter image alt description](Images/CE1.1.png)
+![Enter image alt description](Images/CE1.2.png)
+
+Code Pattern : @typescript eslint: No unnecessary condition
+
+![Enter image alt description](Images/C2.png)
+
+Code Pattern : One method should have one responsibility. Long methods tend to handle many things at once. Prefer 
+smaller methods to make them easier to understand.
+
+![Enter image alt description](Images/C3.png)
+
+Code Pattern : Security: Detect object injection
+
+![Enter image alt description](Images/C4.png)
+
+Code Pattern : Security node: Detect crlf
+
+![Enter image alt description](Images/C5.png)
+
+Code Pattern : Security node: Detect insecure randomness
+
+![Enter image alt description](Images/C6.png)
+
+Code Pattern : Multiline ternary
+
+![Enter image alt description](Images/C7.png)
+
+Code Pattern : The caught exception is too generic. Prefer catching specific exceptions to the case that is currently 
+handled.
+
+![Enter image alt description](Images/C8.png)
+
+Code Pattern : Others
+
+![Enter image alt description](Images/C9.png)
 
   
 
@@ -503,22 +538,263 @@ _(Placeholder for screenshots of Codacy’s Issues page)_
 
   
 
-- **Code Pattern: [Usage of Deprecated Modules](#)**
+- **Code Pattern: [ @typescript eslint: No explicit any](#)**
 
   
 
-1. **Issue**
+1. **Unexpected any. Specify a different type.**
 
   
 
-- **Location in Git:** [`src/services/chatService.js#L31`](#)
+- **Location in Git:** [`backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L11`](#)
 
-- **Justification:** ...
-
-  
-
-2. ...
+- **Justification:** The server variable is used with Express.js server methods and properties that would be inaccessible with an unknown type. Using unknown would require excessive type assertions throughout the test file. The server object has a complex type structure from the Express library that would be cumbersome to fully type, and in test environments, maintaining strict typing provides minimal benefit compared to the additional code complexity
 
   
 
-- ...
+2. **Unexpected any. Specify a different type.**
+
+
+- **Location in Git:** [`backend/src/__tests__/mocked/create_get_user.test.ts#L95`](#)
+
+- **Justification:** This line uses null as any in a test mock to satisfy the return type of the .lean() method. Using unknown instead would break type compatibility with the expected mongoose document return type, requiring additional type assertions at every usage point. The any type is intentionally used here to maintain the flexibility needed for mocking database responses without adding unnecessary type assertions
+  
+
+3. **Unexpected any. Specify a different type**.
+
+
+- **Location in Git:** [`backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L16`](#)
+
+- **Justification:** The mockedSetTimeout function replaces the global setTimeout which accepts any function as its first argument. Using unknown for the function parameter would prevent calling the function within the mock implementation. The nature of this mock requires preserving the callable nature of the parameter, which any provides but unknown would restrict
+
+4. **Unexpected any. Specify a different type.**
+
+
+- **Location in Git:** [`backend/src/__tests__/unmocked/users_userid_sessions_get.test.ts#L8`](#)
+
+- **Justification:** The agent variable represents a supertest HTTP agent that has numerous methods and properties accessed throughout the test suite. Using unknown would require type assertions before each property access, significantly increasing code verbosity. In test environments, the flexibility of any outweighs the minimal safety benefits of unknown
+
+5. **Unexpected any. Specify a different type.**
+
+
+- **Location in Git:** [`backend/src/__tests__/setup.ts#L71`](#)
+
+- **Justification:**  This type assertion is applied to a complex object with nested properties used for mocking. Using unknown would require multiple type assertions at each usage point, making the tests more verbose without adding meaningful type safety. The mock object structure may change during tests, making any more appropriate for this testing context
+
+6. **Unexpected any. Specify a different type.**
+
+
+- **Location in Git:** [`backend/src/__tests__/mocked/create_get_user.test.ts#L79`](#)
+
+- **Justification:** The createResponse function mock returns an object that mimics a database response. Using unknown instead of any would prevent accessing properties on the returned object without additional type assertions. Since this is in a test context where the response structure varies based on test needs, any provides necessary flexibility
+
+7. **Unexpected any. Specify a different type.**
+
+
+- **Location in Git:** [`backend/src/__tests__/unmocked/users_userid_sessions_get.test.ts#L226`](#)
+
+- **Justification:** This line maps over session objects to extract join codes. Using unknown would prevent access to the joinCode property without a type assertion for each iteration
+
+8. **Unexpected any. Specify a different type.**
+
+
+- **Location in Git:** [`backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L12`](#)
+
+- **Justification:** The pendingTimeouts array stores various timeout references with different structures depending on the test case. Using unknown would prevent accessing or manipulating these timeout objects as needed for the tests. The array needs to accommodate different types of timeout structures making any the appropriate choice here
+
+9. **Unexpected any. Specify a different type.**
+
+
+- **Location in Git:** [`backend/src/services/userService.ts#L93`](#)
+
+- **Justification:** This error catching pattern needs to handle various error types from external libraries. Using unknown would prevent accessing standard error properties (like message) 
+
+
+10. **Unexpected any. Specify a different type.**
+
+
+- **Location in Git:** [`backend/src/__tests__/unmocked/sessions_session_swiped.test.ts#L22`](#)
+
+- **Justification:** This line replaces the global setTimeout with a mocked version. Type assertions are necessary here to match the global function signature. Using unknown would create a type mismatch with the expected global setTimeout signature. The as any cast is required to maintain compatibility with the global function
+
+
+11. **Unexpected any. Specify a different type.**
+
+
+- **Location in Git:** [`backend/src/__tests__/unmocked/users_userid_sessions_get.test.ts#L299`](#)
+
+- **Justification:** This code maps over participant objects to extract user IDs. Using unknown would prevent access to nested properties like userId 
+
+
+12. **Unexpected any. Specify a different type.**
+
+
+- **Location in Git:** [`backend/src/__tests__/mocked/sessions_post.test.ts#L107`](#)
+
+- **Justification:**  This Promise resolution with null as any is used to mock a database response. Using unknown would create type incompatibility with the expected return type
+
+---
+  
+
+- **Code Pattern: [@typescript-eslint: No unnecessary condition](#)**
+
+1. **Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined.**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L115`](#)
+
+- **Justification:** The `location.address` field is expected to always be present in the dataset. The API providing this data ensures that all restaurant objects contain a valid address. Removing the `?? ''` would not cause any runtime errors or unintended behavior, but it is kept for defensive programming to handle any unexpected cases where data might be missing.
+
+
+
+2. **Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined.**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L119`](#)
+
+- **Justification:** The `location.coordinates.longitude` field comes from a structured dataset where the geographical coordinates are guaranteed. However, TypeScript's type system does not inherently trust external data, so the `?? 0` ensures that even in edge cases, the program does not break due to unexpected undefined values. Removing it would risk runtime errors if the dataset ever encounters missing or incomplete data.
+
+
+
+3. **Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined.**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L120`](#)
+
+- **Justification:** Similar to the longitude case, `location.coordinates.latitude` is expected to always exist. While removing `?? 0` might be syntactically correct under the assumption that the dataset is complete, it remains necessary for robustness. Unexpected API changes or data inconsistencies could introduce missing values, making this safeguard essential.
+
+
+
+4. **Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined.**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L123`](#)
+
+- **Justification:** The `contact.phone` field should ideally always be present, but some restaurants may not provide phone numbers. While the API might enforce a structure where this value exists, real-world data inconsistencies can occur. Keeping `?? ''` ensures that downstream logic relying on this field does not break due to unexpected `undefined` values.
+
+5. **Unnecessary conditional, value is always falsy.**
+
+- **Location in Git:** [`backend/src/controllers/sessionController.ts#L122`](#)
+
+- **Justification:** The `if (!user)` check is required despite TypeScript’s inference because user authentication data comes from external sources (e.g., database queries or API calls). Even though TypeScript might assume `user` is always defined, defensive coding practices ensure that edge cases where the value is unexpectedly `null` or `undefined` are properly handled.
+
+---
+
+- **Code Pattern: [Function too long (Max: 60)](#)**
+
+1. **The function `onCreate` is too long (64). The maximum length is 60.**
+
+- **Location in Git:** [`frontend/app/src/main/java/com/example/biteswipe/FriendsPage.kt#L33`](#)
+
+- **Justification:** The `onCreate` method in `FriendsPage.kt` is responsible for setting up UI elements, initializing listeners, and fetching required data. Splitting it into multiple functions would result in unnecessary fragmentation, making it harder to understand the overall flow of initialization. Given that `onCreate` is a lifecycle method, keeping all initialization logic in one place improves maintainability and readability.
+
+
+
+2. **The function `run` is too long (66). The maximum length is 60.**
+
+- **Location in Git:** [`frontend/app/src/main/java/com/example/biteswipe/ViewGroupPage.kt#L30`](#)
+
+- **Justification:** The `run` method is part of a runnable or coroutine execution, and its logic requires a cohesive structure to maintain context. Breaking it into multiple functions would introduce unnecessary indirection, making it harder to track execution flow. Given that this function executes a single logical unit of work, maintaining it as a single method enhances readability and reduces unnecessary complexity.
+
+
+
+3. **The function `handleSignIn` is too long (81). The maximum length is 60.**
+
+- **Location in Git:** [`frontend/app/src/main/java/com/example/biteswipe/LoginPage.kt#L80`](#)
+
+- **Justification:** The `handleSignIn` function processes user authentication, handles credential responses, and updates the UI accordingly. Given that authentication logic often involves multiple steps such as network requests, error handling, and UI updates, splitting this function could make debugging and tracing authentication issues more difficult. Keeping it intact ensures that all sign-in logic remains in one place, making it easier to maintain.
+
+
+
+4. **The function `onCreate` is too long (69). The maximum length is 60.**
+
+- **Location in Git:** [`frontend/app/src/main/java/com/example/biteswipe/CreateGroupPage.kt#L66`](#)
+
+- **Justification:** The `onCreate` function is responsible for initializing UI components, setting up data bindings, and preparing event listeners. Given the complexity of the screen, breaking the function into multiple smaller ones would introduce unnecessary method calls that could obscure the overall initialization process. Keeping it in one function maintains clarity and keeps all initialization logic centralized.
+
+
+
+5. **The function `onCreate` is too long (88). The maximum length is 60.**
+
+- **Location in Git:** [`frontend/app/src/main/java/com/example/biteswipe/ModerateGroupPage.kt#L93`](#)
+
+- **Justification:** The `onCreate` function in `ModerateGroupPage.kt` handles various group moderation tasks, including UI initialization, permission checks, and API calls. Due to the complexity of moderation features, splitting this function into smaller ones might lead to unnecessary method chaining, making the code harder to follow. Keeping it as a single function ensures that all setup logic is handled in one place for easier debugging and maintenance.
+
+---
+- **Code Pattern: [Detect Object Injection](#)**
+
+1. **Generic Object Injection Sink**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L32`](#)
+
+- **Justification:** The assignment `transformed[key] = value.$oid;` is necessary to correctly map MongoDB ObjectIds to their string representation. This transformation is essential for ensuring compatibility with frontend applications and API responses. Since `key` originates from a controlled source (MongoDB document fields), the risk of arbitrary property injection is minimal. Refactoring this could introduce unnecessary complexity without adding security benefits.
+
+
+
+2. **Generic Object Injection Sink**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L35`](#)
+
+- **Justification:** The operation `transformed[key] = value;` is used to dynamically transform object properties while ensuring data consistency. The `key` values are sourced from structured MongoDB documents, making arbitrary injection unlikely. Applying stricter validation could introduce unnecessary performance overhead without a tangible security improvement.
+
+
+
+3. **Generic Object Injection Sink**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L38`](#)
+
+- **Justification:** The function `value.map(item => ...)` is used to transform array elements, typically ObjectId arrays, into their string representations. The `key` values are derived from MongoDB schema properties, making it a controlled operation. Implementing additional checks would not enhance security meaningfully but might reduce performance.
+
+
+
+4. **Generic Object Injection Sink**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L43`](#)
+
+- **Justification:** The transformation `transformed[key] = transformMongoId(value as MongoDocument);` ensures proper conversion of MongoDB documents while maintaining type integrity. Since `key` values are sourced from predefined schema properties, the risk of injecting unexpected values is negligible. Refactoring this logic could add unnecessary complexity without improving security.
+
+
+
+5. **Generic Object Injection Sink**
+
+- **Location in Git:** [`backend/src/__tests__/setup.ts#L36`](#)
+
+- **Justification:** The conditional check `if (!process.env[envVar])` is used for validating environment variables dynamically. The `envVar` values are predefined within the test setup and are not influenced by user input. Introducing static checks would reduce flexibility in handling different testing environments without offering additional security benefits.
+
+---
+
+- **Code Pattern: [Detect console.log() with non-literal argument](#)**
+
+1. **Detect `console.log()` with non-literal argument**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L102`](#)
+
+- **Justification:** The `console.log` statement is used to log the number of users inserted dynamically. Since `insertedUsers.length` is a numeric value derived from a controlled database operation, there is no risk of logging untrusted input. Removing this logging would hinder debugging and monitoring of database seeding.
+
+
+
+2. **Detect `console.log()` with non-literal argument**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L135`](#)
+
+- **Justification:** The `console.log` statement dynamically logs the number of inserted restaurants to track the success of the seeding process. The value being logged (`insertedRestaurants.length`) is a safe, controlled variable, not influenced by external user input. Removing or hardcoding this would make debugging more difficult.
+
+
+
+3. **Detect `console.log()` with non-literal argument**
+
+- **Location in Git:** [`backend/src/scripts/seedDatabase.ts#L149`](#)
+
+- **Justification:** The `console.log` statement provides essential debugging information regarding the number of inserted sessions. The interpolated value (`insertedSessions.length`) is a controlled numeric value from the database operation, meaning it does not introduce security concerns. This logging is crucial for monitoring and debugging database seeding.
+
+---
+- **Code Pattern: [Detect insecure Math.random()](#)**
+
+1. **Detect `Math.random()`**
+
+- **Location in Git:** [`backend/src/__tests__/setup.ts#L70`](#)
+
+- **Justification:** The use of `Math.random()` in this context is strictly for generating a mock identifier in a test environment. Since test cases require unique but non-secure identifiers, using `Math.random()` is acceptable. Replacing it with a cryptographic random function would be unnecessary and add performance overhead without any security benefit.
+
+
+2. **Detect `Math.random()`**
+
+- **Location in Git:** [`backend/src/__tests__/unmocked/unmocked_setup.ts#L23`](#)
+
+- **Justification:** The `randomHash` is used to create a short, unique identifier for testing purposes. Since this value is not used for security-sensitive operations (e.g., authentication, cryptographic purposes), `Math.random()` is a suitable choice. Switching to a cryptographically secure random generator is unnecessary for this use case.
