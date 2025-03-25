@@ -1,15 +1,9 @@
-package com.example.biteswipe
+package com.example.biteswipe.pages
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -25,6 +19,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.helpers.ApiHelper
+import com.example.biteswipe.R
 import com.example.biteswipe.adapter.CuisineAdapter
 import com.example.biteswipe.cards.CuisineCard
 import com.google.android.gms.location.FusedLocationProviderClient

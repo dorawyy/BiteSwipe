@@ -20,34 +20,34 @@
 
         tools:targetApi="31">
         <activity
-            android:name=".FriendsPage"
+            android:name=".pages.FriendsPage"
             android:exported="false" />
         <activity
-            android:name=".SettingsPage"
+            android:name=".pages.SettingsPage"
             android:exported="false" />
         <activity
-            android:name=".ResultsPage"
+            android:name=".pages.ResultsPage"
             android:exported="false" />
         <activity
-            android:name=".ChosenRestaurantPage"
+            android:name=".pages.ChosenRestaurantPage"
             android:exported="false" />
         <activity
-            android:name=".MatchingPage"
+            android:name=".pages.MatchingPage"
             android:exported="false" />
         <activity
-            android:name=".ViewGroupPage"
+            android:name=".pages.ViewGroupPage"
             android:exported="false" />
         <activity
-            android:name=".ModerateGroupPage"
+            android:name=".pages.ModerateGroupPage"
             android:exported="false" />
         <activity
-            android:name=".CreateGroupPage"
+            android:name=".pages.CreateGroupPage"
             android:exported="false" />
         <activity
-            android:name=".JoinGroupPage"
+            android:name=".pages.JoinGroupPage"
             android:exported="false" />
         <activity
-            android:name=".LoginPage"
+            android:name=".pages.LoginPage"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -56,10 +56,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".pages.MainActivity"
             android:exported="false" />
         <activity
-            android:name=".HomePage"
+            android:name=".pages.HomePage"
             android:exported="true"
             android:label="@string/title_activity_home_page"
             android:theme="@style/Theme.BiteSwipe" />

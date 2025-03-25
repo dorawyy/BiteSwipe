@@ -2,7 +2,6 @@ package com.example.biteswipe
 
 import android.content.Context
 import android.content.Intent
-import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.widget.TextView
@@ -20,11 +19,13 @@ import androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent
 import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
+import com.example.biteswipe.pages.JoinGroupPage
+import com.example.biteswipe.pages.LoginPage
+import com.example.biteswipe.pages.ViewGroupPage
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.instanceOf
 import org.junit.After
@@ -35,9 +36,7 @@ import org.junit.runner.RunWith
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.FixMethodOrder
-import org.junit.Rule
 import org.junit.runners.MethodSorters
-import java.io.File
 
 /**
  * Instrumented test, which will execute on an Android device.

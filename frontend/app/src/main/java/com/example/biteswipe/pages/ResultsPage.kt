@@ -1,6 +1,5 @@
-package com.example.biteswipe
+package com.example.biteswipe.pages
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -11,6 +10,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.helpers.ApiHelper
+import com.example.biteswipe.R
 import com.example.biteswipe.adapter.SwipeAdapter
 import com.example.biteswipe.cards.RestaurantCard
 

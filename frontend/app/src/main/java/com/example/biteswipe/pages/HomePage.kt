@@ -1,4 +1,4 @@
-package com.example.biteswipe
+package com.example.biteswipe.pages
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.biteswipe.R
 
 class HomePage : AppCompatActivity() {
     private lateinit var userId: String

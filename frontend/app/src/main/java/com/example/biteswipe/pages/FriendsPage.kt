@@ -1,4 +1,4 @@
-package com.example.biteswipe
+package com.example.biteswipe.pages
 
 import android.os.Bundle
 import android.util.Log
@@ -15,6 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.R
 import com.example.biteswipe.adapter.UserAdapter
 import com.example.biteswipe.adapter.UserAdapterFriends
 import com.example.biteswipe.cards.UserCard

@@ -1,4 +1,4 @@
-package com.example.biteswipe
+package com.example.biteswipe.pages
 
 import com.example.biteswipe.cards.RestaurantCard
 import android.animation.Animator
@@ -19,10 +19,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.helpers.ApiHelper
+import com.example.biteswipe.R
 import com.example.biteswipe.adapter.SwipeAdapter
-import com.example.biteswipe.cards.UserCard
 import com.example.biteswipe.jsonFormats.RestaurantData
-import com.example.biteswipe.jsonFormats.sessionDetails
 import org.json.JSONObject
 
 class MatchingPage : AppCompatActivity(), ApiHelper {

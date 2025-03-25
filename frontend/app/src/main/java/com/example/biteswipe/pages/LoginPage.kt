@@ -1,8 +1,7 @@
-package com.example.biteswipe
+package com.example.biteswipe.pages
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Base64
 
 import android.util.Log
 import android.widget.Button
@@ -13,6 +12,9 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
+import com.example.biteswipe.helpers.ApiHelper
+import com.example.biteswipe.BuildConfig
+import com.example.biteswipe.R
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -24,8 +26,6 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.security.MessageDigest
 import java.util.UUID
-import kotlin.reflect.typeOf
-import kotlin.text.Charsets.UTF_8
 
 
 class LoginPage : AppCompatActivity(), ApiHelper {

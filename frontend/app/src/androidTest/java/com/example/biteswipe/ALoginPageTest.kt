@@ -20,6 +20,7 @@ import androidx.test.uiautomator.UiSelector
 import org.junit.Test
 import org.junit.runner.RunWith
 import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
+import com.example.biteswipe.pages.LoginPage
 import org.hamcrest.Matcher
 import org.junit.FixMethodOrder
 import org.junit.runners.MethodSorters

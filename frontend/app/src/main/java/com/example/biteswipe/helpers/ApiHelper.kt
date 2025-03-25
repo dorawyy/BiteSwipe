@@ -1,10 +1,10 @@
-package com.example.biteswipe
+package com.example.biteswipe.helpers
 
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.biteswipe.cards.RestaurantCard
+import com.example.biteswipe.R
 import com.example.biteswipe.jsonFormats.Creator
 import com.example.biteswipe.jsonFormats.Location
 import com.example.biteswipe.jsonFormats.Participant

@@ -8,7 +8,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.biteswipe.FriendsPage
+import com.example.biteswipe.pages.FriendsPage
 import com.example.biteswipe.R
 import com.example.biteswipe.cards.UserCard
 
