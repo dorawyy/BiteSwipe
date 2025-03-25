@@ -77,6 +77,9 @@ dependencies {
     implementation(libs.androidx.espresso.intents)
     implementation(libs.androidx.uiautomator)
     implementation(libs.androidx.espresso.contrib)
+//    allowed as per private piazza post
+    implementation(libs.coil)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
