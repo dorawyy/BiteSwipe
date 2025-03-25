@@ -35,7 +35,6 @@ class UserAdapter(private val context: Context, private val users: MutableList<U
 
         // Handle click for the kick button (you can add a listener here)
         holder.kickButton.setOnClickListener {
-
             onKickUser(user)
         }
     }
