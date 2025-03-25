@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import Types from 'mongoose';
 
 interface SessionHistoryEntry {
     sessionId: string;
@@ -21,6 +22,8 @@ export interface IUser {
     fcmTokens?: string[];  // Firebase Cloud Messaging tokens
     sessionHistory: SessionHistoryEntry[];
     restaurantInteractions: RestaurantInteraction[];
+    friendList: Types.ObjectId[];
+    pendingRequest: Types.ObjectId[];
 }
 
 // Define the document interface that extends both mongoose.Document and our base interface
@@ -50,6 +53,14 @@ const UserSchema = new mongoose.Schema({
             type: String,
             enum: ['ACTIVE', 'COMPLETED'],
         },
+    }],
+    friendList: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    pendingRequest: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }],
     restaurantInteractions: [{
         restaurantId: String,
