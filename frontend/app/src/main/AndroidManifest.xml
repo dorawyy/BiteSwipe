@@ -48,12 +48,7 @@
             android:exported="false" />
         <activity
             android:name=".pages.LoginPage"
-            android:exported="true" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:exported="false" >
         </activity>
         <activity
             android:name=".pages.MainActivity"
@@ -61,8 +56,20 @@
         <activity
             android:name=".pages.HomePage"
             android:exported="true"
+
             android:label="@string/title_activity_home_page"
-            android:theme="@style/Theme.BiteSwipe" />
+            android:theme="@style/Theme.BiteSwipe">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <service android:name="com.example.biteswipe.helpers.FirebaseMessageHelper"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
     </application>
 

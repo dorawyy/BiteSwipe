@@ -32,18 +32,22 @@ class LoginPage : AppCompatActivity(), ApiHelper {
 
     companion object {
         private const val TAG = "LoginPage"
-
-//        Yes this is hardcoded, will be thrown after MVP
         const val WEB_CLIENT_ID: String = BuildConfig.WEB_CLIENT_ID
     }
 
 
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
-
+    private lateinit var notificationType: String
+    private lateinit var uniqueId: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_page)
+
+        notificationType = intent.getStringExtra("notificationType") ?: ""
+        uniqueId = intent.getStringExtra("uniqueId") ?: ""
+
+
         val signInButton = findViewById<Button>(R.id.sign_in_button)
 
         signInButton.setOnClickListener {
@@ -103,14 +107,12 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                         }
                         val idToken = googleIdTokenCredential.idToken
                         Log.d(TAG, "Google Response: ${credential}")
-//                        val email = "mate@mate.com"
                         Log.d(TAG, "ID Token: ${googleIdTokenCredential.idToken}")
                         Log.d(TAG, "User Email: $email")
                         val endpoint = "/users/"
                         val body = JSONObject().apply {
                             put("email", email)
                             put("displayName", googleIdTokenCredential.displayName)
-//                            put("displayName", "mate")
                         }
                         apiRequest(
                             context = this,
@@ -119,6 +121,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                             jsonBody = body,
                             onSuccess = { response ->
                                 Log.d(TAG, "Response: $response")
+//                                TODO: Send profile pic url to backend as well
                                 val intent = Intent(this, HomePage::class.java).apply {
                                     putExtra("displayName", googleIdTokenCredential.displayName)
                                     putExtra("userId", response.getString("_id"))
@@ -144,6 +147,9 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                                             )
                                             putExtra("userId", response.getString("userId"))
                                             putExtra("userEmail", email)
+                                            putExtra("notification_type", notificationType)
+                                            putExtra("uniqueId", uniqueId)
+
                                         }
                                         Log.d(TAG, "Returning User: ${googleIdTokenCredential.displayName}")
                                         Toast.makeText(this, "Welcome Back, ${googleIdTokenCredential.displayName}", Toast.LENGTH_SHORT).show()

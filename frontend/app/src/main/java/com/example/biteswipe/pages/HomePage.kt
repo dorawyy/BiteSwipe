@@ -17,6 +17,47 @@ class HomePage : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+//      TODO: Configure loading view
+//        setContentView(R.layout.loading_page)
+
+        val userEmail = intent.getStringExtra("userEmail") ?: ""
+        val userName = intent.getStringExtra("displayName") ?: "Unknown User"
+        userId = intent.getStringExtra("userId") ?: ""
+        val notificationType = intent.getStringExtra("notification_type")?: ""
+        val uniqueId = intent.getStringExtra("uniqueId")?: ""
+
+//        check for auth
+        if(userId == ""){
+            val intent = Intent(this, LoginPage::class.java).apply {
+                putExtra("nextIntent", intent)
+                putExtra("notificationType", notificationType)
+                putExtra("uniqueId", uniqueId)
+            }
+            startActivity(intent)
+            finish()
+        }
+
+//        check for notification intent
+        if(notificationType != "") {
+            if(notificationType == "group") {
+//                TODO: Configure group page to auto follow through to viewgrouppage, handle errors accordingly
+                val intent = Intent(this, ViewGroupPage::class.java).apply {
+                    putExtra("groupId", uniqueId)
+                    putExtra("userId", userId)
+                    putExtra("userEmail", userEmail)
+                }
+                startActivity(intent)
+            }
+            else if(notificationType == "friend") {
+//                TODO: Highlight friend requests in friends page
+                val intent = Intent(this, ViewGroupPage::class.java).apply {
+                    putExtra("userId", userId)
+                }
+                startActivity(intent)
+            }
+        }
+
+//        render homepage
         setContentView(R.layout.activity_home_page)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -25,10 +66,7 @@ class HomePage : AppCompatActivity() {
         }
 
         val tvLoggedInUser = findViewById<TextView>(R.id.welcomeText)
-        val userEmail = intent.getStringExtra("userEmail") ?: ""
 
-        val userName = intent.getStringExtra("displayName") ?: "Unknown User"
-        userId = intent.getStringExtra("userId") ?: ""
 
 //        FOR TESTING PURPOSES ONLY, save username to temp testing file. Not for use in PROD
         var testUserId = findViewById<TextView>(R.id.test_user_id)
