@@ -29,6 +29,8 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import org.json.JSONObject
 
 class CreateGroupPage : AppCompatActivity(), ApiHelper {
@@ -77,21 +79,37 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
 
 
 //        Set up Cuisines
-        recyclerView = findViewById(R.id.cuisine_recycler_view)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        cuisineAdapter = CuisineAdapter(this, cuisines) { cuisine ->
-            Log.d(TAG, "Cuisine ${cuisine.name} initial ${cuisine.isSelected}")
+//        Find the ChipGroup in your layout
+        val cuisineChipGroup = findViewById<ChipGroup>(R.id.cuisine_chip_group)
 
-            if (cuisine.isSelected) {
-                if(!selectedCuisines.contains(cuisine.name)){
-                    selectedCuisines.add(cuisine.name)
+// Clear existing chips (optional safety)
+        cuisineChipGroup.removeAllViews()
+
+// Dynamically add chips based on your cuisines list
+        val selectedCuisines = mutableSetOf<String>()
+
+        cuisines.forEach { cuisine ->
+            val chip = Chip(this).apply {
+                text = cuisine.name
+                isCheckable = true
+                isChecked = cuisine.isSelected
+
+                setOnCheckedChangeListener { _, isChecked ->
+                    cuisine.isSelected = isChecked
+
+                    if (isChecked) {
+                        selectedCuisines.add(cuisine.name)
+                    } else {
+                        selectedCuisines.remove(cuisine.name)
+                    }
+
+                    Log.d(TAG, "selected cuisines: $selectedCuisines")
                 }
-            } else {
-                selectedCuisines.remove(cuisine.name)
             }
-            Log.d(TAG, "selected cuisines: $selectedCuisines")
+
+            // Add the chip to your ChipGroup
+            cuisineChipGroup.addView(chip)
         }
-        recyclerView.adapter = cuisineAdapter
 
 
 // Request location updates

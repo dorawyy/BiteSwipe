@@ -31,5 +31,6 @@
     <string name="default_web_client_id">374847957341-tkcogajpu02o13t2nirt5tehpg6ahavb.apps.googleusercontent.com</string>
     <string name="tester">Tester</string>
     <string name="waiting_for_others_to_finish">Waiting for others to finish...</string>
+    <string name="logo">Logo</string>
 
 </resources>
