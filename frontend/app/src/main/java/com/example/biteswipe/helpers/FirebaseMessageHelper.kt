@@ -6,13 +6,19 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.biteswipe.pages.HomePage
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
-//TODO: Get token for firebase
 class FirebaseMessageHelper : FirebaseMessagingService() {
+
+    override fun onNewToken(token: String) {
+        super.onNewToken(token)
+        Log.d("FIREBASE", "Refreshed token: $token")
+    }
+
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         remoteMessage.data.let { data ->
             val type = data["type"]

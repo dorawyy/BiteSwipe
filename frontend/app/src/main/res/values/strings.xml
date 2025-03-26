@@ -33,4 +33,7 @@
     <string name="waiting_for_others_to_finish">Waiting for others to finish...</string>
     <string name="logo">Logo</string>
 
+    <string name="default_notification_channel_id">default_channel</string>
+    <string name="default_notification_channel_name">Default Notifications</string>
+    <string name="default_notification_channel_description">General notifications</string>
 </resources>

@@ -58,7 +58,7 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
 //                                val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
                                 val userId = participant.userId._id
                                 // Add the UserCard to the list
-                                users.add(UserCard(userName, R.drawable.ic_group, userId))
+                                users.add(UserCard(userName, R.drawable.ic_group, userId, "trash@trash.com"))
                                 adapter.notifyDataSetChanged()
                             },
                             onError = { code, message ->
@@ -68,7 +68,7 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
 //                                val profilePicResId = R.drawable.ic_settings
                                 val userId = participant.userId._id
                                 // Add the UserCard to the list
-                                users.add(UserCard(userName, R.drawable.ic_settings, userId))
+                                users.add(UserCard(userName, R.drawable.ic_settings, userId, "trash@trash.com"))
                                 adapter.notifyDataSetChanged()
                             }
                         )
@@ -79,9 +79,9 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
                     Log.d(TAG, "Error fetching users: $message")
                     Toast.makeText(this@ModerateGroupPage, "Could not fetch users", Toast.LENGTH_SHORT).show()
                     users = mutableListOf(
-                        UserCard("John Doe", R.drawable.ic_settings, "1234567890"),
-                        UserCard("Jane Doe", R.drawable.ic_settings, "0987654321"),
-                        UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111")
+                        UserCard("John Doe", R.drawable.ic_settings, "1234567890", "trash@trash.com"),
+                        UserCard("Jane Doe", R.drawable.ic_settings, "0987654321", "test@test.com"),
+                        UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111", "whwat@what.com")
                     )
                     adapter.notifyDataSetChanged()
                 }
