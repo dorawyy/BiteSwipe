@@ -1,5 +1,6 @@
 import { Model, Types } from 'mongoose';
 import { UserModel, UserLean, User } from '../models/user';
+import { sendNotification } from '../config/firebase';
 
 export class UserService {
   private userModel: Model<User>;
@@ -80,7 +81,7 @@ export class UserService {
       const updatedUser = await this.userModel
         .findByIdAndUpdate(
           userId,
-          { $push: { fcmTokens: fcmToken } },
+          { $addToSet: { fcmTokens: fcmToken } }, 
           { new: true }
         )
         .lean();
@@ -113,10 +114,10 @@ export class UserService {
     const friend = await this.getUserByEmail(friendEmail);
 
     if (!friend) {
-      throw new Error('Friend not found');
+      throw new Error('User added not found');
     }
 
-    if(userId.friendList.some(friendId => friendId.toString() === friend._id.toString())) {
+    if(userId.friendList.some(f => f.userId.toString() === friend._id.toString())) {
       throw new Error('Already a friend');
     }
     // check if the request already exists
@@ -125,13 +126,41 @@ export class UserService {
       const updatedUser = await this.userModel
         .findByIdAndUpdate(
           friend._id,
-          { $push: { pendingRequest: userId._id}},
+          { $push: { pendingRequest:{userId: userId._id, displayName: userId.displayName, email: userId.email}}},
           { new: true, unique: true }
         )
         .lean();
 
       if (!updatedUser) {
         throw new Error('User not found');
+      }
+      
+      // send notification 
+      const fcmToken = friend.fcmTokens;
+      console.log(`FCMTokens for user ${friend.email}: ${fcmToken} `);
+      if(fcmToken){
+        const notificationData = {
+          type: "friend",
+          title: "New Friend Request",
+          message: `You've got a request from ${userId.displayName}`,
+          friendId: friend._id.toString()
+        }
+        if(fcmToken.length == 1){
+          try {
+            sendNotification(fcmToken.toString(), "New Friend Request", `You've got a request from ${userId.displayName}`, notificationData);
+          }
+          catch (error) {
+            console.error("Could not send notification")
+          }
+        } else {
+          for(let token in fcmToken) {
+            try{
+              sendNotification(token, "New Friend Request", `You've got a request from ${userId.displayName}`, notificationData);
+            } catch (error) {
+              console.error("Could not send notification");
+            }
+          }
+        }
       }
 
       return updatedUser as UserLean;
@@ -160,18 +189,33 @@ export class UserService {
     if (!friend) {
       throw new Error('Friend not found');
     }
-
+    
+  
     try {
+      // update user's friendList
       const updatedUser = await this.userModel
         .findByIdAndUpdate(
           userId,
-          { $push: { friendList: friend._id }, $pull: { pendingRequest: friend._id }},
+          { $push: { friendList: {userId: friend._id, displayName: friend.displayName, email: friend.email}}, $pull: { pendingRequest: {userId: friend._id }}},
           { new: true, unique: true }
         )
         .lean();
 
       if (!updatedUser) {
         throw new Error('User not found');
+      }
+
+      // update friend's friendList
+      const updatedFriend = await this.userModel
+      .findByIdAndUpdate(
+        friend,
+        { $push: {friendList: {userId: userId._id, displayName: userId.displayName, email: userId.email }}},
+        {new: true, unique: true}
+      )
+      .lean();
+
+      if(!updatedFriend) {
+        throw new Error('Friend not found');
       }
 
       const friendDisplayName: string[] = [];
@@ -214,7 +258,7 @@ export class UserService {
       const updatedUser = await this.userModel
         .findByIdAndUpdate(
           userId,
-          { $pull: { pendingRequest: friend._id }},
+          { $pull: { pendingRequest: {userId: friend._id }}},
           { new: true, unique: true }
         )
         .lean();
@@ -254,13 +298,24 @@ export class UserService {
       const updatedUser = await this.userModel
         .findByIdAndUpdate(
           userId._id,
-          { $pull: { friendList: friend._id }},
+          { $pull: { friendList: {userId: friend._id }}},
           { new: true, unique: true }
         )
         .lean();
 
       if (!updatedUser) {
         throw new Error('User not found');
+      }
+
+      const updatedFriend = await this.userModel
+        .findByIdAndUpdate(
+          friend._id,
+          { $pull: {friendList: {userId: userId._id}}},
+          { new: true, unique: true}
+        )
+        .lean();
+      if(!updatedFriend) {
+        throw new Error('Not removed from friend');
       }
 
       const friendDisplayName: string[] = [];

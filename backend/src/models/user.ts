@@ -14,6 +14,12 @@ interface RestaurantInteraction {
     timestamp: Date;
     sessionId: string;
 }
+// TODO: add profile pic somehow to friend objects
+interface Friend {
+    userId: mongoose.Types.ObjectId | String;
+    displayName: String;
+    email: String;
+}
 
 // Define the base interface for user properties
 export interface IUser {
@@ -22,8 +28,8 @@ export interface IUser {
     fcmTokens?: string[];  // Firebase Cloud Messaging tokens
     sessionHistory: SessionHistoryEntry[];
     restaurantInteractions: RestaurantInteraction[];
-    friendList: Types.ObjectId[];
-    pendingRequest: Types.ObjectId[];
+    friendList: Friend[];
+    pendingRequest: Friend[];
 }
 
 // Define the document interface that extends both mongoose.Document and our base interface
@@ -55,12 +61,20 @@ const UserSchema = new mongoose.Schema({
         },
     }],
     friendList: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        displayName: String,
+        email: String
     }],
     pendingRequest: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        displayName: String,
+        email: String
     }],
     restaurantInteractions: [{
         restaurantId: String,
