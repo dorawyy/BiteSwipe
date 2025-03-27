@@ -2,9 +2,8 @@ name: "Unmocked Tests"
 
 on:
   pull_request:
+    branches: [main, develop, master]
     types: [opened, synchronize, reopened]
-    branches:
-      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,12 +15,12 @@ permissions:
 jobs:
   run-unmocked-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # Set a timeout for the entire job
+    timeout-minutes: 15 # Set a timeout for the entire job
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+
       - name: Get PR Number
         id: pr_number
         run: echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
@@ -57,10 +56,10 @@ jobs:
           echo "DB_URI=mongodb://mongo:27017/biteswipe" >> backend/.env
           echo "NODE_ENV=test" >> backend/.env
           echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" >> backend/.env
-          echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=/app/backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json" >> backend/.env
+          echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=/app/backend/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json" >> backend/.env
 
       - name: Deploy New Infrastructure
-        timeout-minutes: 12  # Set a 12-minute timeout for tests
+        timeout-minutes: 12 # Set a 12-minute timeout for tests
         id: deploy
         run: |
           cd backend/scripts
@@ -70,7 +69,7 @@ jobs:
           DEPLOY_EXIT_CODE=$?
           echo "::endgroup::"
           echo "deploy_status=$DEPLOY_EXIT_CODE" >> $GITHUB_OUTPUT
-          
+
           if [ $DEPLOY_EXIT_CODE -ne 0 ]; then
             echo "::error::Infrastructure deployment failed with exit code $DEPLOY_EXIT_CODE"
             echo "::group::Terraform logs (last 50 lines)"
@@ -100,21 +99,21 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          
+
       - name: Download Test Results
         run: |
           # Get VM IP from Terraform output
           cd backend/terraform
           VM_IP=$(terraform output -raw vm_public_ip)
           echo "VM IP: $VM_IP"
-          
+
           # Create directory for test results
           mkdir -p test-results
-          
+
           # Download coverage reports from VM
           echo "Downloading test results from VM..."
           scp -o StrictHostKeyChecking=no -i ~/.ssh/to_azure/CPEN321.pem -r adminuser@${VM_IP}:/app/backend/coverage/* test-results/
-          
+
           # Check if download was successful
           if [ $? -eq 0 ]; then
             echo "Test results downloaded successfully"
@@ -124,7 +123,7 @@ jobs:
             exit 1
           fi
         continue-on-error: true
-        
+
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
@@ -132,7 +131,7 @@ jobs:
           path: test-results
           retention-days: 14
         continue-on-error: true
-        
+
       - name: Destroy Infrastructure
         if: always()
         run: |

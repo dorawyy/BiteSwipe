@@ -1,22 +1,25 @@
 import 'dotenv/config';
 import mongoose, { Mongoose } from 'mongoose';
 import { createApp } from './app';
-import path from 'path';
 
 // Configure mongoose
 mongoose.set('strictQuery', true);
 
-const port = process.env.PORT ?? 3000;
-const dbUrl = process.env.DB_URI ?? 'mongodb://localhost:27017/biteswipe';
+const port = process.env.PORT;
+const dbUrl = process.env.DB_URI;
+const nodeEnv = process.env.NODE_ENV ?? 'development';
+if (!port) {
+    throw new Error('PORT environment variable is not set');
+}
 
-// Define SSL certificate paths
-const sslCertPath = process.env.SSL_CERT_PATH ?? path.join(__dirname, '..', '..', 'cert.pem');
-const sslKeyPath = process.env.SSL_KEY_PATH ?? path.join(__dirname, '..', '..', 'key.pem');
+if (!dbUrl) {
+    throw new Error('DB_URI environment variable is not set');
+}
 
 //Basic startup info
 console.log('\n=== Server Configuration ===');
-console.log(`HTTPS Port: ${port}`);
-console.log(`Environment: ${process.env.NODE_ENV ?? 'development'}`);
+console.log(`HTTP Port: ${port}`);
+console.log(`Environment: ${nodeEnv}`);
 console.log('=========================\n');
 
 // TODO : attempted to fix the codacy warning but could not. 

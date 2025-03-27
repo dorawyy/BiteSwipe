@@ -1,4 +1,4 @@
-name: 'Deploy Infrastructure'
+name: "Deploy Infrastructure"
 
 on:
   push:
@@ -16,81 +16,81 @@ permissions:
 
 jobs:
   deploy:
-    name: 'Deploy Infrastructure'
+    name: "Deploy Infrastructure"
     runs-on: ubuntu-latest
     environment: production
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
 
-    - name: Setup Azure CLI
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Setup Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: '1.5.0'
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.0"
 
-    - name: Setup SSH Keys
-      run: |
-        mkdir -p ~/.ssh/to_azure
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/to_azure/CPEN321.pem
-        echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/to_azure/CPEN321.pub
-        chmod 600 ~/.ssh/to_azure/CPEN321.pem
-        chmod 644 ~/.ssh/to_azure/CPEN321.pub
-        ls -la ~/.ssh/
+      - name: Setup SSH Keys
+        run: |
+          mkdir -p ~/.ssh/to_azure
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/to_azure/CPEN321.pem
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/to_azure/CPEN321.pub
+          chmod 600 ~/.ssh/to_azure/CPEN321.pem
+          chmod 644 ~/.ssh/to_azure/CPEN321.pub
+          ls -la ~/.ssh/
 
-    - name: Create .env File
-      working-directory: ${{ github.workspace }}
-      run: |
-        echo "PORT=3000" > backend/.env
-        echo "DB_URI=mongodb://mongo:27017/biteswipe" >> backend/.env
-        echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" >> backend/.env
-        echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=/app/backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json" >> backend/.env
+      - name: Create .env File
+        working-directory: ${{ github.workspace }}
+        run: |
+          echo "PORT=3000" > backend/.env
+          echo "DB_URI=mongodb://mongo:27017/biteswipe" >> backend/.env
+          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" >> backend/.env
+          echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=/app/backend/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json" >> backend/.env
 
-    - name: Deploy New Infrastructure
-      timeout-minutes: 12  # Set a 12-minute timeout for tests
-      id: deploy
-      run: |
-        cd backend/scripts
-        chmod +x import_resource_group.sh
-        echo "::group::Deploying infrastructure"
-        python3 deploy_infra.py
-        DEPLOY_EXIT_CODE=$?
-        echo "::endgroup::"
-        echo "deploy_status=$DEPLOY_EXIT_CODE" >> $GITHUB_OUTPUT
-        if [ $DEPLOY_EXIT_CODE -ne 0 ]; then
-          echo "::error::Infrastructure deployment failed with exit code $DEPLOY_EXIT_CODE"
-          echo "::group::Terraform logs (last 50 lines)"
-          cd ../terraform
-          if [ -f terraform.log ]; then
-            echo "Last 50 lines of terraform.log:"
-            tail -n 50 terraform.log
-            # Check for specific error patterns in logs
-            if grep -q "Docker Compose\|SSH connection" terraform.log; then
-              echo "::warning::Deployment issues detected with Docker Compose or SSH connections"
-            fi
-            if grep -q "Server IP found\|Successfully retrieved server IP" terraform.log; then
-              echo "::warning::Partial deployment detected: VM created but services failed to start"
-            fi
-          else
-            echo "No terraform.log file found"
-          fi
+      - name: Deploy New Infrastructure
+        timeout-minutes: 12 # Set a 12-minute timeout for tests
+        id: deploy
+        run: |
+          cd backend/scripts
+          chmod +x import_resource_group.sh
+          echo "::group::Deploying infrastructure"
+          python3 deploy_infra.py
+          DEPLOY_EXIT_CODE=$?
           echo "::endgroup::"
-          exit $DEPLOY_EXIT_CODE
-        else
-          echo "✅ Infrastructure deployment completed successfully"
-        fi
-      env:
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          echo "deploy_status=$DEPLOY_EXIT_CODE" >> $GITHUB_OUTPUT
+          if [ $DEPLOY_EXIT_CODE -ne 0 ]; then
+            echo "::error::Infrastructure deployment failed with exit code $DEPLOY_EXIT_CODE"
+            echo "::group::Terraform logs (last 50 lines)"
+            cd ../terraform
+            if [ -f terraform.log ]; then
+              echo "Last 50 lines of terraform.log:"
+              tail -n 50 terraform.log
+              # Check for specific error patterns in logs
+              if grep -q "Docker Compose\|SSH connection" terraform.log; then
+                echo "::warning::Deployment issues detected with Docker Compose or SSH connections"
+              fi
+              if grep -q "Server IP found\|Successfully retrieved server IP" terraform.log; then
+                echo "::warning::Partial deployment detected: VM created but services failed to start"
+              fi
+            else
+              echo "No terraform.log file found"
+            fi
+            echo "::endgroup::"
+            exit $DEPLOY_EXIT_CODE
+          else
+            echo "✅ Infrastructure deployment completed successfully"
+          fi
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
