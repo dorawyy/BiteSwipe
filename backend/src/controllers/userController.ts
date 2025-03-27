@@ -16,6 +16,10 @@ export class UserController {
         this.updateFCMToken = this.updateFCMToken.bind(this);
         this.getUserSessions = this.getUserSessions.bind(this);
         this.getUser = this.getUser.bind(this);
+        this.sendFriendRequest = this.sendFriendRequest.bind(this);
+        this.acceptFriendRequest = this.acceptFriendRequest.bind(this);
+        this.rejectFriendRequest = this.rejectFriendRequest.bind(this);
+        this.removeFriend = this.removeFriend.bind(this);
     }
 
     async getUser(req: Request, res: Response) {
@@ -106,6 +110,75 @@ export class UserController {
                 email: user.email,
                 displayName: user.displayName,
             });
+        } catch (error: unknown) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async sendFriendRequest(req: Request, res: Response) {
+        try {
+            const userEmail = req.params.email;
+            const friendEmail = req.body.friendEmail;
+
+            const user = await this.userService.sendFriendRequest(userEmail, friendEmail);
+
+            if(!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            res.status(200).json({success: true});
+        } catch (error: unknown) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async acceptFriendRequest(req: Request, res: Response) {
+        try {
+            const userEmail = req.params.email;
+            const friendEmail = req.body.friendEmail;
+
+            const user = await this.userService.acceptFriendRequest(userEmail, friendEmail);
+
+            if(!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+            res.status(200).json(user);
+        } catch (error: unknown) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async rejectFriendRequest(req: Request, res: Response) {
+        try {
+            const userEmail = req.params.email;
+            const friendEmail = req.body.friendEmail;
+
+            const user = await this.userService.rejectFriendRequest(userEmail, friendEmail);
+
+            if(!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+            res.status(200).json({success: true});
+        } catch (error: unknown) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async removeFriend(req: Request, res: Response) {
+        try {
+            const userEmail = req.params.email;
+            const friendEmail = req.body.friendEmail;
+
+            const user = await this.userService.removeFriend(userEmail, friendEmail);
+
+            if(!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+            res.status(200).json(user);
         } catch (error: unknown) {
             console.error(error);
             res.status(500).json({ error: 'Internal Server Error' });

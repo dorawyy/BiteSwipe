@@ -70,6 +70,38 @@ export const userRoutes = (userService: UserService, sessionManager: SessionMana
             validation: [
                 param('email').isEmail().withMessage('Valid email is required')
             ]
+        },
+        {
+            method: 'post' as const,
+            route: '/users/:email/friendRequest',
+            action: (req: express.Request, res: express.Response) => userController.sendFriendRequest(req,res),
+            validation: [
+                body('friendEmail').notEmpty().withMessage('Friend ID is required')
+            ]
+        },
+        {
+            method: 'post' as const,
+            route: '/users/:email/acceptRequest',
+            action: (req: express.Request, res: express.Response) => userController.acceptFriendRequest(req, res),
+            validation: [
+                body('friendEmail').notEmpty().withMessage('Friend ID is required')
+            ]
+        },
+        {
+            method: 'post' as const,
+            route: '/users/:email/rejectRequest',
+            action: (req: express.Request, res: express.Response) => userController.rejectFriendRequest(req, res),
+            validation: [
+                body('friendEmail').notEmpty().withMessage('Friend ID is required')
+            ]
+        },
+        {
+            method: 'delete' as const,
+            route: '/users/:email/removeFriend',
+            action: (req: express.Request, res: express.Response) => userController.removeFriend(req, res),
+            validation: [
+                body('friendEmail').notEmpty().withMessage('Friend ID is required')
+            ]
         }
     ] as RouteDefinition[];
 };
