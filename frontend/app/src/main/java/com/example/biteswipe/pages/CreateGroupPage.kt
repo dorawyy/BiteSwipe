@@ -155,6 +155,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
                     intent.putExtra("sessionId", response.getString("_id"))
                     intent.putExtra("joinCode", response.getString("joinCode"))
                     intent.putExtra("userId", userId)
+                    fusedLocationClient.removeLocationUpdates {}
                     startActivity(intent)
                     finish()
                 },
@@ -167,6 +168,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
 
         val backButton: ImageButton = findViewById(R.id.create_back_button)
         backButton.setOnClickListener {
+            fusedLocationClient.removeLocationUpdates {}
             finish()
         }
     }
