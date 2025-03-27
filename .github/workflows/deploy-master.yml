@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - abdul/*
+      - develop
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
