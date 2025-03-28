@@ -35,6 +35,7 @@ export class SessionController {
 
         this.getResultForSession = this.getResultForSession.bind(this);
         this.userDoneSwiping = this.userDoneSwiping.bind(this);
+        this.getPotentialMatch = this.getPotentialMatch.bind(this);
 
     }
 
@@ -285,6 +286,19 @@ export class SessionController {
 
             const result = await this.sessionManager.getResultForSession(sessionId);
             res.json({ success: true, result });
+        } catch (error) {
+            console.error(error);
+
+            res.status(500).json({ error });
+        }
+    }
+
+    async getPotentialMatch(req: Request, res: Response) {
+        try {
+            const sessionId = req.params.sessionId;
+            
+            const result = await this.sessionManager.getPotentialMatch(sessionId);
+            res.json({ sucess: true, result });
         } catch (error) {
             console.error(error);
 

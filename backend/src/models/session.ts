@@ -30,10 +30,10 @@ interface ISession extends Document {
         totalVotes: number;
         positiveVotes: number;
     }[];
-    finalSelection?: {
+    finalSelections?: {
         restaurantId: Types.ObjectId;
         selectedAt: Date;
-    };
+    }[];
     doneSwiping: Types.ObjectId[];
     createdAt: Date;
     expiresAt: Date;
@@ -84,13 +84,13 @@ const SessionSchema = new mongoose.Schema<ISession>({
         totalVotes: { type: Number, default: 0 },
         positiveVotes: { type: Number, default: 0 }
     }],
-    finalSelection: {
+    finalSelections: [{
         restaurantId: { 
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Restaurant'
         },
         selectedAt: Date
-    },
+    }],
     doneSwiping: [{ 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User' 

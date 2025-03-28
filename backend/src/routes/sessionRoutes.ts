@@ -146,6 +146,14 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             validation: [
                 validateSessionIdParam()
             ]
+        },
+        {
+            method: 'get' as const,
+            route: '/sessions/:sessionId/potentialMatch',
+            action: (req: express.Request, res: express.Response) => sessionController.getPotentialMatch(req, res),
+            validation: [
+                validateSessionIdParam(),
+            ]
         }
     ] as RouteDefinition[];
 };
