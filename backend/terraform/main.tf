@@ -211,7 +211,7 @@ data "azurerm_storage_account" "certs" {
 }
 
 data "azurerm_storage_blob" "firebase_cert" {
-  name                   = "biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json"
+  name                   = "biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json"
   storage_account_name   = data.azurerm_storage_account.certs.name
   storage_container_name = "production-container"
 }
@@ -336,7 +336,7 @@ EOF
 PORT=3000
 DB_URI=mongodb://mongo:27017/biteswipe
 GOOGLE_MAPS_API_KEY=${local.google_maps_api_key}
-FIREBASE_CREDENTIALS_JSON_PATHNAME=$BACKEND_REMOTE_PATH/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+FIREBASE_CREDENTIALS_JSON_PATHNAME=$BACKEND_REMOTE_PATH/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json
 ENVFILE
       
       echo "[Deploy] Environment preparation phase completed successfully!"
@@ -370,7 +370,7 @@ EOF
         --account-name ${data.azurerm_storage_account.certs.name} \
         --container-name production-container \
         --name ${data.azurerm_storage_blob.firebase_cert.name} \
-        --file $BACKEND_PATH/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+        --file $BACKEND_PATH/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json \
         --account-key "${data.azurerm_storage_account.certs.primary_access_key}"
       
       # Download SSL certificate files from Azure Storage
@@ -399,9 +399,9 @@ EOF
       # Verify the Firebase credentials file was copied
       echo "[Deploy] Verifying Firebase credentials file..."
       ssh $SSH_OPTS -i $SSH_KEY adminuser@$VM_IP "
-        if [ -f $BACKEND_REMOTE_PATH/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json ]; then
+        if [ -f $BACKEND_REMOTE_PATH/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json ]; then
           echo '[Deploy] Firebase credentials file found'
-          ls -la $BACKEND_REMOTE_PATH/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+          ls -la $BACKEND_REMOTE_PATH/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json
         else
           echo '[Deploy] FATAL ERROR: Firebase credentials file not found!'
           echo '[Deploy] Deployment cannot continue without Firebase credentials.'
