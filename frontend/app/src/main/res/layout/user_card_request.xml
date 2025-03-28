@@ -43,8 +43,8 @@
             android:layout_marginBottom="11dp"
             android:background="#EBEBEB"
             android:backgroundTint="#00FFFFFF"
-            android:tint="#00C15858"
-            app:srcCompat="@android:drawable/btn_dialog" />
+            app:srcCompat="@android:drawable/btn_dialog"
+            app:tint="#00C15858" />
 
         <ImageButton
             android:id="@+id/accept_friend_button"
@@ -55,8 +55,8 @@
             android:backgroundTint="#00FFFFFF"
             android:scaleX="2"
             android:scaleY="2"
-            android:tint="#673AB7"
-            app:srcCompat="@android:drawable/ic_input_add" />
+            app:srcCompat="@android:drawable/ic_input_add"
+            app:tint="@color/primary" />
     </RelativeLayout>
 
 </androidx.cardview.widget.CardView>

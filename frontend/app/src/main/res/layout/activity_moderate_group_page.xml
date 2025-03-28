@@ -1,92 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/background"
     tools:context=".pages.ModerateGroupPage">
 
+    <!-- Group ID and Share Button (aligned at top) -->
     <TextView
         android:id="@+id/groupIdText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/group_id_text"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textSize="20sp"
         android:textStyle="bold|italic"
-        app:layout_constraintBottom_toTopOf="@+id/share_group_button"
-        app:layout_constraintEnd_toStartOf="@+id/placeholderText"
-        app:layout_constraintHorizontal_bias="0.845"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/textPrimary"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.503" />
-
-    <ImageButton
-        android:id="@+id/share_group_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="#673AB7"
-        android:tint="#FFFFFF"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.273"
-        app:srcCompat="@android:drawable/ic_menu_share" />
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"/>
 
     <TextView
         android:id="@+id/placeholderText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="116dp"
         android:text="@string/grup"
-        app:layout_constraintBottom_toTopOf="@+id/share_group_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textSize="20sp"
+        android:textColor="@color/primary"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="@id/groupIdText"
+        app:layout_constraintBottom_toBottomOf="@id/groupIdText"
+        app:layout_constraintStart_toEndOf="@id/groupIdText"
+        android:layout_marginStart="8dp"/>
 
+    <ImageButton
+        android:id="@+id/share_group_button"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:backgroundTint="@color/secondary"
+        app:layout_constraintTop_toTopOf="@id/groupIdText"
+        app:layout_constraintBottom_toBottomOf="@id/groupIdText"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="24dp"
+        app:srcCompat="@android:drawable/ic_menu_share"
+        app:tint="@color/textOnPrimary" />
+
+    <!-- Members Title -->
     <TextView
         android:id="@+id/textView7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="36dp"
         android:text="@string/members"
-        app:layout_constraintBottom_toTopOf="@+id/user_moderate_recycler_view"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.163"
+        android:textSize="18sp"
+        android:textColor="@color/textPrimary"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/groupIdText"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/share_group_button" />
+        android:layout_marginTop="32dp"
+        android:layout_marginStart="24dp"/>
 
-    <Button
-        android:id="@+id/start_matching_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/ready"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
+    <!-- Members RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/user_moderate_recycler_view"
-        android:layout_width="369dp"
-        android:layout_height="274dp"
-        app:layout_constraintBottom_toTopOf="@+id/start_matching_button"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/textView7"
+        app:layout_constraintBottom_toTopOf="@id/start_matching_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/share_group_button"
-        app:layout_constraintVertical_bias="0.418" />
+        app:layout_constraintEnd_toEndOf="parent"/>
 
+    <!-- Start Matching Button -->
+    <Button
+        android:id="@+id/start_matching_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/ready"
+        android:textColor="@color/textOnPrimary"
+        android:backgroundTint="@color/primary"
+        app:cornerRadius="50dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="32dp"/>
+
+    <!-- Invisible Session ID (keep as is) -->
     <TextView
         android:id="@+id/test_session_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="TextView"
         android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.37" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

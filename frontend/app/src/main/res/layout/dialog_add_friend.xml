@@ -44,5 +44,5 @@
         app:layout_constraintStart_toEndOf="@+id/add_username"
         app:layout_constraintTop_toBottomOf="@+id/textView10"
         app:srcCompat="@android:drawable/ic_input_add"
-        app:tint="#673AB7" />
+        app:tint="@color/primary" />
 </androidx.constraintlayout.widget.ConstraintLayout>
