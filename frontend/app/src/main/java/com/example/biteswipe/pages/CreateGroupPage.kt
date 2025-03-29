@@ -38,6 +38,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
     private lateinit var recyclerView: RecyclerView
     private lateinit var cuisineAdapter: CuisineAdapter
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
 
     private var latitude  = 0.0
     private var longitude = 0.0
@@ -155,7 +156,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
                     intent.putExtra("sessionId", response.getString("_id"))
                     intent.putExtra("joinCode", response.getString("joinCode"))
                     intent.putExtra("userId", userId)
-                    fusedLocationClient.removeLocationUpdates {}
+                    fusedLocationClient.removeLocationUpdates(locationCallback)
                     startActivity(intent)
                     finish()
                 },
@@ -168,7 +169,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
 
         val backButton: ImageButton = findViewById(R.id.create_back_button)
         backButton.setOnClickListener {
-            fusedLocationClient.removeLocationUpdates {}
+            fusedLocationClient.removeLocationUpdates(locationCallback)
             finish()
         }
     }
@@ -181,7 +182,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
         }
 
         // Location callback to handle location updates
-        val locationCallback = object : LocationCallback() {
+        locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { location ->
                     latitude = location.latitude
@@ -227,7 +228,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
 
     override fun onDestroy() {
         super.onDestroy()
-        fusedLocationClient.removeLocationUpdates {}
+        fusedLocationClient.removeLocationUpdates(locationCallback)
         // Stop location updates when the activity is destroyed to avoid unnecessary resource usage
     }
 }
