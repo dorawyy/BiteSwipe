@@ -330,7 +330,7 @@ export class SessionController {
             const result = await this.sessionManager.getPotentialMatchResult(sessionId, restaurantId);
             res.json(result);
         } catch (error) {
-            console.error('Error fetching potential match');
+            console.error(`Error fetching potential match: ${error}`);
 
             res.status(503).json({ error });
         }

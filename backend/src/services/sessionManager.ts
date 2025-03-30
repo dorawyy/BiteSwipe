@@ -493,7 +493,7 @@ export class SessionManager {
             throw new Error('Session not found');
         }
 
-        // Only allow completed sessions or matching sessions where everyone is done swiping
+        // Only allow completed sessions or matching sessions where everyone is done swiping TODO: WTF IS THIS?
         if (session.status !== 'COMPLETED' &&
             (session.status === 'MATCHING' && (session.doneSwiping.length !== 0 || (session.finalSelections?.length ?? 0) < 3))) {
             throw new Error('Session is not completed');
@@ -542,18 +542,17 @@ export class SessionManager {
         const participantsLength = session.participants.length;
         const pendingInvitationsLength = session.pendingInvitations.length; 
 
-        if ( participantsLength > pendingInvitationsLength) {
-            for(const restaurant of session.restaurants) {
-                if (restaurant.positiveVotes === 0.75 * participantsLength) {
-                    // checking if restaurant is not the part of finalSelection already
-                    if (!session.finalSelections?.some(r => r.restaurantId.equals(restaurant.restaurantId))) {
+        for(const restaurant of session.restaurants) {
+            if (restaurant.positiveVotes >= 0.75 * participantsLength) {
+                // checking if restaurant is not the part of finalSelection already
+                if (!session.finalSelections?.some(r => r.restaurantId.equals(restaurant.restaurantId))) {
+                    if(!(restaurant.potentialMatchSwipe > 0)){
                         return this.restaurantService.getRestaurant(restaurant.restaurantId);
                     }
                 }
             }
-        } else {
-            throw new Error('Not enough participants to get potential matches');
         }
+    
         throw new Error('No potential match found');
     }
 
@@ -651,7 +650,7 @@ export class SessionManager {
                 return {success: true, result : null}
             }
         } else {
-            throw new Error('Not enough votes for this restaurant');
+            return {success: false, message: "Not enough votes for this restaurant"};
         }
     }
 

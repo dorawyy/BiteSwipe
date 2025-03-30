@@ -85,7 +85,8 @@ const SessionSchema = new mongoose.Schema<ISession>({
         score: { type: Number, default: 0 },
         totalVotes: { type: Number, default: 0 },
         positiveVotes: { type: Number, default: 0 },
-        potentialMatchScore: { type: Number, default: 0 }
+        potentialMatchScore: { type: Number, default: 0 },
+        potentialMatchSwipe: {type: Number, default: 0},
     }],
     finalSelections: [{
         restaurantId: { 
