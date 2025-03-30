@@ -325,7 +325,7 @@ export class SessionController {
     async getPotentialMatchResult(req: Request, res: Response) {
         try {
             const sessionId = req.params.sessionId;
-            const restaurantId = req.body.restaurantId;
+            const restaurantId = req.params.restaurantId;
 
             const result = await this.sessionManager.getPotentialMatchResult(sessionId, restaurantId);
             res.json(result);

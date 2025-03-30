@@ -567,7 +567,6 @@ export class SessionManager {
         const session = await Session.findOneAndUpdate(
             {
                 _id: sessionObjId,
-                status: 'MATCHING',
                 'restaurants.restaurantId': restaurantObjId
             },
             {

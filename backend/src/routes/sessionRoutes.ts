@@ -166,7 +166,7 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
         // route have to add 
         {
             method: 'get' as const,
-            route: '/sessions/:sessionId/potentialMatchResult',
+            route: '/sessions/:sessionId/potentialMatchResult/:restaurantId',
             action: (req: express.Request, res: express.Response) => sessionController.getPotentialMatchResult(req, res),
             validation: [
                 validateSessionIdParam()
