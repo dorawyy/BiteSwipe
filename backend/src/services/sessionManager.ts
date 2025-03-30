@@ -613,7 +613,6 @@ export class SessionManager {
                 await Session.findOneAndUpdate(
                     {
                         _id: sessionObj,
-                        status: 'MATCHING',
                         'restaurants.restaurantId': restaurantObj
                     },
                     {
@@ -635,7 +634,6 @@ export class SessionManager {
                 await Session.findOneAndUpdate(
                     {
                         _id: sessionObj,
-                        status: 'MATCHING',
                         'restaurants.restaurantId': restaurantObj
                     },
                     {
