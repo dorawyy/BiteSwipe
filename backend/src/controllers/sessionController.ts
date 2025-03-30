@@ -36,6 +36,9 @@ export class SessionController {
         this.getResultForSession = this.getResultForSession.bind(this);
         this.userDoneSwiping = this.userDoneSwiping.bind(this);
         this.getPotentialMatch = this.getPotentialMatch.bind(this);
+        this.potentialMatchSwiped = this.potentialMatchSwiped.bind(this);
+        this.getPotentialMatchResult = this.getPotentialMatchResult.bind(this);
+        this.getSessionStatus = this.getSessionStatus.bind(this);
 
     }
 
@@ -303,6 +306,48 @@ export class SessionController {
             console.error(error);
 
             res.status(500).json({ error });
+        }
+    }
+
+    async getSessionStatus(req: Request, res: Response) {
+        try {
+            const sessionId = req.params.sessionId;
+
+            const result = await this.sessionManager.getSessionStatus(sessionId);
+            res.json({ success: true, result });
+        } catch (error){
+            console.error(error);
+
+            res.status(500).json({ error });
+        }
+    }
+
+    async getPotentialMatchResult(req: Request, res: Response) {
+        try {
+            const sessionId = req.params.sessionId;
+            const restaurantId = req.body.restaurantId;
+
+            const result = await this.sessionManager.getPotentialMatchResult(sessionId, restaurantId);
+            res.json(result);
+        } catch (error) {
+            console.error('Error fetching potential match');
+
+            res.status(500).json({ error });
+        }
+    }
+
+    async potentialMatchSwiped(req: Request, res: Response) {
+        try {
+            const sessionId = req.params.sessionId;
+            const restaurantId = req.body.restaurantId;
+            const liked = req.body.liked;
+
+            const result = await this.sessionManager.potentialMatchSwiped(sessionId, restaurantId, liked);
+            res.json(result);
+        } catch (error) {
+            console.error(error);
+
+            res.status(500).json({ error });    
         }
     }
 }

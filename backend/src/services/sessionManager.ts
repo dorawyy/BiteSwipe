@@ -547,11 +547,6 @@ export class SessionManager {
                 if (restaurant.positiveVotes === 0.75 * participantsLength) {
                     // checking if restaurant is not the part of finalSelection already
                     if (!session.finalSelections?.some(r => r.restaurantId.equals(restaurant.restaurantId))) {
-                        session.finalSelections?.push({
-                            restaurantId: restaurant.restaurantId,
-                            selectedAt: new Date()
-                        });
-                        await session.save();
                         return this.restaurantService.getRestaurant(restaurant.restaurantId);
                     }
                 }
@@ -562,6 +557,121 @@ export class SessionManager {
         throw new Error('No potential match found');
     }
 
+    async potentialMatchSwiped(sessionId: string, restaurantId: string, swipe: boolean) {
+        if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(restaurantId)) {
+            throw new Error('Invalid ID format');
+        }
+        const sessionObjId = new Types.ObjectId(sessionId);
+        const restaurantObjId = new Types.ObjectId(restaurantId);
+
+        const session = await Session.findOneAndUpdate(
+            {
+                _id: sessionObjId,
+                status: 'MATCHING',
+                'restaurants.restaurantId': restaurantObjId
+            },
+            {
+                $inc: {
+                    'restaurants.$[restaurant].potentialMatchScore': swipe ? 1 : 0,
+                    'restaurants.$[restaurant].potentialMatchSwipe': 1
+                }
+            },
+            { 
+                new: true,
+                runValidators: true,
+                arrayFilters: [{ 'restaurant.restaurantId': restaurantObjId }] 
+            }
+        );
+
+        if (!session) {
+            throw new Error('Session does not exist or already completed or restaurant not in session');
+        }
+        return session;
+    }
+
+    async getPotentialMatchResult(sessionId: string, restaurantId: string) {
+        if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(restaurantId)) {
+            throw new Error('Invalid ID format');
+        }
+
+        const sessionObj = new Types.ObjectId(sessionId);
+        const restaurantObj = new Types.ObjectId(restaurantId); 
+
+        const session = await Session.findById(sessionObj);
+
+        if (!session) {
+            throw new Error('Session not found');
+        }
+
+        const restaurant = session.restaurants.find(r => r.restaurantId.equals(restaurantObj));
+        if (!restaurant) {
+            throw new Error('Session not found');
+        }
+
+        if (restaurant.potentialMatchSwipe >= session.participants.length) {
+            if(restaurant.potentialMatchScore === session.participants.length) {
+                await Session.findOneAndUpdate(
+                    {
+                        _id: sessionObj,
+                        status: 'MATCHING',
+                        'restaurants.restaurantId': restaurantObj
+                    },
+                    {
+                        $push: {
+                            finalSelections: {
+                                restaurantId: restaurantObj,
+                                selectedAt: new Date()
+                            }
+                        },
+                        $set: { status : 'COMPLETED' }
+                    },
+                    { 
+                        new: true,
+                        runValidators: true,
+                    }
+                );
+                return {success: true, result : this.restaurantService.getRestaurant(restaurantObj)};
+            } else {
+                await Session.findOneAndUpdate(
+                    {
+                        _id: sessionObj,
+                        status: 'MATCHING',
+                        'restaurants.restaurantId': restaurantObj
+                    },
+                    {
+                        $push: {
+                            finalSelections: {
+                                restaurantId: restaurantObj,
+                                selectedAt: new Date()
+                            }
+                        }
+                    },
+                    { 
+                        new: true,
+                        runValidators: true,
+                    }
+                );
+                return {success: true, result : null}
+            }
+        } else {
+            throw new Error('Not enough votes for this restaurant');
+        }
+    }
+
+    async getSessionStatus (sessionId: string) {
+        if (!Types.ObjectId.isValid(sessionId)) {
+            throw new Error('Invalid session ID format');
+        }
+
+        const sessionObjId = new Types.ObjectId(sessionId); 
+
+        const session = await Session.findById(sessionObjId);
+        if (!session) {
+            throw new Error('Session not found');
+        }
+        return session.status;
+    }
+
 }
 
-
+ 

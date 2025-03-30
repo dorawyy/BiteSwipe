@@ -29,6 +29,8 @@ interface ISession extends Document {
         score: number;
         totalVotes: number;
         positiveVotes: number;
+        potentialMatchScore: number;
+        potentialMatchSwipe: number;
     }[];
     finalSelections?: {
         restaurantId: Types.ObjectId;
@@ -82,7 +84,8 @@ const SessionSchema = new mongoose.Schema<ISession>({
         },
         score: { type: Number, default: 0 },
         totalVotes: { type: Number, default: 0 },
-        positiveVotes: { type: Number, default: 0 }
+        positiveVotes: { type: Number, default: 0 },
+        potentialMatchScore: { type: Number, default: 0 }
     }],
     finalSelections: [{
         restaurantId: { 
