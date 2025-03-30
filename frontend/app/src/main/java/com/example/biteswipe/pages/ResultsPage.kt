@@ -53,28 +53,29 @@ class ResultsPage : AppCompatActivity(), ApiHelper {
                 endpoint = endpoint,
                 method = "GET",
                 onSuccess = { response ->
-                    val restaurant = parseRestaurant(response.toString())
+                    val restaurants = parseRestaurants(response.toString())
+                    for(restaurant in restaurants) {
+                        val restaurantName = restaurant.name
+                        val imageResId = restaurant.picture
+                        val address = restaurant.address
+                        val contact = restaurant.contactNumber
+                        val price = restaurant.price
+                        val rating = restaurant.rating
+                        val restaurantId = restaurant.restaurantId
 
-                    val restaurantName = restaurant.name
-                    val imageResId = restaurant.picture
-                    val address = restaurant.address
-                    val contact = restaurant.contactNumber
-                    val price = restaurant.price
-                    val rating = restaurant.rating
-                    val restaurantId = restaurant.restaurantId
-
-                    // Add the UserCard to the list
-                    restaurantList.add(
-                        RestaurantCard(
-                            restaurantName,
-                            imageResId,
-                            address,
-                            contact,
-                            price,
-                            rating,
-                            restaurantId
-                        ),
-                    )
+                        // Add the UserCard to the list
+                        restaurantList.add(
+                            RestaurantCard(
+                                restaurantName,
+                                imageResId,
+                                address,
+                                contact,
+                                price,
+                                rating,
+                                restaurantId
+                            ),
+                        )
+                    }
 
                     adapter.notifyDataSetChanged()
                 },

@@ -136,7 +136,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
                 Toast.makeText(this, "Please select at least one cuisine", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val searchRadius = findViewById<EditText>(R.id.searchRadiusText).text.toString()
+            val searchRadius = (((findViewById<EditText>(R.id.searchRadiusText).text)).toString().toFloat() * 1000).toString()
 
             val endpoint = "/sessions/"
 //            TODO: body for cuisine preferences (API)

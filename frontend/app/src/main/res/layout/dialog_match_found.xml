@@ -19,8 +19,8 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/MatchFoundRecyclerView"
-        android:layout_width="254dp"
-        android:layout_height="171dp"
+        android:layout_width="357dp"
+        android:layout_height="463dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.493"
@@ -35,13 +35,15 @@
         android:background="#FF8A80"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/YesMatch"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/MatchFoundRecyclerView"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/baseline_block_24" />
 
     <ImageButton
         android:id="@+id/YesMatch"
-        android:layout_width="155dp"
+        android:layout_width="183dp"
         android:layout_height="46dp"
         android:background="#2E7D32"
         app:layout_constraintBottom_toBottomOf="parent"
