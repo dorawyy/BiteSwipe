@@ -16,8 +16,13 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 const INITIAL_RESTAURANTS_FILE = 'initial-restaurants.json';
 const INITIAL_USERS_FILE = 'initial-users.json';
 const INITIAL_SESSIONS_FILE = 'initial-sessions.json';
-const DB_URI = process.env.DB_URI ?? 'mongodb://localhost:27017/biteswipe';
-//(`Database URI: ${DB_URI} [Source: ${process.env.DB_URI ? 'ENV' : 'DEFAULT'}]`);
+// Get DB_URI from environment variables
+const envDbUri = process.env.DB_URI;
+if (!envDbUri) {
+    throw new Error('DB_URI environment variable is not set');
+}
+// Now TypeScript knows this is a string
+const DB_URI: string = envDbUri;
 
 
 function transformMongoId(doc: MongoDocument): MongoDocument {
@@ -85,7 +90,7 @@ async function seedDatabase() {
         await UserModel.deleteMany({});
         await Restaurant.deleteMany({});
         await Session.deleteMany({});
-      
+
 
         // Read and insert users
         const usersPath = path.join(__dirname, '..', 'data', INITIAL_USERS_FILE);
@@ -133,7 +138,7 @@ async function seedDatabase() {
 
         const insertedRestaurants = await Restaurant.insertMany(transformedRestaurants);
         console.log(`Successfully imported ${insertedRestaurants.length} restaurants`);
-    
+
         // Read and insert sessions
         const sessionsPath = path.join(__dirname, '..', 'data', INITIAL_SESSIONS_FILE);
         const sessionsData = fs.readFileSync(sessionsPath, 'utf-8');

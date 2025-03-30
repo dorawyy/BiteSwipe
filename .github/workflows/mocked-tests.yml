@@ -2,10 +2,8 @@ name: Mocked Tests
 
 on:
   pull_request:
-    branches: [ main ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/mocked-tests.yml'
+    branches: [main, develop, master]
+    types: [opened, synchronize, reopened]
 
 jobs:
   run-mocked-tests:
@@ -17,8 +15,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
@@ -50,16 +48,16 @@ jobs:
               if az storage blob download \
                 --account-name productionstorageaccoun2 \
                 --container-name production-container \
-                --name biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
-                --file backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+                --name biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json \
+                --file backend/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json \
                 --auth-mode key 2>/dev/null; then
                 # Verify the file exists and is not empty
-                if [ -s backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json ]; then
+                if [ -s backend/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json ]; then
                   echo "Download successful and file is valid!"
                   return 0
                 else
                   echo "Download succeeded but file is empty or missing!"
-                  rm -f backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+                  rm -f backend/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json
                   return 1
                 fi
               fi
@@ -75,7 +73,7 @@ jobs:
           # Try to download with retries
           if download_with_retry; then
             # Set proper permissions
-            chmod 600 backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+            chmod 600 backend/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json
             echo "Firebase credentials downloaded and secured successfully"
           else
             echo "Failed to download Firebase credentials after all retries"
@@ -91,26 +89,24 @@ jobs:
           echo "NODE_ENV=test" >> .env
           echo "TEST_TYPE=mocked" >> .env
           echo "GOOGLE_MAPS_API_KEY=mock_key" >> .env
-          echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=./backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json" >> .env
+          echo "FIREBASE_CREDENTIALS_JSON_PATHNAME=./backend/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json" >> .env
 
       - name: Run mocked tests
         run: |
           cd backend
           echo "Running mocked tests..."
           npm run test:coverage:mocked -- --coverageReporters="json-summary" "text" --no-cache --forceExit --maxWorkers=2
-          
+
           # Save test results for reporting
           mkdir -p test-results
           cp coverage/coverage-summary.json test-results/
-          
+
           # Display test summary in readable format
           echo "\n===== Test Coverage Summary ====="
           echo "Statement coverage: $(cat coverage/coverage-summary.json | jq -r '.total.statements.pct')%"
           echo "Branch coverage:    $(cat coverage/coverage-summary.json | jq -r '.total.branches.pct')%"
           echo "Function coverage:  $(cat coverage/coverage-summary.json | jq -r '.total.functions.pct')%"
           echo "Line coverage:      $(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')%"
-          
+
           echo "\n===== Files with Less Than 80% Coverage ====="
           jq -r 'to_entries | .[] | select(.key != "total") | select(.value.lines.pct < 80) | "\(.key):\n  Lines: \(.value.lines.pct)%\n  Statements: \(.value.statements.pct)%\n  Functions: \(.value.functions.pct)%\n  Branches: \(.value.branches.pct)%"' coverage/coverage-summary.json
-
-
