@@ -36,4 +36,6 @@
     <string name="default_notification_channel_id">default_channel</string>
     <string name="default_notification_channel_name">Default Notifications</string>
     <string name="default_notification_channel_description">General notifications</string>
+    <string name="friend_requests">Friend Requests:</string>
+    <string name="match_found">Match Found!</string>
 </resources>

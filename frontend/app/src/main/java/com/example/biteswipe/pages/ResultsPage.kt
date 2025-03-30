@@ -20,6 +20,7 @@ class ResultsPage : AppCompatActivity(), ApiHelper {
     private lateinit var adapter: SwipeAdapter
     private lateinit var sessionId: String
     private lateinit var userId: String
+    private var matchType: Boolean = false
     private lateinit var restaurantList: MutableList<RestaurantCard>
     private val TAG = "ResultsPage"
 
@@ -35,7 +36,7 @@ class ResultsPage : AppCompatActivity(), ApiHelper {
 
         sessionId = intent.getStringExtra("sessionId") ?: ""
         userId = intent.getStringExtra("userId") ?: ""
-
+        matchType = intent.getBooleanExtra("singleMatch", false)
         restaurantList = mutableListOf()
 
 
@@ -45,32 +46,72 @@ class ResultsPage : AppCompatActivity(), ApiHelper {
         adapter = SwipeAdapter(this, restaurantList)
         recyclerView.adapter = adapter
 
-        val endpoint = "/sessions/$sessionId/result"
-        apiRequest(
-            context = this,
-            endpoint = endpoint,
-            method = "GET",
-            onSuccess = { response ->
-                val restaurant  = parseRestaurant(response.toString())
+        if(!matchType) {
+            val endpoint = "/sessions/$sessionId/result"
+            apiRequest(
+                context = this,
+                endpoint = endpoint,
+                method = "GET",
+                onSuccess = { response ->
+                    val restaurant = parseRestaurant(response.toString())
 
-                val restaurantName = restaurant.name
-                val imageResId = restaurant.picture
-                val address = restaurant.address
-                val contact = restaurant.contactNumber
-                val price = restaurant.price
-                val rating = restaurant.rating
-                val restaurantId = restaurant.restaurantId
+                    val restaurantName = restaurant.name
+                    val imageResId = restaurant.picture
+                    val address = restaurant.address
+                    val contact = restaurant.contactNumber
+                    val price = restaurant.price
+                    val rating = restaurant.rating
+                    val restaurantId = restaurant.restaurantId
 
-                // Add the UserCard to the list
-                restaurantList.add(RestaurantCard(restaurantName, imageResId, address, contact, price, rating, restaurantId),)
+                    // Add the UserCard to the list
+                    restaurantList.add(
+                        RestaurantCard(
+                            restaurantName,
+                            imageResId,
+                            address,
+                            contact,
+                            price,
+                            rating,
+                            restaurantId
+                        ),
+                    )
 
-                adapter.notifyDataSetChanged()
-            },
-            onError = { code, message ->
-                Log.d(TAG, "Error: $code, $message")
-                Toast.makeText(this, "Error: $code, $message", Toast.LENGTH_SHORT).show()
-            }
-        )
+                    adapter.notifyDataSetChanged()
+                },
+                onError = { code, message ->
+                    Log.d(TAG, "Error: $code, $message")
+                    Toast.makeText(this, "Error: $code, $message", Toast.LENGTH_SHORT).show()
+                }
+            )
+        } else {
+
+            val potentialRestaurant = intent.getStringExtra("potentialRestaurant")?: ""
+            val restaurant = parseRestaurant(potentialRestaurant)
+
+            val restaurantName = restaurant.name
+            val imageResId = restaurant.picture
+            val address = restaurant.address
+            val contact = restaurant.contactNumber
+            val price = restaurant.price
+            val rating = restaurant.rating
+            val restaurantId = restaurant.restaurantId
+
+            // Add the UserCard to the list
+            restaurantList.add(
+                RestaurantCard(
+                    restaurantName,
+                    imageResId,
+                    address,
+                    contact,
+                    price,
+                    rating,
+                    restaurantId
+                ),
+            )
+
+            adapter.notifyDataSetChanged()
+
+        }
 
         val exitButton = findViewById<Button>(R.id.back_to_home_button)
         exitButton.setOnClickListener {

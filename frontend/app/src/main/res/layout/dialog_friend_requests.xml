@@ -18,7 +18,7 @@
         android:id="@+id/textView12"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Friend Requests:"
+        android:text="@string/friend_requests"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toTopOf="@+id/friend_request_recycler_view"

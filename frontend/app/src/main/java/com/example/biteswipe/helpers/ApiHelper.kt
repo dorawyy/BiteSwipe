@@ -36,9 +36,9 @@ interface ApiHelper {
      * Retrieves the base API URL dynamically from `strings.xml`
      */
     fun getBaseUrl(context: Context): String {
-        return context.getString(R.string.base_url)
-    //    for testing purposes only
-    //    return "http://10.0.2.2:3000"
+//        return context.getString(R.string.base_url)
+//        for testing purposes only
+        return "http://10.0.2.2:3000"
     }
 
     /**
@@ -75,8 +75,8 @@ interface ApiHelper {
         onError: ((Int?, String?) -> Unit)? = null,
     ) {
 //          For testing purpose only
-//        val client = OkHttpClient()
-        val client = createTrustedClient(context)
+        val client = OkHttpClient()
+//        val client = createTrustedClient(context)
 
         val url = if (isFullUrl) endpoint else getBaseUrl(context) + endpoint
 
@@ -187,7 +187,9 @@ interface ApiHelper {
             .build()
     }
 
-
+    fun parseSessionStatus(json: JSONObject, TAG: String = "ApiHelper"): String {
+        return json.getString("status")
+    }
     fun parseSessionData(json: JSONObject, TAG: String = "ApiHelper"): sessionDetails {
         Log.d(TAG, "Parsing session data: $json")
 
