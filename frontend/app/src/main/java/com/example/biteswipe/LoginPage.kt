@@ -103,14 +103,15 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                         }
                         val idToken = googleIdTokenCredential.idToken
                         Log.d(TAG, "Google Response: ${credential}")
-//                        val email = "mate@mate.com"
                         Log.d(TAG, "ID Token: ${googleIdTokenCredential.idToken}")
                         Log.d(TAG, "User Email: $email")
+                        
+                        // Store the Google token for use in all API requests
+                        ApiHelper.TokenManager.storeToken(this@LoginPage, idToken)
                         val endpoint = "/users/"
                         val body = JSONObject().apply {
                             put("email", email)
                             put("displayName", googleIdTokenCredential.displayName)
-//                            put("displayName", "mate")
                         }
                         apiRequest(
                             context = this,
