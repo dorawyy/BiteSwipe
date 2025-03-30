@@ -332,7 +332,7 @@ export class SessionController {
         } catch (error) {
             console.error('Error fetching potential match');
 
-            res.status(500).json({ error });
+            res.status(513).json({ error });
         }
     }
 
