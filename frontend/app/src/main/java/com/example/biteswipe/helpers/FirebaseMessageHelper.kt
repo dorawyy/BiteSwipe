@@ -25,20 +25,22 @@ class FirebaseMessageHelper : FirebaseMessagingService() {
             val title = data["title"]
             val message = data["message"]
             val id = data["groupId"] ?: data["friendId"] // Get ID from the payload
+            val sessionId = data["sessionId"]?: ""
 
             if (type != null) {
-                sendNotification(title, message, type, id)
+                sendNotification(title, message, type, id, sessionId)
             }
         }
     }
 
-    private fun sendNotification(title: String?, message: String?, type: String, id: String?) {
+    private fun sendNotification(title: String?, message: String?, type: String, id: String?, sessionId: String) {
         val channelId = "notification_channel"
 
         val intent = Intent(this, HomePage::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("notification_type", type)
+            putExtra("notificationType", type)
             putExtra("uniqueId", id) // Pass the unique ID (groupId or friendId)
+            putExtra("joinSessionId", sessionId)
         }
 
         val pendingIntent = PendingIntent.getActivity(

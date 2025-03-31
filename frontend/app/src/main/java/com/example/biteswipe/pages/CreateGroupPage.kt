@@ -136,6 +136,10 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
                 Toast.makeText(this, "Please select at least one cuisine", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            if(findViewById<EditText>(R.id.searchRadiusText).text.toString().isEmpty()){
+                Toast.makeText(this, "Please input a search radius", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val searchRadius = (((findViewById<EditText>(R.id.searchRadiusText).text)).toString().toFloat() * 1000).toString()
 
             val endpoint = "/sessions/"

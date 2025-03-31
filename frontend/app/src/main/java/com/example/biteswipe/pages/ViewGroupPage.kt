@@ -31,7 +31,6 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
     private val updateUsers = object: Runnable {
         override fun run() {
 //            TODO: In this function, implement the logic that takes us to start matching.
-//            Ensure that handler dies after starting new activity
 
             val endpoint = "/sessions/$sessionId"
             apiRequest(
@@ -52,39 +51,79 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                         finish()
                     }
 //                    update users
-                    users.clear()
+                    val existingUserIds = users.map { it.userId }.toHashSet()
+                    val participantIds = session.participants.map { it.userId._id }
+                    var index = users.size
                     for (participant in session.participants) {
-                        Log.d(TAG, "Participant: $participant")
-                        val epoint = "/users/${participant.userId._id}"
-                        apiRequest(
-                            context = this@ViewGroupPage,
-                            endpoint = epoint,
-                            method = "GET",
-                            onSuccess = { response2 ->
-                                Log.d(TAG, "User Details: ${response2.getString("displayName")}")
-                                val userName = response2.getString("displayName")
-//                                val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
-                                val userId = participant.userId._id
-                                // Add the UserCard to the list
-                                users.add(UserCard(userName, R.drawable.ic_group, userId, "test@test.com"))
-                                adapter.notifyDataSetChanged()
-                            },
-                            onError = { code, message ->
-                                Log.d(TAG, "Error fetching user details: $message")
-                                Toast.makeText(
-                                    this@ViewGroupPage,
-                                    "Could not fetch user details",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                val userName = "Loading..."
-//                                val profilePicResId = R.drawable.ic_settings
-                                val userId = participant.userId._id
-                                // Add the UserCard to the list
-                                users.add(UserCard(userName, R.drawable.ic_settings, userId, "trash@trash.com"))
-                                adapter.notifyDataSetChanged()
-                            }
-                        )
+                        if(!existingUserIds.contains(participant.userId._id)) {
+                            Log.d(TAG, "New Participant: $participant")
+                            val epoint = "/users/${participant.userId._id}"
+                            apiRequest(
+                                context = this@ViewGroupPage,
+                                endpoint = epoint,
+                                method = "GET",
+                                onSuccess = { response2 ->
+                                    Log.d(
+                                        TAG,
+                                        "User Details: ${response2.getString("displayName")}"
+                                    )
+                                    val userName = response2.getString("displayName")
+                                    //                                val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
+                                    val userId = participant.userId._id
+                                    // Add the UserCard to the list
+                                    val newIndex = index
+                                    if(!existingUserIds.contains(userId)) {
+                                        users.add(
+                                            UserCard(
+                                                userName,
+                                                R.drawable.ic_group,
+                                                userId,
+                                                "test@test.com"
+                                            )
+                                        )
+                                        adapter.notifyItemInserted(newIndex)
+                                        index++
+                                    }
+                                },
+                                onError = { code, message ->
+                                    Log.d(TAG, "Error fetching user details: $message")
+                                    Toast.makeText(
+                                        this@ViewGroupPage,
+                                        "Could not fetch user details",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    val userName = "Loading..."
+                                    //                                val profilePicResId = R.drawable.ic_settings
+                                    val userId = participant.userId._id
+                                    // Add the UserCard to the list
+                                    val newIndex = index
+                                    if(!existingUserIds.contains(userId)) {
+                                        users.add(
+                                            UserCard(
+                                                userName,
+                                                R.drawable.ic_settings,
+                                                userId,
+                                                "trash@trash.com"
+                                            )
+                                        )
+                                        adapter.notifyItemInserted(newIndex)
+                                        index++
+                                    }
+                                }
+                            )
+                        }
 //                        TODO: Profile Pics
+                    }
+                    if(session.participants.size < users.size){
+                        for(user in users){
+                            if(!participantIds.contains(user.userId)){
+                                val removeIndex = users.indexOfFirst { it.userId == user.userId }
+                                if (removeIndex != -1) {
+                                    users.removeAt(removeIndex)
+                                    adapter.notifyItemRemoved(removeIndex)
+                                }
+                            }
+                        }
                     }
                 },
                 onError = { code, message ->
@@ -95,9 +134,7 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                         Toast.LENGTH_SHORT
                     ).show()
                     users = mutableListOf(
-                        UserCard("John Doe", R.drawable.ic_settings, "1234567890", "bruh@bruh.com"),
-                        UserCard("Jane Doe", R.drawable.ic_settings, "0987654321", "test@test.com"),
-                        UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111", "whwat@what.com")
+                        UserCard("John Doe", R.drawable.ic_settings, "1234567890", "bruh@bruh.com")
                     )
                     adapter.notifyDataSetChanged()
                 }

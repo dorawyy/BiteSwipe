@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Paint.Join
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -21,6 +22,7 @@ import org.json.JSONObject
 
 class HomePage : AppCompatActivity(), ApiHelper {
     private lateinit var userId: String
+    private lateinit var joinSessionId: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -30,20 +32,28 @@ class HomePage : AppCompatActivity(), ApiHelper {
         val userEmail = intent.getStringExtra("userEmail") ?: ""
         val userName = intent.getStringExtra("displayName") ?: "Unknown User"
         userId = intent.getStringExtra("userId") ?: ""
-        val notificationType = intent.getStringExtra("type")?: ""
+        val notificationType = intent.getStringExtra("notificationType")?: ""
+
+        Log.d("HomePage", "notification type: $notificationType")
         val uniqueId = intent.getStringExtra("uniqueId")?: ""
+        joinSessionId = intent.getStringExtra("joinSessionId")?: ""
 
 //        check for auth
-        if(userId == ""){
-            val intent = Intent(this, LoginPage::class.java).apply {
+        if(userId.isEmpty()){
+            Log.d("HomePage", "Redirecting to LoginPage")
+            val intent2 = Intent(this, LoginPage::class.java).apply {
                 putExtra("nextIntent", intent)
                 putExtra("notificationType", notificationType)
                 putExtra("uniqueId", uniqueId)
+                putExtra("joinSessionId", joinSessionId)
             }
-            startActivity(intent)
+            intent2.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            Log.d("HomePage", "starting login process")
+            startActivity(intent2)
+            Log.d("HomePage", "login process started")
             finish()
         }
-
+        Log.d("HomePage", "User ID: $userId, length ${userId.length}")
 
 //        check for token
         FirebaseMessaging.getInstance().token
@@ -74,13 +84,14 @@ class HomePage : AppCompatActivity(), ApiHelper {
             }
 
 //        check for notification intent
-        if(notificationType != "") {
+        if(notificationType != "" && userId.isNotEmpty()) {
             if(notificationType == "group") {
-//                TODO: Configure group page to auto follow through to viewgrouppage, handle errors accordingly
-                val intent = Intent(this, ViewGroupPage::class.java).apply {
+                val intent = Intent(this, JoinGroupPage::class.java).apply {
                     putExtra("groupId", uniqueId)
                     putExtra("userId", userId)
                     putExtra("userEmail", userEmail)
+                    putExtra("fromNotification", true)
+                    putExtra("sessionId", joinSessionId)
                 }
                 startActivity(intent)
             }
@@ -129,6 +140,8 @@ class HomePage : AppCompatActivity(), ApiHelper {
             val intent = Intent(this, JoinGroupPage::class.java)
             intent.putExtra("userId", userId)
             intent.putExtra("userEmail", userEmail)
+            intent.putExtra("fromNotification", false)
+            intent.putExtra("sessionId", joinSessionId)
             Log.d("Home Page", "User Email: $userEmail")
             startActivity(intent)
         }

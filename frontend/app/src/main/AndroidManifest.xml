@@ -58,8 +58,6 @@
         <activity
             android:name=".pages.HomePage"
             android:exported="true"
-
-            android:label="@string/title_activity_home_page"
             android:theme="@style/Theme.BiteSwipe">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

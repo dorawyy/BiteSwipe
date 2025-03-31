@@ -44,7 +44,10 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
                 onSuccess = { response ->
                     session  = parseSessionData(response)
                     Log.d(TAG, "Session Details: $session")
-                    users.clear()
+
+                    val existingUserIds = users.map { it.userId }.toHashSet()
+                    val participantIds = session.participants.map { it.userId._id }
+                    var index = users.size
                     for (participant in session.participants) {
                         Log.d(TAG, "Participant: $participant")
                         val epoint = "/users/${participant.userId._id}"
@@ -58,8 +61,19 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
 //                                val profilePicResId = R.drawable.ic_settings // Assuming you have a default image here
                                 val userId = participant.userId._id
                                 // Add the UserCard to the list
-                                users.add(UserCard(userName, R.drawable.ic_group, userId, "trash@trash.com"))
-                                adapter.notifyDataSetChanged()
+                                val newIndex = index
+                                if(!existingUserIds.contains(userId)) {
+                                    users.add(
+                                        UserCard(
+                                            userName,
+                                            R.drawable.ic_group,
+                                            userId,
+                                            "trash@trash.com"
+                                        )
+                                    )
+                                    adapter.notifyItemInserted(newIndex)
+                                    index++
+                                }
                             },
                             onError = { code, message ->
                                 Log.d(TAG, "Error fetching user details: $message")
@@ -68,20 +82,41 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
 //                                val profilePicResId = R.drawable.ic_settings
                                 val userId = participant.userId._id
                                 // Add the UserCard to the list
-                                users.add(UserCard(userName, R.drawable.ic_settings, userId, "trash@trash.com"))
-                                adapter.notifyDataSetChanged()
+                                val newIndex = index
+                                if(!existingUserIds.contains(userId)) {
+                                    users.add(
+                                        UserCard(
+                                            userName,
+                                            R.drawable.ic_settings,
+                                            userId,
+                                            "trash@trash.com"
+                                        )
+                                    )
+                                    adapter.notifyItemInserted(newIndex)
+                                    index++
+                                }
                             }
                         )
 //                        TODO: Profile Pics
+                    }
+
+                    if(session.participants.size < users.size){
+                        for(user in users){
+                            if(!participantIds.contains(user.userId)){
+                                val removeIndex = users.indexOfFirst { it.userId == user.userId }
+                                if (removeIndex != -1) {
+                                    users.removeAt(removeIndex)
+                                    adapter.notifyItemRemoved(removeIndex)
+                                }
+                            }
+                        }
                     }
                 },
                 onError = { code, message ->
                     Log.d(TAG, "Error fetching users: $message")
                     Toast.makeText(this@ModerateGroupPage, "Could not fetch users", Toast.LENGTH_SHORT).show()
                     users = mutableListOf(
-                        UserCard("John Doe", R.drawable.ic_settings, "1234567890", "trash@trash.com"),
-                        UserCard("Jane Doe", R.drawable.ic_settings, "0987654321", "test@test.com"),
-                        UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111", "whwat@what.com")
+                        UserCard("John Doe", R.drawable.ic_settings, "1234567890", "trash@trash.com")
                     )
                     adapter.notifyDataSetChanged()
                 }

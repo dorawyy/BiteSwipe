@@ -44,6 +44,8 @@ class LoginPage : AppCompatActivity(), ApiHelper {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private lateinit var notificationType: String
     private lateinit var uniqueId: String
+    private lateinit var joinSessionId: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_page)
@@ -53,7 +55,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
         }
 
         notificationType = intent.getStringExtra("notificationType") ?: ""
-
+        joinSessionId = intent.getStringExtra("joinSessionId") ?: ""
         uniqueId = intent.getStringExtra("uniqueId") ?: ""
 
 
@@ -135,6 +137,9 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                                     putExtra("displayName", googleIdTokenCredential.displayName)
                                     putExtra("userId", response.getString("_id"))
                                     putExtra("userEmail", email)
+                                    putExtra("notificationType", notificationType)
+                                    putExtra("uniqueId", uniqueId)
+                                    putExtra("joinSessionId", joinSessionId)
                                 }
                                 Log.d(TAG, "New User: ${googleIdTokenCredential.displayName}")
                                 Toast.makeText(this, "Welcome, ${googleIdTokenCredential.displayName}", Toast.LENGTH_SHORT).show()
@@ -156,8 +161,9 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                                             )
                                             putExtra("userId", response.getString("userId"))
                                             putExtra("userEmail", email)
-                                            putExtra("notification_type", notificationType)
+                                            putExtra("notificationType", notificationType)
                                             putExtra("uniqueId", uniqueId)
+                                            putExtra("joinSessionId", joinSessionId)
 
                                         }
                                         Log.d(TAG, "Returning User: ${googleIdTokenCredential.displayName}")
