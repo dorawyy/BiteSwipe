@@ -56,6 +56,15 @@ export const userRoutes = (userService: UserService, sessionManager: SessionMana
             ]
         },
         {
+            method: "post" as const,
+            route: '/users/:userId/updateDisplayName',
+            action: (req: express.Request, res: express.Response) => userController.updateDisplayName(req, res),
+            validation: [
+                validateUserIdParam(),
+                body('displayName').notEmpty().withMessage('displayName value is required')
+            ]
+        },
+        {
             method: 'get' as const,
             route: '/users/:userId/sessions',
             action: (req: express.Request, res: express.Response) => userController.getUserSessions(req, res),

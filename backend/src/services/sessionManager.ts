@@ -3,6 +3,8 @@ import { Session, ISession, SessionStatus } from '../models/session';
 import { RestaurantService } from './restaurantService';
 import { UserModel } from '../models/user';
 import crypto from 'crypto';
+import { MongoDocument } from '../models/appTypes';
+import { sendNotification } from '../config/firebase';
 
 interface CustomError extends Error {
     code?: string;

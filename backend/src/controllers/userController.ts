@@ -84,6 +84,35 @@ export class UserController {
         }
     }
 
+    async updateDisplayName(req: Request, res: Response) {
+        try {
+            const userId = req.params.userId;
+            const displayName = req.body.displayName;
+            
+            if(!displayName) {
+                return res.status(400).json({ error: "No display name provided"});
+            }
+            
+            const user = await this.userService.updateDisplayName(userId, displayName);
+
+            if (!user) {
+                return res.status(404).json({ error: "User not found" });
+            }
+            
+
+            res.json(user);
+        } catch (error: unknown) {
+            console.error("Error fetching user:", error);
+            if (
+                error instanceof Error &&
+                error.message.includes("Invalid user ID format")
+            ) {
+                return res.status(400).json({ error: "Invalid user ID format" });
+            }
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    }
+
     async getUserSessions(req: Request, res: Response) {
         try {
             const userId = req.params.userId;

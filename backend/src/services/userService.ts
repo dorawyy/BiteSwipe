@@ -100,6 +100,35 @@ export class UserService {
     }
   }
 
+  async updateDisplayName(userId: string, displayName: string): Promise<UserLean | null> {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID format');
+    }
+
+    try {
+      const updatedUser = await this.userModel
+        .findByIdAndUpdate(
+          userId,
+          { $set: { displayName: displayName } },
+          { new: true }
+        )
+        .lean();
+
+      if (!updatedUser) {
+        throw new Error('User not found');
+      }
+
+      return updatedUser as UserLean;
+    } catch (error: any) {
+      console.error('Error updating display name:', error);
+      if (error.message === 'User not found') {
+        throw error;
+      }
+      throw new Error('Failed to update display name');
+    }
+  }
+
+
   async sendFriendRequest(userEmail: string, friendEmail: string): Promise<UserLean | null> {
     if(userEmail.trim().length === 0 || friendEmail.trim().length === 0) {
       throw new Error('User email and friend email is required');
