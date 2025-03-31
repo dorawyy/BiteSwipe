@@ -23,16 +23,19 @@ import com.example.biteswipe.helpers.ApiHelper
 import com.example.biteswipe.R
 import com.example.biteswipe.adapter.UserAdapter
 import com.example.biteswipe.cards.UserCard
+import com.example.biteswipe.helpers.ToastHelper
 import com.example.biteswipe.jsonFormats.sessionDetails
 import org.json.JSONObject
 
-class ModerateGroupPage : AppCompatActivity(), ApiHelper {
+class ModerateGroupPage : AppCompatActivity(), ApiHelper, ToastHelper {
     private lateinit var users: MutableList<UserCard>
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: UserAdapter
     private lateinit var sessionId: String
     private lateinit var userId: String
     private lateinit var session: sessionDetails
+    private lateinit var friends: MutableList<UserCard>
+    private lateinit var adapter2: UserAdapter
     private val handler = Handler(Looper.getMainLooper())
     private val updateUsers = object: Runnable {
         override fun run() {
@@ -77,7 +80,7 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
                             },
                             onError = { code, message ->
                                 Log.d(TAG, "Error fetching user details: $message")
-                                Toast.makeText(this@ModerateGroupPage, "Could not fetch user details", Toast.LENGTH_SHORT).show()
+                                showCustomToast(this@ModerateGroupPage, "Could not fetch user details", false)
                                 val userName = "Loading..."
 //                                val profilePicResId = R.drawable.ic_settings
                                 val userId = participant.userId._id
@@ -114,7 +117,7 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
                 },
                 onError = { code, message ->
                     Log.d(TAG, "Error fetching users: $message")
-                    Toast.makeText(this@ModerateGroupPage, "Could not fetch users", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this@ModerateGroupPage, "Could not fetch users", false)
                     users = mutableListOf(
                         UserCard("John Doe", R.drawable.ic_settings, "1234567890", "trash@trash.com")
                     )
@@ -136,16 +139,16 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-//        TODO: API Call to fetch users from backend (PERSISTENT)
+
         sessionId = intent.getStringExtra("sessionId") ?: ""
         userId = intent.getStringExtra("userId") ?: ""
 
         if(sessionId == ""){
-            Toast.makeText(this, "Error: SessionID Invalid", Toast.LENGTH_SHORT).show()
+            showCustomToast(this, "Error: SessionID Invalid", false)
             finish()
         }
         if(userId == ""){
-            Toast.makeText(this, "Error: Not Logged In", Toast.LENGTH_SHORT).show()
+            showCustomToast(this, "Error: Not Logged In", false)
             finish()
         }
 
@@ -158,12 +161,12 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
         groupIdText.text = intent.getStringExtra("joinCode")
 
 
-//        TODO: Implement Dynamic Rendering of Users
         users = mutableListOf()
         recyclerView = findViewById(R.id.user_moderate_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        adapter = UserAdapter(this, users) { user -> handleKickUser(user) }
+        adapter = UserAdapter(this, users, false) { user -> handleKickUser(user) }
         recyclerView.adapter = adapter
+        friends = mutableListOf()
         Log.d(TAG, "Set up users")
 
         updateUsers()
@@ -197,15 +200,46 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
             val inflater = LayoutInflater.from(this)
             val dialogView: View = inflater.inflate(R.layout.dialog_add_member, null)
             val dialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(true).create()
+            val friendsRecycler = dialogView.findViewById<RecyclerView>(R.id.invite_friends_recycler_view)
+            apiRequest(
+                context = this,
+                endpoint = "/users/$userId",
+                method = "GET",
+                onSuccess = { response ->
+                    Log.d(TAG, "Response: $response")
+                    val friendsArray = response.getJSONArray("friendList")
+                    friends.clear()
+                    friends = mutableListOf()
+                    for(i in 0 until friendsArray.length()){
+                        val friendJson = friendsArray.getJSONObject(i)
+                        val friendEmail = friendJson.getString("email")
+                        val friendName = friendJson.getString("displayName")
+                        val friendId = friendJson.getString("userId")
+                        friends.add(UserCard(friendName, R.drawable.ic_settings, friendId, friendEmail))
+                    }
+                    runOnUiThread {
+                        friendsRecycler.layoutManager =
+                            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+                        adapter2 = UserAdapter(this, friends, true) { user -> handleInviteFriend(user) }
+                        friendsRecycler.adapter = adapter2
+                    }
 
+                }, onError = { _, message ->
+                    Log.e(TAG, "Error: $message")
+                    friends = mutableListOf(
+                        UserCard("person1", R.drawable.ic_settings, "1234567890", "test@test.com"),
+                    )
+                    runOnUiThread {
+                        friendsRecycler.visibility = View.GONE
+                    }
+                }
+            )
             val userIdView = dialogView.findViewById<EditText>(R.id.new_member_text)
             val submitButton = dialogView.findViewById<ImageButton>(R.id.add_member_button)
 
             submitButton.setOnClickListener {
                 val newUserId = userIdView.text.toString().trim()
-                // Add friend logic here
                 if(newUserId.isNotEmpty()){
-//                    TODO: API Call to send friend invitation
                     val endpoint = "/sessions/$sessionId/invitations"
                     val body = JSONObject().apply {
                         put("email", newUserId)
@@ -217,25 +251,23 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
                         jsonBody = body,
                         onSuccess = { response ->
                             Log.d(TAG, "Sending invitation to $newUserId")
-                            Toast.makeText(this, "Invitation sent to $newUserId", Toast.LENGTH_SHORT).show()
+                            showCustomToast(this, "Invitation sent to $newUserId", true)
                             dialog.dismiss()
                         },
                         onError = { code, message ->
                             Log.d(TAG, "Error sending invitation: $message")
-                            Toast.makeText(this, "Could not send invitation", Toast.LENGTH_SHORT).show()
+                            showCustomToast(this, "Could not send invitation", false)
                         }
                     )
                     dialog.dismiss()
                 }
                 else{
-                    Toast.makeText(this, "Please enter a username", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this, "Please enter a valid username", false)
                 }
             }
 
             dialog.show()
         }
-
-//        TODO: Delete Group Button
     }
 
     private fun handleKickUser(user: UserCard) {
@@ -249,14 +281,35 @@ class ModerateGroupPage : AppCompatActivity(), ApiHelper {
                 users.remove(user)
                 adapter.notifyDataSetChanged()
                 Log.d(TAG, "Removing user ${user.userId} from Session $sessionId")
-                Toast.makeText(this, "User ${user.userId} has been kicked from the group.", Toast.LENGTH_SHORT).show()
+                showCustomToast(this, "User ${user.userId} has been kicked from the group", true)
                 },
             onError = { code, message ->
                 Log.d(TAG, "Error removing User ${user.userId} from Session")
-                Toast.makeText(this, "Could not remove user", Toast.LENGTH_SHORT).show()
+                showCustomToast(this, "Could not remove user", false)
             }
         )
 
+    }
+
+    private fun handleInviteFriend(user: UserCard) {
+        val endpoint = "/sessions/$sessionId/invitations"
+        val body = JSONObject().apply {
+            put("email", user.userEmail)
+        }
+        apiRequest(
+            context = this,
+            endpoint = endpoint,
+            method = "POST",
+            jsonBody = body,
+            onSuccess = { response ->
+                Log.d(TAG, "Sending invitation to ${user.userName}")
+                showCustomToast(this, "Invitation sent to ${user.userName}", true)
+            },
+            onError = { code, message ->
+                Log.d(TAG, "Error sending invitation: $message")
+                showCustomToast(this, "Could not send invitation", false)
+            }
+        )
     }
 
     private fun updateUsers() {

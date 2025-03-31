@@ -40,4 +40,8 @@
     <string name="match_found">Match Found!</string>
     <string name="join_group">Join Group?</string>
     <string name="invited_by">Invited by:</string>
+    <string name="invite_to_group">Invite to Group:</string>
+    <string name="user_email">User Email</string>
+    <string name="add_member">Add Member</string>
+    <string name="or_add_by_email">Or, add by email:</string>
 </resources>

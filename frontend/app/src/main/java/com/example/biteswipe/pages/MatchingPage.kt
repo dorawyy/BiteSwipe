@@ -25,10 +25,11 @@ import com.example.biteswipe.helpers.ApiHelper
 import com.example.biteswipe.R
 import com.example.biteswipe.adapter.SwipeAdapter
 import com.example.biteswipe.cards.UserCard
+import com.example.biteswipe.helpers.ToastHelper
 import com.example.biteswipe.jsonFormats.RestaurantData
 import org.json.JSONObject
 
-class MatchingPage : AppCompatActivity(), ApiHelper {
+class MatchingPage : AppCompatActivity(), ApiHelper, ToastHelper {
     private lateinit var recyclerView: RecyclerView
     private lateinit var potentialRecyclerView: RecyclerView
     private lateinit var adapter: SwipeAdapter
@@ -67,11 +68,7 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                         matchDialog.dismiss()
                         potentialMatchesList.clear()
                         adapter2.notifyItemRemoved(0)
-                        Toast.makeText(
-                            this@MatchingPage,
-                            "Not enough people approved",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showCustomToast(this, "Not enough people approved", false)
 
                         // call original handler
                         onCompletion()
@@ -155,7 +152,7 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                         },
                         onError = { _, message ->
                             Log.e(TAG, "Error: $message")
-                            Toast.makeText(this@MatchingPage, "Server Error, try again", Toast.LENGTH_SHORT).show()
+                            showCustomToast(this, "Server Error, try again", false)
                         }
                     )
                 }
@@ -181,7 +178,7 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                         },
                         onError = { _, message ->
                             Log.e(TAG, "Error: $message")
-                            Toast.makeText(this@MatchingPage, "Server Error, try again", Toast.LENGTH_SHORT).show()
+                            showCustomToast(this, "Server Error, try again", false)
                         }
                     )
                 }
@@ -267,7 +264,7 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
             },
             onError = { code, message ->
                 Log.d(TAG, "Error: $code, $message")
-                Toast.makeText(this@MatchingPage, "Error: $code, $message", Toast.LENGTH_SHORT).show()
+
             }
         )
         setupSwipeListener()
@@ -378,7 +375,7 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                 },
                 onError = { code, message ->
                     Log.d(TAG, "Error: $code, $message")
-                    Toast.makeText(this@MatchingPage, "Error: Vote was not sent", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this, "Error: Vote was not sent", false)
                 }
             )
         }
@@ -446,7 +443,7 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                 },
                 onError = { code, message ->
                     Log.d(TAG, "Error: $code, $message")
-                    Toast.makeText(this@MatchingPage, "Error: Vote was not sent", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this, "Error: Vote was not sent", false)
                 }
             )
         }

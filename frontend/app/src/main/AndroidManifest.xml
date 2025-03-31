@@ -31,9 +31,6 @@
             android:name=".pages.ResultsPage"
             android:exported="false" />
         <activity
-            android:name=".pages.ChosenRestaurantPage"
-            android:exported="false" />
-        <activity
             android:name=".pages.MatchingPage"
             android:exported="false" />
         <activity

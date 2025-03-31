@@ -7,6 +7,7 @@ import android.os.Bundle
 
 import android.util.Log
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -19,6 +20,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.example.biteswipe.helpers.ApiHelper
 import com.example.biteswipe.BuildConfig
 import com.example.biteswipe.R
+import com.example.biteswipe.helpers.ToastHelper
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -32,7 +34,7 @@ import java.security.MessageDigest
 import java.util.UUID
 
 
-class LoginPage : AppCompatActivity(), ApiHelper {
+class LoginPage : AppCompatActivity(), ApiHelper, ToastHelper {
 
     companion object {
         private const val TAG = "LoginPage"
@@ -45,6 +47,8 @@ class LoginPage : AppCompatActivity(), ApiHelper {
     private lateinit var notificationType: String
     private lateinit var uniqueId: String
     private lateinit var joinSessionId: String
+    private lateinit var loading: ProgressBar
+    private lateinit var signInButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,10 +62,12 @@ class LoginPage : AppCompatActivity(), ApiHelper {
         joinSessionId = intent.getStringExtra("joinSessionId") ?: ""
         uniqueId = intent.getStringExtra("uniqueId") ?: ""
 
-
-        val signInButton = findViewById<Button>(R.id.sign_in_button)
+        loading = findViewById<ProgressBar>(R.id.login_progress_bar)
+        signInButton = findViewById<Button>(R.id.sign_in_button)
 
         signInButton.setOnClickListener {
+            loading.visibility = ProgressBar.VISIBLE
+            signInButton.visibility = Button.INVISIBLE
             Log.d(TAG, "Sign in button clicked")
             Log.d(TAG, "WEB CLIENT ID: $WEB_CLIENT_ID")
 
@@ -86,6 +92,8 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                     Log.d(TAG, "Got credential: $result")
                     handleSignIn(result)
                 } catch (e: GetCredentialException) {
+                    loading.visibility = ProgressBar.INVISIBLE
+                    signInButton.visibility = Button.VISIBLE
                     handleFailure(e)
                 }
             }
@@ -132,7 +140,6 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                             jsonBody = body,
                             onSuccess = { response ->
                                 Log.d(TAG, "Response: $response")
-//                                TODO: Send profile pic url to backend as well
                                 val intent = Intent(this, HomePage::class.java).apply {
                                     putExtra("displayName", googleIdTokenCredential.displayName)
                                     putExtra("userId", response.getString("_id"))
@@ -142,7 +149,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
                                     putExtra("joinSessionId", joinSessionId)
                                 }
                                 Log.d(TAG, "New User: ${googleIdTokenCredential.displayName}")
-                                Toast.makeText(this, "Welcome, ${googleIdTokenCredential.displayName}", Toast.LENGTH_SHORT).show()
+                                showCustomToast(this, "Welcome, ${googleIdTokenCredential.displayName}", true)
                                 startActivity(intent)
                             },
                             onError = { code, message ->
@@ -167,12 +174,14 @@ class LoginPage : AppCompatActivity(), ApiHelper {
 
                                         }
                                         Log.d(TAG, "Returning User: ${googleIdTokenCredential.displayName}")
-                                        Toast.makeText(this, "Welcome Back, ${googleIdTokenCredential.displayName}", Toast.LENGTH_SHORT).show()
+                                        showCustomToast(this, "Welcome Back, ${googleIdTokenCredential.displayName}", true)
                                         startActivity(intent)
                                     },
                                     onError = { code, message ->
                                         Log.d(TAG, "Error: ${message}")
-                                        Toast.makeText(this, "Error: Invalid User", Toast.LENGTH_SHORT).show()
+                                        showCustomToast(this, "Error: Invalid User", false)
+                                        loading.visibility = ProgressBar.INVISIBLE
+                                        signInButton.visibility = Button.VISIBLE
                                     }
                                 )
 
@@ -181,13 +190,19 @@ class LoginPage : AppCompatActivity(), ApiHelper {
 
                     } catch (e: GoogleIdTokenParsingException) {
                         Log.e(TAG, "Received an invalid Google ID token response", e)
+                        loading.visibility = ProgressBar.INVISIBLE
+                        signInButton.visibility = Button.VISIBLE
                     }
                 } else {
                     Log.e(TAG, "Unexpected type of credential")
+                    loading.visibility = ProgressBar.INVISIBLE
+                    signInButton.visibility = Button.VISIBLE
                 }
             }
             else -> {
                 Log.e(TAG, "Unexpected type of credential")
+                loading.visibility = ProgressBar.INVISIBLE
+                signInButton.visibility = Button.VISIBLE
             }
         }
     }
@@ -195,7 +210,7 @@ class LoginPage : AppCompatActivity(), ApiHelper {
 
     private fun handleFailure(e: GetCredentialException) {
         Log.e(TAG, "Failed to return credential", e)
-        Toast.makeText(this, "Login Failure, Try Again", Toast.LENGTH_SHORT).show()
+        showCustomToast(this, "Login Failure, Try Again", false)
     }
 
     override fun onDestroy() {

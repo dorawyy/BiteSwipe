@@ -54,9 +54,6 @@ class FriendsPage : AppCompatActivity(), ApiHelper {
 
 //       Dummy list of friend requests, stops app from complaining
         requests = mutableListOf(
-            UserCard("John Doe", R.drawable.ic_settings, "1234567890", "test@test.com"),
-            UserCard("Jane Doe", R.drawable.ic_settings, "0987654321", "sample@sample.com"),
-            UserCard("Mike Tyson", R.drawable.ic_launcher_background, "1111111111", "ehh@ehh.com")
         )
 
         val backButton: ImageButton = findViewById(R.id.friends_back_button)
@@ -133,7 +130,6 @@ class FriendsPage : AppCompatActivity(), ApiHelper {
                             friends.add(user)
                             adapter2.notifyItemInserted(friends.size - 1)
 
-//                            TODO: add to all friends
                         },
                         onError = { _, message ->
                             Log.e(TAG, "Error: $message")
@@ -207,12 +203,11 @@ class FriendsPage : AppCompatActivity(), ApiHelper {
 
                     requests.add(UserCard(requestName, R.drawable.ic_settings, requestId, requestEmail))
                 }
-//                TODO: handle case no friends (i cri)
                 runOnUiThread {
                     recyclerView2 = findViewById(R.id.friends_recycler_view)
                     recyclerView2.layoutManager =
                         LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-                    adapter2 = UserAdapter(this, friends) { user -> handleRemoveFriend(user) }
+                    adapter2 = UserAdapter(this, friends, false) { user -> handleRemoveFriend(user) }
                     recyclerView2.adapter = adapter2
 
 
@@ -223,28 +218,22 @@ class FriendsPage : AppCompatActivity(), ApiHelper {
                 Log.e(TAG, "Error: $message")
                 friends = mutableListOf(
                     UserCard("person1", R.drawable.ic_settings, "1234567890", "test@test.com"),
-                    UserCard("person2", R.drawable.ic_settings, "testing", "sample@sample.com"),
-                    UserCard("person3", R.drawable.ic_launcher_background, "1111111111", "ehh@ehh.com")
                 )
                 runOnUiThread {
                     recyclerView2 = findViewById(R.id.friends_recycler_view)
                     recyclerView2.layoutManager =
                         LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-                    adapter2 = UserAdapter(this, friends) { user -> handleRemoveFriend(user) }
+                    adapter2 = UserAdapter(this, friends, false) { user -> handleRemoveFriend(user) }
                     recyclerView2.adapter = adapter2
                 }
             }
         )
-        friends = mutableListOf(
-            UserCard("person1", R.drawable.ic_settings, "1234567890", "test@test.com"),
-            UserCard("person2", R.drawable.ic_settings, "testing", "sample@sample.com"),
-            UserCard("person3", R.drawable.ic_launcher_background, "1111111111", "ehh@ehh.com")
-        )
+        friends = mutableListOf()
         if(::friends.isInitialized) {
             recyclerView2 = findViewById(R.id.friends_recycler_view)
             recyclerView2.layoutManager =
                 LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-            adapter2 = UserAdapter(this, friends) { user -> handleRemoveFriend(user) }
+            adapter2 = UserAdapter(this, friends, false) { user -> handleRemoveFriend(user) }
             recyclerView2.adapter = adapter2
             Log.d(TAG, "Set up users")
         }

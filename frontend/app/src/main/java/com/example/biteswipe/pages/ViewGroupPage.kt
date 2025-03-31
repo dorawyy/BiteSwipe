@@ -17,9 +17,10 @@ import com.example.biteswipe.helpers.ApiHelper
 import com.example.biteswipe.R
 import com.example.biteswipe.adapter.UserAdapterNoKick
 import com.example.biteswipe.cards.UserCard
+import com.example.biteswipe.helpers.ToastHelper
 import com.example.biteswipe.jsonFormats.sessionDetails
 
-class ViewGroupPage : AppCompatActivity(), ApiHelper {
+class ViewGroupPage : AppCompatActivity(), ApiHelper, ToastHelper {
     private lateinit var users: MutableList<UserCard>
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: UserAdapterNoKick
@@ -30,7 +31,6 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
     private val handler = Handler(Looper.getMainLooper())
     private val updateUsers = object: Runnable {
         override fun run() {
-//            TODO: In this function, implement the logic that takes us to start matching.
 
             val endpoint = "/sessions/$sessionId"
             apiRequest(
@@ -42,7 +42,7 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                     Log.d(TAG, "Session Details: $session")
                     if(session.status == "MATCHING") {
                         Log.d(TAG, "Starting Matching")
-                        Toast.makeText(this@ViewGroupPage, "Starting Matching", Toast.LENGTH_SHORT).show()
+                        showCustomToast(this@ViewGroupPage, "Starting Matching", true)
                         val intent = Intent(this@ViewGroupPage, MatchingPage::class.java)
                         intent.putExtra("userId", userId)
                         intent.putExtra("sessionId", sessionId)
@@ -87,11 +87,6 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                                 },
                                 onError = { code, message ->
                                     Log.d(TAG, "Error fetching user details: $message")
-                                    Toast.makeText(
-                                        this@ViewGroupPage,
-                                        "Could not fetch user details",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
                                     val userName = "Loading..."
                                     //                                val profilePicResId = R.drawable.ic_settings
                                     val userId = participant.userId._id
@@ -128,11 +123,7 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                 },
                 onError = { code, message ->
                     Log.d(TAG, "Error fetching users: $message")
-                    Toast.makeText(
-                        this@ViewGroupPage,
-                        "Could not fetch users",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showCustomToast(this@ViewGroupPage, "Could not fetch users", false)
                     users = mutableListOf(
                         UserCard("John Doe", R.drawable.ic_settings, "1234567890", "bruh@bruh.com")
                     )
@@ -157,13 +148,14 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
 
         sessionId = intent.getStringExtra("sessionId") ?: ""
         if(sessionId == ""){
-            Toast.makeText(this, "Error: SessionID Invalid", Toast.LENGTH_SHORT).show()
+
+            Log.d(TAG, "Error: SessionID Invalid")
             finish()
         }
 
         userId = intent.getStringExtra("userId") ?: ""
         if(userId == ""){
-            Toast.makeText(this, "Error: Not Logged In", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Error: Not Logged In")
             finish()
         }
 
@@ -185,12 +177,12 @@ class ViewGroupPage : AppCompatActivity(), ApiHelper {
                 method = "DELETE",
                 onSuccess = { response ->
                     Log.d("ViewGroupPage", "Removing user $userId from Session $sessionId")
-                    Toast.makeText(this, "Left Group", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this, "Left Group", true)
                     finish()
                 },
                 onError = { code, message ->
                     Log.d("ViewGroupPage", "Error removing User $userId from Session $sessionId: \n $message")
-                    Toast.makeText(this, "Could not remove user", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this, "Could not leave", false)
                 }
             )
         }

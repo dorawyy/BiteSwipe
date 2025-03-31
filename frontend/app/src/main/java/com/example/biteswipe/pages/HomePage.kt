@@ -17,10 +17,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.biteswipe.R
 import com.example.biteswipe.helpers.ApiHelper
+import com.example.biteswipe.helpers.ToastHelper
 import com.google.firebase.messaging.FirebaseMessaging
 import org.json.JSONObject
 
-class HomePage : AppCompatActivity(), ApiHelper {
+class HomePage : AppCompatActivity(), ApiHelper, ToastHelper {
     private lateinit var userId: String
     private lateinit var joinSessionId: String
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +29,7 @@ class HomePage : AppCompatActivity(), ApiHelper {
         enableEdgeToEdge()
         createNotificationChannel()
 //      TODO: Configure loading view
-//        setContentView(R.layout.loading_page)
+        setContentView(R.layout.loading_page)
         val userEmail = intent.getStringExtra("userEmail") ?: ""
         val userName = intent.getStringExtra("displayName") ?: "Unknown User"
         userId = intent.getStringExtra("userId") ?: ""
@@ -132,6 +133,7 @@ class HomePage : AppCompatActivity(), ApiHelper {
         val settingsButton: ImageButton = findViewById(R.id.main_settings_button)
         settingsButton.setOnClickListener {
             val intent = Intent(this, SettingsPage::class.java)
+            intent.putExtra("userId", userId)
             startActivity(intent)
         }
 
@@ -153,8 +155,6 @@ class HomePage : AppCompatActivity(), ApiHelper {
             startActivity(intent)
         }
 
-
-//        TODO: Your Previous Eats
     }
 
     private fun createNotificationChannel() {

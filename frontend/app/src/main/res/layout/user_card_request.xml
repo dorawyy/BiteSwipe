@@ -3,69 +3,54 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="72dp"
-    android:layout_margin="12dp"
+    android:padding="12dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="8dp"
     app:cardBackgroundColor="@color/white">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="12dp">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp">
 
         <ImageView
             android:id="@+id/req_profile_picture"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:scaleType="centerCrop"
             android:background="@drawable/circle_background"
+            android:scaleType="centerCrop"
             app:srcCompat="@drawable/ic_group" />
 
         <TextView
             android:id="@+id/req_user_name_box"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_toEndOf="@id/req_profile_picture"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:maxLines="1"
+            android:layout_weight="1"
             android:ellipsize="end"
+            android:maxLines="1"
             android:text="@string/username"
-            android:textSize="16sp"
             android:textColor="@color/black"
-            android:textStyle="bold" />
-
-        <ImageButton
-            android:id="@+id/reject_friend_button"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginTop="5dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            android:background="?android:selectableItemBackgroundBorderless"
-            app:tint="#C15858"
-            app:srcCompat="@android:drawable/btn_dialog" />
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingStart="8dp"/>
 
         <ImageButton
             android:id="@+id/accept_friend_button"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginTop="36dp"
-            android:layout_marginEnd="60dp"
-            android:layout_marginBottom="36dp"
-            android:layout_toStartOf="@id/reject_friend_button"
             android:background="?android:selectableItemBackgroundBorderless"
-            android:scaleX="2"
-            android:scaleY="2"
-            app:srcCompat="@android:drawable/ic_input_add" />
-    </RelativeLayout>
+            app:srcCompat="@android:drawable/ic_input_add"/>
+
+        <ImageButton
+            android:id="@+id/reject_friend_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?android:selectableItemBackgroundBorderless"
+            app:srcCompat="@android:drawable/ic_delete"
+            android:layout_marginStart="8dp"/>
+
+    </LinearLayout>
 
 </androidx.cardview.widget.CardView>

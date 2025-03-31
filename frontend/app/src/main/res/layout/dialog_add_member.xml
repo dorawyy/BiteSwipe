@@ -10,31 +10,30 @@
     android:layout_gravity="center">
 
     <!-- Title Text -->
+
     <TextView
         android:id="@+id/addmembertext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Member to Group:"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        android:textStyle="bold"
-        android:textColor="@color/textPrimary"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/new_member_text"
         android:layout_marginBottom="16dp"
-        android:textAlignment="center"/>
+        android:text="@string/invite_to_group"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/textPrimary"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/new_member_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- EditText for User Email -->
-
-    <!-- Add Member Button (Positioned to the right of EditText) -->
     <EditText
         android:id="@+id/new_member_text"
         android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="232dp"
         android:background="@drawable/rounded_edittext"
-        android:hint="User Email"
+        android:hint="@string/user_email"
         android:inputType="textEmailAddress"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
@@ -50,11 +49,34 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:backgroundTint="@android:color/transparent"
-        android:contentDescription="Add Member"
+        android:contentDescription="@string/add_member"
         app:layout_constraintBottom_toBottomOf="@+id/new_member_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/new_member_text"
         app:layout_constraintTop_toTopOf="@+id/new_member_text"
         app:srcCompat="@android:drawable/ic_input_add"
         app:tint="@color/teal_200" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/invite_friends_recycler_view"
+        android:layout_width="284dp"
+        android:layout_height="165dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/new_member_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/addmembertext"
+        app:layout_constraintVertical_bias="0.333" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/or_add_by_email"
+        app:layout_constraintBottom_toTopOf="@+id/new_member_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.116"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/invite_friends_recycler_view" />
 </androidx.constraintlayout.widget.ConstraintLayout>

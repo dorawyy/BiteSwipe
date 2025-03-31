@@ -23,6 +23,7 @@ import com.example.biteswipe.helpers.ApiHelper
 import com.example.biteswipe.R
 import com.example.biteswipe.adapter.CuisineAdapter
 import com.example.biteswipe.cards.CuisineCard
+import com.example.biteswipe.helpers.ToastHelper
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -33,7 +34,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import org.json.JSONObject
 
-class CreateGroupPage : AppCompatActivity(), ApiHelper {
+class CreateGroupPage : AppCompatActivity(), ApiHelper, ToastHelper {
     private val TAG = "CreateGroupPage"
     private lateinit var recyclerView: RecyclerView
     private lateinit var cuisineAdapter: CuisineAdapter
@@ -133,11 +134,11 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
         val createGroupButton = findViewById<Button>(R.id.create_group_button)
         createGroupButton.setOnClickListener {
             if(selectedCuisines.isEmpty()){
-                Toast.makeText(this, "Please select at least one cuisine", Toast.LENGTH_SHORT).show()
+                showCustomToast(this, "Please select at least one cuisine", false)
                 return@setOnClickListener
             }
             if(findViewById<EditText>(R.id.searchRadiusText).text.toString().isEmpty()){
-                Toast.makeText(this, "Please input a search radius", Toast.LENGTH_SHORT).show()
+                showCustomToast(this, "Please input a search radius", false)
                 return@setOnClickListener
             }
             val searchRadius = (((findViewById<EditText>(R.id.searchRadiusText).text)).toString().toFloat() * 1000).toString()
@@ -165,7 +166,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
                     finish()
                 },
                 onError = { code, message ->
-                    Toast.makeText(this, "Could not make Group, try again", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this, "Could not make Group, try again", false)
                     Log.d(TAG, "Error: $message")
                 }
             )
@@ -205,7 +206,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
             if (isGranted) {
                 startLocationUpdates()
             } else {
-                Toast.makeText(this, "Location permission is required.", Toast.LENGTH_SHORT).show()
+                showCustomToast(this, "Location permission is required.", false)
                 showSettingsDialog()
             }
         }
@@ -225,7 +226,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
                 )
             }
             .setNegativeButton("Back") { _, _ ->
-                Toast.makeText(this, "Please grant location permissions", Toast.LENGTH_SHORT).show()
+                showCustomToast(this, "Please grant location permissions", false)
                 finish() }
             .show()
     }

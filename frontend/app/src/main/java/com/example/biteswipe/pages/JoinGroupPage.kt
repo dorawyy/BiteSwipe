@@ -21,10 +21,11 @@ import com.example.biteswipe.R
 import com.example.biteswipe.helpers.ApiHelper
 import com.example.biteswipe.R.*
 import com.example.biteswipe.adapter.UserAdapterNoKick
+import com.example.biteswipe.helpers.ToastHelper
 import com.example.biteswipe.jsonFormats.sessionDetails
 import org.json.JSONObject
 
-class JoinGroupPage : AppCompatActivity(), ApiHelper {
+class JoinGroupPage : AppCompatActivity(), ApiHelper, ToastHelper {
     private lateinit var sessionId: String
     private lateinit var userId: String
     private lateinit var session: sessionDetails
@@ -86,7 +87,7 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
                         finish()
                     },
                     onError = { code, message ->
-                        Toast.makeText(this, "Invalid Group Code", Toast.LENGTH_SHORT).show()
+                        showCustomToast(this, "Invalid Group Code", false)
                         Log.d(TAG, "Error joining group: $message")
                     }
                 )
@@ -108,7 +109,7 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
 //                        continue execution as normal
                     },
                     onError = { code, message ->
-                        Toast.makeText(this, "Invalid Group Code", Toast.LENGTH_SHORT).show()
+                        showCustomToast(this, "Invalid Group Code", false)
                         Log.d(TAG, "CAUTION: Invitation not rejected, $message")
 
                     }
@@ -127,6 +128,7 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
 
             dialog.show()
         }
+
 
         val userIdText = findViewById<TextView>(id.join_user_id_text)
         userIdText.text = userEmail
@@ -156,7 +158,7 @@ class JoinGroupPage : AppCompatActivity(), ApiHelper {
                     finish()
                 },
                 onError = { code, message ->
-                    Toast.makeText(this, "Invalid Group Code", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this, "Invalid Group Code", false)
                     Log.d(TAG, "Error joining group: $message")
                 }
             )
