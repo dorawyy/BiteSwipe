@@ -1,22 +1,28 @@
 import 'dotenv/config';
 import mongoose, { Mongoose } from 'mongoose';
 import { createApp } from './app';
+import path from 'path';
 
 // Configure mongoose
 mongoose.set('strictQuery', true);
 
-const port = process.env.PORT ?? 3000;
-const dbUrl = process.env.DB_URI ?? 'mongodb://localhost:27017/biteswipe';
+const port = process.env.PORT;
+const dbUrl = process.env.DB_URI;
+const nodeEnv = process.env.NODE_ENV ?? 'development';
+if (!port) {
+    throw new Error('PORT environment variable is not set');
+}
 
-// Define SSL certificate paths
-//const sslCertPath = process.env.SSL_CERT_PATH ?? path.join(__dirname, '..', '..', 'cert.pem');
-//const sslKeyPath = process.env.SSL_KEY_PATH ?? path.join(__dirname, '..', '..', 'key.pem');
+if (!dbUrl) {
+    throw new Error('DB_URI environment variable is not set');
+}
 
-// Basic startup info
-// console.log('\n=== Server Configuration ===');
-// console.log(`HTTPS Port: ${port}`);
-// console.log(`Environment: ${process.env.NODE_ENV ?? 'development'}`);
-// console.log('=========================\n');
+//Basic startup info
+console.log('\n=== Server Configuration ===');
+console.log(`HTTP Port: ${port}`);
+console.log(`Environment: ${nodeEnv}`);
+
+console.log('=========================\n');
 
 // TODO : attempted to fix the codacy warning but could not. 
 // This make all accesses to mongoose in this file unsafe so
@@ -33,21 +39,21 @@ typedMongoose.connect(dbUrl, {
     family: 4 // Use IPv4, skip trying IPv6
 })
     .then(() => {
-        // console.log('\n=== MongoDB Connection Info ===');
-        // console.log('Connection Status: Connected');
-        // console.log(`Full URL: \x1b[34m${dbUrl}\x1b[0m`);
-        // console.log(`Database: ${mongoose.connection.name}`);
-        // console.log(`Host: ${mongoose.connection.host}`);
-        // console.log(`Port: ${mongoose.connection.port}`);
-        // console.log(`Clickable URL: \x1b[34mhttp://${mongoose.connection.host}:${mongoose.connection.port}/${mongoose.connection.name}\x1b[0m`);
-        // console.log('============================\n');
+        console.log('\n=== MongoDB Connection Info ===');
+        console.log('Connection Status: Connected');
+        console.log(`Full URL: \x1b[34m${dbUrl}\x1b[0m`);
+        console.log(`Database: ${mongoose.connection.name}`);
+        console.log(`Host: ${mongoose.connection.host}`);
+        console.log(`Port: ${mongoose.connection.port}`);
+        console.log(`Clickable URL: \x1b[34mhttp://${mongoose.connection.host}:${mongoose.connection.port}/${mongoose.connection.name}\x1b[0m`);
+        console.log('============================\n');
 
     // Create and start HTTP server
     const app = createApp();
     app.listen(port, () => {
-        // console.log(`\n=== Server Started ===`);
-        // console.log(`Server is running on http://localhost:${port}`);
-        // console.log('====================\n');
+        console.log(`\n=== Server Started ===`);
+        console.log(`Server is running on http://localhost:${port}`);
+        console.log('====================\n');
     });
 })
 .catch((error : unknown)=> {

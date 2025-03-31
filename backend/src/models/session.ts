@@ -29,11 +29,13 @@ interface ISession extends Document {
         score: number;
         totalVotes: number;
         positiveVotes: number;
+        potentialMatchScore: number;
+        potentialMatchSwipe: number;
     }[];
-    finalSelection?: {
+    finalSelections?: {
         restaurantId: Types.ObjectId;
         selectedAt: Date;
-    };
+    }[];
     doneSwiping: Types.ObjectId[];
     createdAt: Date;
     expiresAt: Date;
@@ -82,15 +84,17 @@ const SessionSchema = new mongoose.Schema<ISession>({
         },
         score: { type: Number, default: 0 },
         totalVotes: { type: Number, default: 0 },
-        positiveVotes: { type: Number, default: 0 }
+        positiveVotes: { type: Number, default: 0 },
+        potentialMatchScore: { type: Number, default: 0 },
+        potentialMatchSwipe: {type: Number, default: 0},
     }],
-    finalSelection: {
+    finalSelections: [{
         restaurantId: { 
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Restaurant'
         },
         selectedAt: Date
-    },
+    }],
     doneSwiping: [{ 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User' 

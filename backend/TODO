@@ -1,12 +1,41 @@
--- M5
-1. update the requirements document
-2. Codacy
-3. test documentation
-4. unmock test run on github actions
-
 -- M6
-1. firebase + notification service 
-2. complex matching code
-3. encryption with google (check if it is doable)
-4. friend list (check if it is doable)
-5. 
+(Abdul) BKEND:: firebase + notification service 
+(Lakshya) BKEND:: complex matching code
+(Lakshya)BKEND:: socket impl for view and swipe
+(Alex | Abdul) BKEND:: Address TA commentfrom M4 and M5
+(Varun | Abdul)BKEND:: friend list (check if it is doable)
+
+(Alex) VID:: Presntation (slides) (12mins)
+(Alex) VID:: ForntEnd talk about code arch (4mins)
+(Varun) VID:: BacktEnd talk about code arch (3mins)
+(Lakshya) VID:: BacktEnd talk about Test (3mins)
+(Abdul) VID:: Github Action + Codacy (3mins)
+
+-- nice to have
+
+=========
+
+(Varun) FNTEND::friends functionality
+(Varun) FNTEND::fix user flashing create/view group (FULL STACK)
+
+(Alex) FNTEND::extend restraunt cards
+    FNTEND:: Swipe up to see extended details
+    FNTEND::restraunt photos
+    FNTEND::reservation links
+    FNTEND::map
+    FNTEND::operating times
+    FNTEND::fix card too big issue
+
+(Alex) FNTEND::add map/start location
+
+FNTEND::bueatify everything
+
+-- nice to have
+FNTEND::swipe page
+    FNTEND::countdown
+    FNTEND::users who completed
+
+
+
+FNTEND::settings page (profile photos, Achange display name)
+FNTEND::prev eats
