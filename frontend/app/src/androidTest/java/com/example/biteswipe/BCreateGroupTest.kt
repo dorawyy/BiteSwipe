@@ -114,7 +114,7 @@ class BCreateGroupTest {
 //      Create Group requirements
         onView(withId(R.id.create_group_button)).check(matches(isDisplayed()))
         onView(withId(R.id.searchRadiusText)).check(matches(isDisplayed()))
-        onView(withId(R.id.cuisine_recycler_view)).check(matches(isDisplayed()))
+        onView(withText("Italian")).check(matches(isDisplayed()))
 //        TODO: add radius test after implementing functionality
         onView(withId(R.id.create_back_button)).check(matches(isDisplayed()))
         scenario.close()
@@ -125,20 +125,10 @@ class BCreateGroupTest {
         startPage()
 
 //        test scroll
-        onView(withId(R.id.cuisine_recycler_view))
-            .perform(RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(
-                hasDescendant(withText("Japanese")
-                )))
-        Thread.sleep(400)
-        onView(withId(R.id.cuisine_recycler_view))
-            .perform(RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(
-                hasDescendant(withText("Italian")
-                )))
+
+        onView(withText("Italian"))
+            .perform(click())
 //      test click on an item
-        onView(withId(R.id.cuisine_recycler_view))
-            .perform(RecyclerViewActions.actionOnItemAtPosition<CuisineAdapter.CuisineViewHolder>(
-                0, clickChildViewWithId(R.id.cuisine_checkbox)
-            ))
 
 
         onView(withId(R.id.searchRadiusText)).perform(typeText("1000"), closeSoftKeyboard())
@@ -211,10 +201,9 @@ class BCreateGroupTest {
         Intents.intended(hasComponent(CreateGroupPage::class.java.name))
 
 //        check for invalid radius
-        onView(withId(R.id.cuisine_recycler_view))
-            .perform(RecyclerViewActions.actionOnItemAtPosition<CuisineAdapter.CuisineViewHolder>(
-                0, clickChildViewWithId(R.id.cuisine_checkbox)
-            ))
+        onView(withText("Italian"))
+            .perform(click())
+
         onView(withId(R.id.create_group_button)).perform(click())
         Thread.sleep(3000)
         Intents.intended(hasComponent(CreateGroupPage::class.java.name))
