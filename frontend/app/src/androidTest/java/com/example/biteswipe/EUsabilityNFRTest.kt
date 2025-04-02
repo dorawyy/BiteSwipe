@@ -10,6 +10,7 @@ import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.uiautomator.UiDevice
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiSelector
+import com.example.biteswipe.pages.LoginPage
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.FixMethodOrder

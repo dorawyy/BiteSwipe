@@ -1,10 +1,10 @@
-package com.example.biteswipe
+package com.example.biteswipe.helpers
 
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.biteswipe.cards.RestaurantCard
+import com.example.biteswipe.R
 import com.example.biteswipe.jsonFormats.Creator
 import com.example.biteswipe.jsonFormats.Location
 import com.example.biteswipe.jsonFormats.Participant
@@ -37,6 +37,8 @@ interface ApiHelper {
      */
     fun getBaseUrl(context: Context): String {
         return context.getString(R.string.base_url)
+//        for testing purposes only
+//        return "http://10.0.2.2:3000"
     }
 
     /**
@@ -72,7 +74,8 @@ interface ApiHelper {
         onSuccess: (JSONObject) -> Unit,
         onError: ((Int?, String?) -> Unit)? = null,
     ) {
-
+//          For testing purpose only
+//        val client = OkHttpClient()
         val client = createTrustedClient(context)
 
         val url = if (isFullUrl) endpoint else getBaseUrl(context) + endpoint
@@ -184,7 +187,9 @@ interface ApiHelper {
             .build()
     }
 
-
+    fun parseSessionStatus(json: JSONObject, TAG: String = "ApiHelper"): String {
+        return json.getString("status")
+    }
     fun parseSessionData(json: JSONObject, TAG: String = "ApiHelper"): sessionDetails {
         Log.d(TAG, "Parsing session data: $json")
 

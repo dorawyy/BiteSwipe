@@ -32,3 +32,4 @@ firebase-service-account.json
 frontend/.idea
 frontend/app/src/main/res/raw
 test.env
+frontend/app/src/google-services.json

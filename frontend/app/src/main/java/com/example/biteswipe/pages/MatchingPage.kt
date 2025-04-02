@@ -1,4 +1,4 @@
-package com.example.biteswipe
+package com.example.biteswipe.pages
 
 import com.example.biteswipe.cards.RestaurantCard
 import android.animation.Animator
@@ -9,63 +9,209 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.GestureDetector
+import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.helpers.ApiHelper
+import com.example.biteswipe.R
 import com.example.biteswipe.adapter.SwipeAdapter
 import com.example.biteswipe.cards.UserCard
+import com.example.biteswipe.helpers.ToastHelper
 import com.example.biteswipe.jsonFormats.RestaurantData
-import com.example.biteswipe.jsonFormats.sessionDetails
 import org.json.JSONObject
 
-class MatchingPage : AppCompatActivity(), ApiHelper {
+class MatchingPage : AppCompatActivity(), ApiHelper, ToastHelper {
     private lateinit var recyclerView: RecyclerView
+    private lateinit var potentialRecyclerView: RecyclerView
     private lateinit var adapter: SwipeAdapter
+    private lateinit var adapter2: SwipeAdapter
     private lateinit var cards: MutableList<RestaurantCard>
     private lateinit var RestaurantList: MutableList<RestaurantData>
+    private lateinit var matchDialog: AlertDialog
     private var currentCardIndex = 0
     private lateinit var sessionId: String
     private lateinit var userId: String
+    private lateinit var tempPotentialRestaurant: String
+    private lateinit var potentialRestaurantId: String
     private val handler = Handler(Looper.getMainLooper())
+    private val matchesHandler = Handler(Looper.getMainLooper())
+    private lateinit var potentialMatchesList: MutableList<RestaurantCard>
     private var userFinished = false
+    private var fetchFailCounter = 0
     private var TAG = "MatchingPage"
 
-    private val checkFinished = object: Runnable {
-
-//        TODO: Check for match found, open popup accordingly and go to results (Match found) page if everyone agrees -> Nested API Call
 
 
-//        TODO: [IN PROGRESS] Tell Backend we have finished swiping (remainingCards = 0), visual update
+    private fun checkMatchesFinished(onCompletion: () -> Unit) {
+        apiRequest(
+            context = this@MatchingPage,
+            endpoint = "/sessions/$sessionId/potentialMatchResult/${potentialRestaurantId}",
+            method = "GET",
+            onSuccess = { response ->
+                fetchFailCounter = 0
+                Log.d(TAG, "Response: $response")
+                val success = response.optBoolean("success")
 
-        override fun run() {
-            val endpoint = "/sessions/$sessionId/"
-            apiRequest(
-                context = this@MatchingPage,
-                endpoint = endpoint,
-                method = "GET",
-                onSuccess = { response ->
-                    val session  = parseSessionData(response, TAG)
-                    if(session.status != "MATCHING") {
-                        Log.d(TAG, "Session Finished")
+                if (success) {
+                    val result = response.optJSONObject("result")
+
+                    if (result == null) {
+                        matchDialog.dismiss()
+                        potentialMatchesList.clear()
+                        adapter2.notifyItemRemoved(0)
+                        showCustomToast(this, "Not enough people approved", false)
+
+                        // call original handler
+                        onCompletion()
+                    } else {
+                        matchDialog.dismiss()
                         val intent = Intent(this@MatchingPage, ResultsPage::class.java)
                         intent.putExtra("sessionId", sessionId)
                         intent.putExtra("userId", userId)
+                        intent.putExtra("singleMatch", true)
+                        intent.putExtra("potentialRestaurant", tempPotentialRestaurant)
                         startActivity(intent)
                         finish()
                     }
+                } else {
+                    Log.d(TAG, "Not all votes collected, retrying")
+                    matchesHandler.postDelayed({ checkMatchesFinished(onCompletion) }, 3000)
                 }
-            )
-            handler.postDelayed(this, 5000)
-        }
+            },
+            onError = { _, message ->
+                fetchFailCounter++
 
+                if (fetchFailCounter > 3) {
+                    Log.e(TAG, "Backend error: multiple API Calls failed, closing session")
+                    finish()
+                } else {
+                    Log.e(TAG, "Error: $message")
+                    matchesHandler.postDelayed({ checkMatchesFinished(onCompletion) }, 3000)
+                }
+            }
+        )
     }
+
+
+    private fun checkMatch() {
+        val endpoint = "/sessions/$sessionId/potentialMatch"
+        apiRequest(
+            context = this@MatchingPage,
+            endpoint = endpoint,
+            method = "GET",
+            onSuccess = { response ->
+                val potentialRestaurant = parseRestaurant(response.toString())
+                Log.d(TAG, "Potential Restaurant: $potentialRestaurant")
+
+                val inflater = LayoutInflater.from(this@MatchingPage)
+                val dialogView: View = inflater.inflate(R.layout.dialog_match_found, null)
+                matchDialog = AlertDialog.Builder(this@MatchingPage)
+                    .setView(dialogView)
+                    .setCancelable(true)
+                    .create()
+
+                tempPotentialRestaurant = response.toString()
+                potentialRestaurantId = potentialRestaurant.restaurantId
+                potentialMatchesList.add(RestaurantCard(potentialRestaurant.name, potentialRestaurant.picture, potentialRestaurant.address, potentialRestaurant.contactNumber, potentialRestaurant.price, potentialRestaurant.rating, potentialRestaurant.restaurantId))
+
+                potentialRecyclerView = dialogView.findViewById(R.id.MatchFoundRecyclerView)
+                potentialRecyclerView.layoutManager = LinearLayoutManager(this@MatchingPage, LinearLayoutManager.HORIZONTAL, false)
+                adapter2 = SwipeAdapter(this@MatchingPage, potentialMatchesList)
+                potentialRecyclerView.adapter = adapter2
+
+                val approveButton = dialogView.findViewById<View>(R.id.YesMatch)
+                val rejectButton = dialogView.findViewById<View>(R.id.NoMatch)
+
+                approveButton.setOnClickListener {
+                    val body = JSONObject().apply {
+                        put("restaurantId", potentialRestaurantId)
+                        put("liked", true)
+                    }
+                    apiRequest(
+                        context = this@MatchingPage,
+                        endpoint = "/sessions/$sessionId/potentialMatchSwipe",
+                        method = "POST",
+                        jsonBody = body,
+                        onSuccess = { _ ->
+                            Log.d(TAG, "Checking for other responses")
+
+                            // after checking matches, return to previous
+                            checkMatchesFinished { checkMatch() }
+
+                            approveButton.visibility = View.GONE
+                            rejectButton.visibility = View.GONE
+                        },
+                        onError = { _, message ->
+                            Log.e(TAG, "Error: $message")
+                            showCustomToast(this, "Server Error, try again", false)
+                        }
+                    )
+                }
+
+                rejectButton.setOnClickListener {
+                    val body = JSONObject().apply {
+                        put("restaurantId", potentialRestaurantId)
+                        put("liked", false)
+                    }
+                    apiRequest(
+                        context = this@MatchingPage,
+                        endpoint = "/sessions/$sessionId/potentialMatchSwipe",
+                        method = "POST",
+                        jsonBody = body,
+                        onSuccess = { _ ->
+                            Log.d(TAG, "Checking for other responses")
+
+                            // same as above
+                            checkMatchesFinished { checkMatch() }
+
+                            approveButton.visibility = View.GONE
+                            rejectButton.visibility = View.GONE
+                        },
+                        onError = { _, message ->
+                            Log.e(TAG, "Error: $message")
+                            showCustomToast(this, "Server Error, try again", false)
+                        }
+                    )
+                }
+                matchDialog.show()
+            },
+            onError = { _, message ->
+                apiRequest(
+                    context = this@MatchingPage,
+                    endpoint = "/sessions/$sessionId/result",
+                    method = "GET",
+                    onSuccess = { response ->
+                        Log.d(TAG, "Result Response: $response")
+                        val sessionStatus  = response.optJSONArray("result") ?: ""
+                        if(sessionStatus != "") {
+                            Log.d(TAG, "Session Finished")
+                            val intent = Intent(this@MatchingPage, ResultsPage::class.java)
+                            intent.putExtra("sessionId", sessionId)
+                            intent.putExtra("userId", userId)
+                            intent.putExtra("singleMatch", false)
+                            startActivity(intent)
+                            finish()
+                        }
+                        handler.postDelayed({ checkMatch() }, 5000)
+                    },
+                    onError = { code2, message2 ->
+                        Log.d(TAG, "Error: $code2, $message2")
+                        handler.postDelayed({ checkMatch() }, 5000)
+                    }
+                )
+            }
+        )
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,13 +222,14 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
         sessionId = intent.getStringExtra("sessionId") ?: ""
         userId = intent.getStringExtra("userId") ?: ""
 
         Log.d(TAG, "Session ID: $sessionId, User ID: $userId")
         cards = mutableListOf()
         RestaurantList = mutableListOf()
-
+        potentialMatchesList = mutableListOf()
 
         recyclerView = findViewById(R.id.recycler_view)
         recyclerView.layoutManager =
@@ -91,7 +238,6 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
         recyclerView.adapter = adapter
         Log.d(TAG, "Set up cards")
         val endpoint = "/sessions/$sessionId/restaurants"
-        // TODO: the response has changed. Update parseRestaurants
         apiRequest(
             context = this@MatchingPage,
             endpoint = endpoint,
@@ -118,11 +264,11 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
             },
             onError = { code, message ->
                 Log.d(TAG, "Error: $code, $message")
-                Toast.makeText(this@MatchingPage, "Error: $code, $message", Toast.LENGTH_SHORT).show()
+
             }
         )
         setupSwipeListener()
-        checkFinished.run()
+        checkMatch()
     }
     private var isSwiping = false
     private fun setupSwipeListener() {
@@ -225,11 +371,11 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                 method = "POST",
                 jsonBody = body,
                 onSuccess = { response ->
-                    Log.d(TAG, "Vote sent")
+                    Log.d(TAG, "Vote sent: YES")
                 },
                 onError = { code, message ->
                     Log.d(TAG, "Error: $code, $message")
-                    Toast.makeText(this@MatchingPage, "Error: Vote was not sent", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this, "Error: Vote was not sent", false)
                 }
             )
         }
@@ -293,11 +439,11 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
                 method = "POST",
                 jsonBody = body,
                 onSuccess = { response ->
-                    Log.d(TAG, "Vote sent")
+                    Log.d(TAG, "Vote sent: NO")
                 },
                 onError = { code, message ->
                     Log.d(TAG, "Error: $code, $message")
-                    Toast.makeText(this@MatchingPage, "Error: Vote was not sent", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this, "Error: Vote was not sent", false)
                 }
             )
         }
@@ -305,6 +451,6 @@ class MatchingPage : AppCompatActivity(), ApiHelper {
 
     override fun onDestroy() {
         super.onDestroy()
-        handler.removeCallbacks(checkFinished)
+//        handler.removeCallbacks(checkMatch)
     }
 }

@@ -31,5 +31,17 @@
     <string name="default_web_client_id">374847957341-tkcogajpu02o13t2nirt5tehpg6ahavb.apps.googleusercontent.com</string>
     <string name="tester">Tester</string>
     <string name="waiting_for_others_to_finish">Waiting for others to finish...</string>
+    <string name="logo">Logo</string>
 
+    <string name="default_notification_channel_id">default_channel</string>
+    <string name="default_notification_channel_name">Default Notifications</string>
+    <string name="default_notification_channel_description">General notifications</string>
+    <string name="friend_requests">Friend Requests:</string>
+    <string name="match_found">Match Found!</string>
+    <string name="join_group">Join Group?</string>
+    <string name="invited_by">Invited by:</string>
+    <string name="invite_to_group">Invite to Group:</string>
+    <string name="user_email">User Email</string>
+    <string name="add_member">Add Member</string>
+    <string name="or_add_by_email">Or, add by email:</string>
 </resources>

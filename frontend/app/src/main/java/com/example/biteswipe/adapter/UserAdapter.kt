@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.biteswipe.R
 import com.example.biteswipe.cards.UserCard
 
-class UserAdapter(private val context: Context, private val users: MutableList<UserCard>, private val onKickUser: (UserCard) -> Unit) :
+class UserAdapter(private val context: Context, private val users: MutableList<UserCard>, private val addOrKick: Boolean, private val onKickUser: (UserCard) -> Unit) :
     RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
     // ViewHolder class to hold each item view
@@ -32,10 +32,11 @@ class UserAdapter(private val context: Context, private val users: MutableList<U
         val user = users[position]
         holder.userName.text = user.userName
         holder.profilePicture.setImageResource(user.imageRes)
-
+        if (addOrKick) {
+            holder.kickButton.setImageResource(R.drawable.rounded_add_24) // Green plus icon
+        }
         // Handle click for the kick button (you can add a listener here)
         holder.kickButton.setOnClickListener {
-
             onKickUser(user)
         }
     }

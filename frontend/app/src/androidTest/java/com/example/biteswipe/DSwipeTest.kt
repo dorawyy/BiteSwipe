@@ -16,23 +16,20 @@ import androidx.test.espresso.matcher.ViewMatchers.hasMinimumChildCount
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
 import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.biteswipe.adapter.SwipeAdapter
+import com.example.biteswipe.helpers.ApiHelper
+import com.example.biteswipe.pages.MatchingPage
 import org.json.JSONObject
-import org.junit.Assume
-import org.junit.Before
 import org.junit.FixMethodOrder
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
-import java.util.concurrent.CountDownLatch
 
 
 @RunWith(AndroidJUnit4::class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-class DSwipeTest : ApiHelper{
+class DSwipeTest : ApiHelper {
 
     lateinit var mainScenario: ActivityScenario<MatchingPage>
 

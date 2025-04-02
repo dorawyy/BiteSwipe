@@ -1,15 +1,9 @@
-package com.example.biteswipe
+package com.example.biteswipe.pages
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -25,21 +19,27 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.biteswipe.helpers.ApiHelper
+import com.example.biteswipe.R
 import com.example.biteswipe.adapter.CuisineAdapter
 import com.example.biteswipe.cards.CuisineCard
+import com.example.biteswipe.helpers.ToastHelper
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import org.json.JSONObject
 
-class CreateGroupPage : AppCompatActivity(), ApiHelper {
+class CreateGroupPage : AppCompatActivity(), ApiHelper, ToastHelper {
     private val TAG = "CreateGroupPage"
     private lateinit var recyclerView: RecyclerView
     private lateinit var cuisineAdapter: CuisineAdapter
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
 
     private var latitude  = 0.0
     private var longitude = 0.0
@@ -81,21 +81,37 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
 
 
 //        Set up Cuisines
-        recyclerView = findViewById(R.id.cuisine_recycler_view)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        cuisineAdapter = CuisineAdapter(this, cuisines) { cuisine ->
-            Log.d(TAG, "Cuisine ${cuisine.name} initial ${cuisine.isSelected}")
+//        Find the ChipGroup in your layout
+        val cuisineChipGroup = findViewById<ChipGroup>(R.id.cuisine_chip_group)
 
-            if (cuisine.isSelected) {
-                if(!selectedCuisines.contains(cuisine.name)){
-                    selectedCuisines.add(cuisine.name)
+// Clear existing chips (optional safety)
+        cuisineChipGroup.removeAllViews()
+
+// Dynamically add chips based on your cuisines list
+        val selectedCuisines = mutableSetOf<String>()
+
+        cuisines.forEach { cuisine ->
+            val chip = Chip(this).apply {
+                text = cuisine.name
+                isCheckable = true
+                isChecked = cuisine.isSelected
+
+                setOnCheckedChangeListener { _, isChecked ->
+                    cuisine.isSelected = isChecked
+
+                    if (isChecked) {
+                        selectedCuisines.add(cuisine.name)
+                    } else {
+                        selectedCuisines.remove(cuisine.name)
+                    }
+
+                    Log.d(TAG, "selected cuisines: $selectedCuisines")
                 }
-            } else {
-                selectedCuisines.remove(cuisine.name)
             }
-            Log.d(TAG, "selected cuisines: $selectedCuisines")
+
+            // Add the chip to your ChipGroup
+            cuisineChipGroup.addView(chip)
         }
-        recyclerView.adapter = cuisineAdapter
 
 
 // Request location updates
@@ -118,10 +134,14 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
         val createGroupButton = findViewById<Button>(R.id.create_group_button)
         createGroupButton.setOnClickListener {
             if(selectedCuisines.isEmpty()){
-                Toast.makeText(this, "Please select at least one cuisine", Toast.LENGTH_SHORT).show()
+                showCustomToast(this, "Please select at least one cuisine", false)
                 return@setOnClickListener
             }
-            val searchRadius = findViewById<EditText>(R.id.searchRadiusText).text.toString()
+            if(findViewById<EditText>(R.id.searchRadiusText).text.toString().isEmpty()){
+                showCustomToast(this, "Please input a search radius", false)
+                return@setOnClickListener
+            }
+            val searchRadius = (((findViewById<EditText>(R.id.searchRadiusText).text)).toString().toFloat() * 1000).toString()
 
             val endpoint = "/sessions/"
 //            TODO: body for cuisine preferences (API)
@@ -141,11 +161,12 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
                     intent.putExtra("sessionId", response.getString("_id"))
                     intent.putExtra("joinCode", response.getString("joinCode"))
                     intent.putExtra("userId", userId)
+                    fusedLocationClient.removeLocationUpdates(locationCallback)
                     startActivity(intent)
                     finish()
                 },
                 onError = { code, message ->
-                    Toast.makeText(this, "Could not make Group, try again", Toast.LENGTH_SHORT).show()
+                    showCustomToast(this, "Could not make Group, try again", false)
                     Log.d(TAG, "Error: $message")
                 }
             )
@@ -153,6 +174,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
 
         val backButton: ImageButton = findViewById(R.id.create_back_button)
         backButton.setOnClickListener {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
             finish()
         }
     }
@@ -165,7 +187,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
         }
 
         // Location callback to handle location updates
-        val locationCallback = object : LocationCallback() {
+        locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { location ->
                     latitude = location.latitude
@@ -184,7 +206,7 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
             if (isGranted) {
                 startLocationUpdates()
             } else {
-                Toast.makeText(this, "Location permission is required.", Toast.LENGTH_SHORT).show()
+                showCustomToast(this, "Location permission is required.", false)
                 showSettingsDialog()
             }
         }
@@ -204,14 +226,14 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper {
                 )
             }
             .setNegativeButton("Back") { _, _ ->
-                Toast.makeText(this, "Please grant location permissions", Toast.LENGTH_SHORT).show()
+                showCustomToast(this, "Please grant location permissions", false)
                 finish() }
             .show()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        fusedLocationClient.removeLocationUpdates {}
+        fusedLocationClient.removeLocationUpdates(locationCallback)
         // Stop location updates when the activity is destroyed to avoid unnecessary resource usage
     }
 }

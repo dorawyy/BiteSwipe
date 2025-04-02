@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -67,7 +68,7 @@ dependencies {
     implementation(libs.androidx.recyclerview.v121)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.animation.graphics.android)
-    implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging.ktx)
     implementation (libs.androidx.credentials)
     implementation (libs.androidx.credentials.play.services.auth)
@@ -77,6 +78,9 @@ dependencies {
     implementation(libs.androidx.espresso.intents)
     implementation(libs.androidx.uiautomator)
     implementation(libs.androidx.espresso.contrib)
+//    allowed as per private piazza post
+    implementation(libs.coil)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

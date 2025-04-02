@@ -7,4 +7,18 @@
     <color name="teal_700">#018786</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
+
+    <!-- Primary Brand Colors -->
+    <color name="primary">#FF5722</color> <!-- Deep Orange 500 -->
+    <color name="primaryVariant">#E64A19</color> <!-- Deep Orange 600 (darker variant) -->
+    <color name="secondary">#FF7043</color> <!-- Deep Orange 400 -->
+
+    <!-- Background Colors -->
+    <color name="background">#FFFBFE</color> <!-- Light Neutral Background -->
+    <color name="surface">#FFFFFF</color> <!-- Surface color, pure white -->
+
+    <!-- Text Colors -->
+    <color name="textPrimary">#212121</color> <!-- Near Black -->
+    <color name="textSecondary">#757575</color> <!-- Dark Grey -->
+    <color name="textOnPrimary">#FFFFFF</color> <!-- White (used on buttons with primary/secondary colors) -->
 </resources>

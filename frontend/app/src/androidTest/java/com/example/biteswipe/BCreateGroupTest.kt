@@ -23,20 +23,19 @@ import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.uiautomator.UiSelector
 import com.example.biteswipe.adapter.CuisineAdapter
+import com.example.biteswipe.pages.CreateGroupPage
+import com.example.biteswipe.pages.ModerateGroupPage
 import org.junit.After
 
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import org.junit.Assert.*
 import org.junit.Before
 import org.junit.FixMethodOrder
-import org.junit.Rule
 import org.junit.runners.MethodSorters
 
 /**
@@ -115,7 +114,7 @@ class BCreateGroupTest {
 //      Create Group requirements
         onView(withId(R.id.create_group_button)).check(matches(isDisplayed()))
         onView(withId(R.id.searchRadiusText)).check(matches(isDisplayed()))
-        onView(withId(R.id.cuisine_recycler_view)).check(matches(isDisplayed()))
+        onView(withText("Italian")).check(matches(isDisplayed()))
 //        TODO: add radius test after implementing functionality
         onView(withId(R.id.create_back_button)).check(matches(isDisplayed()))
         scenario.close()
@@ -126,20 +125,10 @@ class BCreateGroupTest {
         startPage()
 
 //        test scroll
-        onView(withId(R.id.cuisine_recycler_view))
-            .perform(RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(
-                hasDescendant(withText("Japanese")
-                )))
-        Thread.sleep(400)
-        onView(withId(R.id.cuisine_recycler_view))
-            .perform(RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(
-                hasDescendant(withText("Italian")
-                )))
+
+        onView(withText("Italian"))
+            .perform(click())
 //      test click on an item
-        onView(withId(R.id.cuisine_recycler_view))
-            .perform(RecyclerViewActions.actionOnItemAtPosition<CuisineAdapter.CuisineViewHolder>(
-                0, clickChildViewWithId(R.id.cuisine_checkbox)
-            ))
 
 
         onView(withId(R.id.searchRadiusText)).perform(typeText("1000"), closeSoftKeyboard())
@@ -212,10 +201,9 @@ class BCreateGroupTest {
         Intents.intended(hasComponent(CreateGroupPage::class.java.name))
 
 //        check for invalid radius
-        onView(withId(R.id.cuisine_recycler_view))
-            .perform(RecyclerViewActions.actionOnItemAtPosition<CuisineAdapter.CuisineViewHolder>(
-                0, clickChildViewWithId(R.id.cuisine_checkbox)
-            ))
+        onView(withText("Italian"))
+            .perform(click())
+
         onView(withId(R.id.create_group_button)).perform(click())
         Thread.sleep(3000)
         Intents.intended(hasComponent(CreateGroupPage::class.java.name))

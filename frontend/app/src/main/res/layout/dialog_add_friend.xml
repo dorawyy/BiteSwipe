@@ -2,47 +2,59 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="24dp"
+    android:background="@android:color/white"
+    android:elevation="16dp"
+    android:layout_gravity="center">
 
+    <!-- Title Text -->
     <TextView
         android:id="@+id/textView10"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:text="@string/add_friend"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        android:textColor="@color/textPrimary"
+        android:textSize="16sp"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="16dp"
+        android:textAlignment="center"/>
 
+    <!-- EditText for Username -->
     <EditText
         android:id="@+id/add_username"
-        android:layout_width="154dp"
-        android:layout_height="37dp"
-        android:ems="10"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
         android:hint="@string/username"
         android:inputType="text"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.093"
+        android:background="@drawable/rounded_edittext"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="@color/textPrimary"
+        android:textSize="14sp"
+        android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintEnd_toStartOf="@+id/add_friend_button"
+        app:layout_constraintTop_toBottomOf="@+id/textView10"
+        app:layout_constraintHorizontal_bias="0.0"/>
 
+    <!-- Add Friend Button -->
     <ImageButton
         android:id="@+id/add_friend_button"
-        android:layout_width="44dp"
-        android:layout_height="36dp"
-        android:layout_marginTop="44dp"
-        android:backgroundTint="#00FFFFFF"
-        android:contentDescription="TODO"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:backgroundTint="@android:color/transparent"
+        android:contentDescription="Add Friend"
+        app:layout_constraintBottom_toBottomOf="@+id/add_username"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/add_username"
-        app:layout_constraintTop_toBottomOf="@+id/textView10"
+        app:layout_constraintTop_toTopOf="@+id/add_username"
         app:srcCompat="@android:drawable/ic_input_add"
-        app:tint="#673AB7" />
+        app:tint="@color/teal_200" />
 </androidx.constraintlayout.widget.ConstraintLayout>

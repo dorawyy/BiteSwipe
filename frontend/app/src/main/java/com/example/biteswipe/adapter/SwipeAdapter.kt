@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,7 @@ import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.example.biteswipe.R
 import kotlinx.coroutines.*
 import java.net.HttpURLConnection
@@ -55,44 +57,18 @@ class SwipeAdapter(private val context: Context, private val cards: List<Restaur
 
 //        handle image
         GlobalScope.launch(Dispatchers.Main) {
-            val bmp = downloadImage(card.imageRes, holder.cardImage)
-            holder.cardImage.setImageBitmap(bmp)
-        }
-    }
 
-    private fun downloadImage(imageRes: String, imageView: ImageView): Bitmap? {
-        if (imageRes == "") {
-            Log.d("SwipeAdapter", "No image found")
-            return getDefaultBitmap()
-        }
-        var bitmap: Bitmap? = null
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                bitmap = withContext(Dispatchers.IO) {
-                    try {
-                        val urlConnection = URL(imageRes).openConnection() as HttpURLConnection
-                        urlConnection.apply {
-                            requestMethod = "GET"
-                            connectTimeout = 15000
-                            readTimeout = 15000
-                        }
-                        val inputStream = urlConnection.inputStream
-                        BitmapFactory.decodeStream(inputStream)
-                    } catch (e: Exception) {
-                        // Log and return a default image if there's an error
-                        Log.e("ImageDownload", "Error downloading image", e)
-                        getDefaultBitmap()
-                    }
-                }
+//            load error image
+            val defaultDrawable = BitmapDrawable(context.resources, getDefaultBitmap())
 
-            } catch (e: Exception) {
-                Log.e("ImageDownload", "Error setting image", e)
-                bitmap = getDefaultBitmap()
+            holder.cardImage.load(card.imageRes){
+//                  placeholder(defaultDrawable)
+//                TODO: add placeholder (loading) images
+                error(defaultDrawable)
             }
         }
-        return bitmap
-
     }
+
     private fun getDefaultBitmap(): Bitmap {
         // Create a 100x100 bitmap
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
