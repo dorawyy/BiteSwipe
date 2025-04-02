@@ -211,7 +211,7 @@ data "azurerm_storage_account" "certs" {
 }
 
 data "azurerm_storage_blob" "firebase_cert" {
-  name                   = "biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json"
+  name                   = "biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json"
   storage_account_name   = data.azurerm_storage_account.certs.name
   storage_container_name = "production-container"
 }
@@ -336,7 +336,7 @@ EOF
 PORT=3000
 DB_URI=mongodb://mongo:27017/biteswipe
 GOOGLE_MAPS_API_KEY=${local.google_maps_api_key}
-FIREBASE_CREDENTIALS_JSON_PATHNAME=$BACKEND_REMOTE_PATH/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+FIREBASE_CREDENTIALS_JSON_PATHNAME=$BACKEND_REMOTE_PATH/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json
 ENVFILE
       
       echo "[Deploy] Environment preparation phase completed successfully!"
@@ -370,7 +370,7 @@ EOF
         --account-name ${data.azurerm_storage_account.certs.name} \
         --container-name production-container \
         --name ${data.azurerm_storage_blob.firebase_cert.name} \
-        --file $BACKEND_PATH/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json \
+        --file $BACKEND_PATH/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json \
         --account-key "${data.azurerm_storage_account.certs.primary_access_key}"
       
       # Download SSL certificate files from Azure Storage
@@ -399,9 +399,9 @@ EOF
       # Verify the Firebase credentials file was copied
       echo "[Deploy] Verifying Firebase credentials file..."
       ssh $SSH_OPTS -i $SSH_KEY adminuser@$VM_IP "
-        if [ -f $BACKEND_REMOTE_PATH/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json ]; then
+        if [ -f $BACKEND_REMOTE_PATH/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json ]; then
           echo '[Deploy] Firebase credentials file found'
-          ls -la $BACKEND_REMOTE_PATH/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+          ls -la $BACKEND_REMOTE_PATH/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json
         else
           echo '[Deploy] FATAL ERROR: Firebase credentials file not found!'
           echo '[Deploy] Deployment cannot continue without Firebase credentials.'
@@ -430,132 +430,8 @@ EOF
     on_failure = fail
     command = <<EOF
       #!/bin/bash
-      set -x  # Enable debug output
-      # Don't exit on error immediately to allow for retries
-      set +e
-      echo [**********************] Service deployment and validation [**********************]
-      
-      # --- Configuration ---
-      SSH_KEY="$HOME/.ssh/to_azure/CPEN321.pem"
-      VM_IP="${azurerm_public_ip.public_ip.ip_address}"
-      SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
-      BACKEND_REMOTE_PATH="/app/backend"
-      
-      # Function to verify SSH connection
-      verify_ssh() {
-        echo "[Deploy] Verifying SSH connection to $VM_IP..."
-        for i in {1..5}; do
-          ssh $SSH_OPTS -i $SSH_KEY adminuser@$VM_IP "echo 'SSH test successful'" && return 0
-          echo "[Deploy] SSH connection attempt $i failed, retrying in 5 seconds..."
-          sleep 5
-        done
-        echo "[Deploy] Failed to establish SSH connection after 5 attempts"
-        return 1
-      }
-      
-      # Verify SSH connection first
-      if ! verify_ssh; then
-        echo "[Deploy] Cannot proceed with deployment due to SSH connection failure"
-        exit 1
-      fi
-      
-      # Start application services with retry logic
-      echo "[Deploy] Starting Docker services..."
-      for deploy_attempt in {1..3}; do
-        echo "[Deploy] Deployment attempt $deploy_attempt of 3"
-        
-        ssh $SSH_OPTS -i $SSH_KEY adminuser@$VM_IP "
-          set -x
-          cd $BACKEND_REMOTE_PATH || { echo 'Failed to change directory to $BACKEND_REMOTE_PATH'; exit 1; }
-          pwd
-          ls -la
-          
-          # Check if docker-compose.yml exists
-          if [ ! -f docker-compose.yml ]; then
-            echo '[Deploy] ERROR: docker-compose.yml not found!'
-            ls -la
-            exit 1
-          fi
-          
-          echo '[Deploy] Verifying environment variables:'
-          cat .env || echo 'Warning: .env file not found or cannot be read'
-          
-          echo '[Deploy] Stopping existing containers...'
-          docker-compose down --remove-orphans || true
-          
-          echo '[Deploy] Building and starting containers...'
-          docker-compose up -d --build
-          if [ \$? -ne 0 ]; then
-            echo \"[Deploy] ERROR: Docker-compose failed\"
-            docker-compose logs
-            exit 1
-          fi
-          echo '[Deploy] Containers started successfully!'
-          
-          # Wait for containers to stabilize
-          echo '[Deploy] Waiting for containers to be ready...'
-          sleep 15
-          
-          # Check if containers are running
-          RUNNING_CONTAINERS=\$(docker ps --format '{{.Names}}' | wc -l)
-          echo \"[Deploy] Number of running containers: \$RUNNING_CONTAINERS\"
-          
-          # We're looking for at least 1 container (the app) instead of exactly 2
-          # This makes the check more flexible
-          if [ \"\$RUNNING_CONTAINERS\" -lt 1 ]; then
-            echo \"[Deploy] ERROR: No containers running\"
-            docker ps -a
-            docker-compose logs
-            exit 1
-          fi
-          
-          # Verify that the app is responding
-          echo '[Deploy] Verifying API health...'
-          MAX_RETRIES=6
-          RETRY_COUNT=0
-          API_HEALTHY=false
-          
-          while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
-            if curl -s http://localhost:3000/health | grep -q 'healthy'; then
-              API_HEALTHY=true
-              break
-            fi
-            echo \"[Deploy] API health check attempt \$((RETRY_COUNT+1))/\$MAX_RETRIES failed, retrying in 5 seconds...\"
-            RETRY_COUNT=\$((RETRY_COUNT+1))
-            sleep 5
-          done
-          
-          if [ \"\$API_HEALTHY\" != \"true\" ]; then
-            echo \"[Deploy] ERROR: API health check failed after \$MAX_RETRIES attempts\"
-            docker ps -a
-            docker-compose logs
-            exit 1
-          fi
-          
-          echo \"[Deploy] Deployment validation successful - containers are running and API is healthy!\"
-          docker ps
-          exit 0
-        "
-        
-        # Check if the SSH command was successful
-        SSH_RESULT=$?
-        if [ $SSH_RESULT -eq 0 ]; then
-          echo "[Deploy] Service deployment successful!"
-          break
-        else
-          echo "[Deploy] Service deployment attempt $deploy_attempt failed with exit code $SSH_RESULT"
-          if [ $deploy_attempt -eq 3 ]; then
-            echo "[Deploy] All deployment attempts failed"
-            exit 1
-          fi
-          echo "[Deploy] Waiting 30 seconds before next attempt..."
-          sleep 30
-        fi
-      done
-      
-      echo "[Deploy] Service deployment phase completed successfully!"
-      echo "[Deploy] Deployment completed successfully!"
-      echo [**********************] Service deployment and validation [**********************]
+      # Run the deployment script with the VM IP address - using absolute path
+      bash "${path.module}/deploy_services.sh" --vm-ip="${azurerm_public_ip.public_ip.ip_address}" --run-mode="${var.run_mode}"
 EOF
   }
 

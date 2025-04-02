@@ -14,21 +14,33 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.example.biteswipe.ApiHelper
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.system.measureTimeMillis
 
 @RunWith(AndroidJUnit4::class)
-class FNFRTests {
+class FNFRTests{
 
     private val context: Context = ApplicationProvider.getApplicationContext()
-    private val baseUrl: String = context.getString(R.string.base_url)
-    private val client = OkHttpClient()
+
+    object TestApiHelper : ApiHelper
 
 
     // --- Uptime Test ---
     @Test
     fun serverIsReachable() {
-        val request = Request.Builder().url("$baseUrl/users/67c0106e9be4429eab3392b7").build()
-        val response = client.newCall(request).execute()
-        assertTrue("Server is not reachable!", response.isSuccessful)
+
+        TestApiHelper.apiRequest(
+            context = context,
+            endpoint = "/users/67c0106e9be4429eab3392b7",
+            method = "GET",
+            onSuccess = {
+                assertTrue("Server is reachable", true)
+            },
+            onError = { code, message ->
+                assertTrue("Server is not reachable", false)
+            }
+        )
     }
 
     // --- Performance Test ---

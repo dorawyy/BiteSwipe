@@ -146,6 +146,39 @@ export const sessionRoutes = (sessionManager: SessionManager, userService: UserS
             validation: [
                 validateSessionIdParam()
             ]
+        },
+        {
+            method: 'get' as const,
+            route: '/sessions/:sessionId/potentialMatch',
+            action: (req: express.Request, res: express.Response) => sessionController.getPotentialMatch(req, res),
+            validation: [
+                validateSessionIdParam(),
+            ]
+        },
+        {
+            method: 'get' as const,
+            route: '/sessions/:sessionId/sessionStatus',
+            action: (req: express.Request, res: express.Response) => sessionController.getSessionStatus(req, res),
+            validation: [
+                validateSessionIdParam(),
+            ]
+        },
+        // route have to add 
+        {
+            method: 'get' as const,
+            route: '/sessions/:sessionId/potentialMatchResult/:restaurantId',
+            action: (req: express.Request, res: express.Response) => sessionController.getPotentialMatchResult(req, res),
+            validation: [
+                validateSessionIdParam()
+            ]
+        }, 
+        {
+            method: 'post' as const,
+            route: '/sessions/:sessionId/potentialMatchSwipe',
+            action: (req: express.Request, res: express.Response) => sessionController.potentialMatchSwiped(req, res),
+            validation: [
+                validateSessionIdParam()
+            ]
         }
     ] as RouteDefinition[];
 };

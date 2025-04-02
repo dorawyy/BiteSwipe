@@ -22,6 +22,7 @@ backend/.env
 backend/.zsh_history
 backend/BiteSwipe.code-workspace
 backend/biteswipe-132f1-firebase-adminsdk-fbsvc-76c5bb6fe5.json
+backend/biteswipe-452501-firebase-adminsdk-fbsvc-f7b58ac1e2.json
 backend/cert.pem
 backend/key.pem
 backend/scripts/codacy/*_analysis*.json

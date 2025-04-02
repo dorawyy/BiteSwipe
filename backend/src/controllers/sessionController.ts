@@ -4,6 +4,7 @@ import { SessionManager } from '../services/sessionManager';
 import { MongoDocument } from '../models/appTypes';
 import { UserService } from '../services/userService';
 import { ObjectId } from 'mongoose';
+import { sendNotification } from '../config/firebase';
 
 interface CodedError extends Error {
     code?: string;
@@ -35,6 +36,10 @@ export class SessionController {
 
         this.getResultForSession = this.getResultForSession.bind(this);
         this.userDoneSwiping = this.userDoneSwiping.bind(this);
+        this.getPotentialMatch = this.getPotentialMatch.bind(this);
+        this.potentialMatchSwiped = this.potentialMatchSwiped.bind(this);
+        this.getPotentialMatchResult = this.getPotentialMatchResult.bind(this);
+        this.getSessionStatus = this.getSessionStatus.bind(this);
 
     }
 
@@ -131,15 +136,36 @@ export class SessionController {
                 sessionId,
                 (user._id as unknown as ObjectId).toString()
             );
-
+            
             // Send notification to invited user
-            // if (user.fcmToken && typeof user.fcmToken === 'string') {
-            //     await this.notificationService.sendNotification(
-            //         user.fcmToken,
-            //         'Session Invitation',
-            //         'You have been invited to join a BiteSwipe session!'
-            //     );
-            // }
+            const fcmToken = user.fcmTokens ?? [];
+            console.log(`FCMTokens for user ${user.email}: ${fcmToken} `);
+            if(fcmToken){
+                const notificationData = {
+                type: "group",
+                title: "New Group Invite",
+                message: `You're invited to a group!`,
+                groupId: session.joinCode.toString(),
+                sessionId: session._id.toString()
+                }
+                // @ts-ignore (idk why this error, didn't show up earlier)
+                if(fcmToken.length == 1){
+                try {
+                    sendNotification(fcmToken.toString(), "New Group Invite", `You're invited to a group!`, notificationData);
+                }
+                catch (error) {
+                    console.error("Could not send notification")
+                }
+                } else {
+                for(let token in fcmToken) {
+                    try{
+                    sendNotification(token, "New Group Invite", `You're invited to a group!`, notificationData);
+                    } catch (error) {
+                    console.error("Could not send notification");
+                    }
+                }
+                }
+            }
 
             res.json(session);
         } catch (error: unknown) {
@@ -289,6 +315,61 @@ export class SessionController {
             console.error(error);
 
             res.status(500).json({ error });
+        }
+    }
+
+    async getPotentialMatch(req: Request, res: Response) {
+        try {
+            const sessionId = req.params.sessionId;
+            
+            const result = await this.sessionManager.getPotentialMatch(sessionId);
+            res.json({ sucess: true, result });
+        } catch (error) {
+            console.error(error);
+
+            res.status(500).json({ error });
+        }
+    }
+
+    async getSessionStatus(req: Request, res: Response) {
+        try {
+            const sessionId = req.params.sessionId;
+
+            const result = await this.sessionManager.getSessionStatus(sessionId);
+            res.json({ success: true, result });
+        } catch (error){
+            console.error(error);
+
+            res.status(500).json({ error });
+        }
+    }
+
+    async getPotentialMatchResult(req: Request, res: Response) {
+        try {
+            const sessionId = req.params.sessionId;
+            const restaurantId = req.params.restaurantId;
+
+            const result = await this.sessionManager.getPotentialMatchResult(sessionId, restaurantId);
+            res.json(result);
+        } catch (error) {
+            console.error(`Error fetching potential match: ${error}`);
+
+            res.status(503).json({ error });
+        }
+    }
+
+    async potentialMatchSwiped(req: Request, res: Response) {
+        try {
+            const sessionId = req.params.sessionId;
+            const restaurantId = req.body.restaurantId;
+            const liked = req.body.liked;
+
+            const result = await this.sessionManager.potentialMatchSwiped(sessionId, restaurantId, liked);
+            res.json(result);
+        } catch (error) {
+            console.error(error);
+
+            res.status(500).json({ error });    
         }
     }
 }

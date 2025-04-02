@@ -3,6 +3,8 @@ import { Session, ISession, SessionStatus } from '../models/session';
 import { RestaurantService } from './restaurantService';
 import { UserModel } from '../models/user';
 import crypto from 'crypto';
+import { MongoDocument } from '../models/appTypes';
+import { sendNotification } from '../config/firebase';
 
 interface CustomError extends Error {
     code?: string;
@@ -129,9 +131,18 @@ export class SessionManager {
                         liked: swipe,
                         timestamp: new Date()
                     }
+                },
+                $inc: {
+                    'restaurants.$[restaurant].score': swipe ? 1 : -0.5,
+                    'restaurants.$[restaurant].totalVotes': 1,  
+                    'restaurants.$[restaurant].positiveVotes': swipe ? 1 : 0
                 }
             },
-            { new: true, runValidators: true }
+            { 
+                new: true,
+                runValidators: true,
+                arrayFilters: [{ 'restaurant.restaurantId': restaurantObjId }] 
+            }
         );
 
         if (!session) {
@@ -484,56 +495,181 @@ export class SessionManager {
             throw new Error('Session not found');
         }
 
-        // Only allow completed sessions or matching sessions where everyone is done swiping
+        // Only allow completed sessions or matching sessions where everyone is done swiping TODO: WTF IS THIS?
         if (session.status !== 'COMPLETED' &&
-            (session.status === 'MATCHING' && session.doneSwiping.length !== 0)) {
+            (session.status === 'MATCHING' && (session.doneSwiping.length !== 0 || (session.finalSelections?.length ?? 0) < 3))) {
             throw new Error('Session is not completed');
         }
 
-        if (session.status === 'MATCHING') {
-            // Mark the session as completed
-            session.status = 'COMPLETED';
-            await session.save();
+        // return Top 3 restaurants by score 
+
+        if (session.finalSelections?.length === 3) {
+            if (session.status === 'MATCHING') {
+                session.status = 'COMPLETED';
+                await session.save();
+            }
+            return this.restaurantService.getRestaurants(session.finalSelections.map(r => r.restaurantId));
+        } else {
+            if (session.status === 'MATCHING') {
+                // Mark the session as completed
+                session.status = 'COMPLETED';
+                await session.save();
+            }
+
+            // will return the top 3 restaurants by score
+
+            const sortedRestaurants = session.restaurants.sort((a, b) => b.score - a.score);
+            const topRestaurants = sortedRestaurants.slice(0, 3);
+
+            return this.restaurantService.getRestaurants(topRestaurants.map(r => r.restaurantId));
+        }
+    }
+
+    async getPotentialMatch(sessionId: string) {
+        if (!Types.ObjectId.isValid(sessionId)) {
+            throw new Error('Invalid session ID format');
+        }
+        const sessionObjId = new Types.ObjectId(sessionId);
+
+        const session = await Session.findById(sessionObjId);   
+
+        if (!session) {
+            throw new Error('Session not found');
+        }   
+
+        if (session.status !== 'MATCHING') {
+            throw new Error('Session is not in matching state');
         }
 
-        const participants = session.participants;
+        const participantsLength = session.participants.length;
+        const pendingInvitationsLength = session.pendingInvitations.length; 
 
-        const restaurantVotes = new Map<string, number>();
-
-        for (const restaurant of session.restaurants) {
-            restaurantVotes.set(restaurant.restaurantId.toString(), 0);
-        }
-
-        for (const participant of participants) {
-            for (const preference of participant.preferences) {
-                if (preference.liked) {
-                    const restaurantId = preference.restaurantId.toString();
-
-                    const currentCount = restaurantVotes.get(restaurantId) ?? 0;
-                    restaurantVotes.set(restaurantId, currentCount + 1);
+        for(const restaurant of session.restaurants) {
+            if (restaurant.positiveVotes >= 0.75 * participantsLength) {
+                // checking if restaurant is not the part of finalSelection already
+                if (!session.finalSelections?.some(r => r.restaurantId.equals(restaurant.restaurantId))) {
+                    if(!(restaurant.potentialMatchSwipe > 0)){
+                        return this.restaurantService.getRestaurant(restaurant.restaurantId);
+                    }
                 }
             }
         }
+    
+        throw new Error('No potential match found');
+    }
 
-        for (const restaurant of session.restaurants) {
-            const votes = restaurantVotes.get(restaurant.restaurantId.toString()) ?? 0;
-            restaurant.positiveVotes = votes;
-            restaurant.totalVotes = participants.length;
-            restaurant.score = votes / participants.length;
+    async potentialMatchSwiped(sessionId: string, restaurantId: string, swipe: boolean) {
+        if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(restaurantId)) {
+            throw new Error('Invalid ID format');
+        }
+        const sessionObjId = new Types.ObjectId(sessionId);
+        const restaurantObjId = new Types.ObjectId(restaurantId);
+
+        const session = await Session.findOneAndUpdate(
+            {
+                _id: sessionObjId,
+                'restaurants.restaurantId': restaurantObjId
+            },
+            {
+                $inc: {
+                    'restaurants.$[restaurant].potentialMatchScore': swipe ? 1 : 0,
+                    'restaurants.$[restaurant].potentialMatchSwipe': 1
+                }
+            },
+            { 
+                new: true,
+                runValidators: true,
+                arrayFilters: [{ 'restaurant.restaurantId': restaurantObjId }] 
+            }
+        );
+
+        if (!session) {
+            throw new Error('Session does not exist or already completed or restaurant not in session');
+        }
+        return session;
+    }
+
+    async getPotentialMatchResult(sessionId: string, restaurantId: string) {
+        if (!Types.ObjectId.isValid(sessionId) || !Types.ObjectId.isValid(restaurantId)) {
+            throw new Error('Invalid ID format');
         }
 
+        const sessionObj = new Types.ObjectId(sessionId);
+        const restaurantObj = new Types.ObjectId(restaurantId); 
 
-        const winnerRestaurant = [...restaurantVotes.entries()].reduce((a, e) => e[1] > a[1] ? e : a, ['', 0]);
-        const winnerRestaurantId = winnerRestaurant[0];
+        const session = await Session.findById(sessionObj);
 
-        session.finalSelection = {
-            restaurantId: new mongoose.Types.ObjectId(winnerRestaurantId),
-            selectedAt: new Date()
-        };
+        if (!session) {
+            throw new Error('Session not found');
+        }
 
-        await session.save();
+        const restaurant = session.restaurants.find(r => r.restaurantId.equals(restaurantObj));
+        if (!restaurant) {
+            throw new Error('Session not found');
+        }
 
-        return this.restaurantService.getRestaurant(new mongoose.Types.ObjectId(winnerRestaurantId));
+        if (restaurant.potentialMatchSwipe >= session.participants.length) {
+            if(restaurant.potentialMatchScore === session.participants.length) {
+                await Session.findOneAndUpdate(
+                    {
+                        _id: sessionObj,
+                        'restaurants.restaurantId': restaurantObj
+                    },
+                    {
+                        $push: {
+                            finalSelections: {
+                                restaurantId: restaurantObj,
+                                selectedAt: new Date()
+                            }
+                        },
+                        $set: { status : 'COMPLETED' }
+                    },
+                    { 
+                        new: true,
+                        runValidators: true,
+                    }
+                );
+                return {success: true, result : this.restaurantService.getRestaurant(restaurantObj)};
+            } else {
+                await Session.findOneAndUpdate(
+                    {
+                        _id: sessionObj,
+                        'restaurants.restaurantId': restaurantObj
+                    },
+                    {
+                        $push: {
+                            finalSelections: {
+                                restaurantId: restaurantObj,
+                                selectedAt: new Date()
+                            }
+                        }
+                    },
+                    { 
+                        new: true,
+                        runValidators: true,
+                    }
+                );
+                return {success: true, result : null}
+            }
+        } else {
+            return {success: false, message: "Not enough votes for this restaurant"};
+        }
+    }
+
+    async getSessionStatus (sessionId: string) {
+        if (!Types.ObjectId.isValid(sessionId)) {
+            throw new Error('Invalid session ID format');
+        }
+
+        const sessionObjId = new Types.ObjectId(sessionId); 
+
+        const session = await Session.findById(sessionObjId);
+        if (!session) {
+            throw new Error('Session not found');
+        }
+        return session.status;
     }
 
 }
+
+ 

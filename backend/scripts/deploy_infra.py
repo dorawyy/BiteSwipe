@@ -428,7 +428,45 @@ def run_terraform_commands(owner_tag, run_mode="app"):
         return False
         
     print("\n🚀 Running Terraform apply...")
-    return run_command("terraform apply -auto-approve tfplan", cwd=TERRAFORM_DIR)
+    apply_result = run_command("terraform apply -auto-approve tfplan", cwd=TERRAFORM_DIR)
+    
+    if not apply_result:
+        print("\n❌ Terraform apply command failed with non-zero exit code!")
+        
+        # Check if we can get the server IP to determine if it's a partial deployment
+        try:
+            print("\n🔍 Checking for partial deployment...")
+            server_ip = subprocess.check_output(
+                ["terraform", "output", "-raw", "server_public_ip"],
+                cwd=TERRAFORM_DIR
+            ).decode('utf-8').strip()
+            
+            if server_ip:
+                print(f"\n⚠️ Partial deployment detected - VM created (IP: {server_ip}) but services failed")
+                print("This is likely due to Docker Compose or SSH command failures")
+        except Exception:
+            # If we can't get the IP, it's a complete failure
+            pass
+            
+        return False
+        
+    # Verify deployment by checking server IP
+    try:
+        print("\n🔍 Verifying deployment...")
+        server_ip = subprocess.check_output(
+            ["terraform", "output", "-raw", "server_public_ip"],
+            cwd=TERRAFORM_DIR
+        ).decode('utf-8').strip()
+        
+        if not server_ip:
+            print("\n❌ Deployment verification failed: No server IP found")
+            return False
+            
+        print(f"\n✅ Deployment successful! Server IP: {server_ip}")
+        return True
+    except Exception as e:
+        print(f"\n❌ Deployment verification failed: {str(e)}")
+        return False
 
 
 def update_ssh_config():
@@ -520,8 +558,15 @@ def main(prefix=None, run_mode="app"):
     if not run_command(f"{generate_tfvars_script} {owner_tag}", cwd=script_dir):
         sys.exit(1)
     
-    run_terraform_commands(owner_tag, run_mode)
-    update_ssh_config()
+    # Run Terraform commands and only update SSH config if successful
+    deployment_success = run_terraform_commands(owner_tag, run_mode)
+    
+    if deployment_success:
+        print("\n✅ Infrastructure deployment completed successfully!")
+        update_ssh_config()
+    else:
+        print("\n❌ Infrastructure deployment failed - skipping SSH config update")
+        sys.exit(1)
 
 
 
