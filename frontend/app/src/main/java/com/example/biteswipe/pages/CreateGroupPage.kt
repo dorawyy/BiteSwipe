@@ -144,7 +144,6 @@ class CreateGroupPage : AppCompatActivity(), ApiHelper, ToastHelper {
             val searchRadius = (((findViewById<EditText>(R.id.searchRadiusText).text)).toString().toFloat() * 1000).toString()
 
             val endpoint = "/sessions/"
-//            TODO: body for cuisine preferences (API)
             val body = JSONObject().apply {
                 put("userId", userId)
                 put("latitude", latitude)

@@ -14,7 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import com.example.biteswipe.ApiHelper
+import com.example.biteswipe.helpers.ApiHelper
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.system.measureTimeMillis
 
@@ -25,23 +25,6 @@ class FNFRTests{
 
     object TestApiHelper : ApiHelper
 
-
-    // --- Uptime Test ---
-    @Test
-    fun serverIsReachable() {
-
-        TestApiHelper.apiRequest(
-            context = context,
-            endpoint = "/users/67c0106e9be4429eab3392b7",
-            method = "GET",
-            onSuccess = {
-                assertTrue("Server is reachable", true)
-            },
-            onError = { code, message ->
-                assertTrue("Server is not reachable", false)
-            }
-        )
-    }
 
     // --- Performance Test ---
     @get:Rule

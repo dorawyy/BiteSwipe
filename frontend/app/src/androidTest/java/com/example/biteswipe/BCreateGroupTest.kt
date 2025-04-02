@@ -115,7 +115,6 @@ class BCreateGroupTest {
         onView(withId(R.id.create_group_button)).check(matches(isDisplayed()))
         onView(withId(R.id.searchRadiusText)).check(matches(isDisplayed()))
         onView(withText("Italian")).check(matches(isDisplayed()))
-//        TODO: add radius test after implementing functionality
         onView(withId(R.id.create_back_button)).check(matches(isDisplayed()))
         scenario.close()
     }
@@ -131,7 +130,7 @@ class BCreateGroupTest {
 //      test click on an item
 
 
-        onView(withId(R.id.searchRadiusText)).perform(typeText("1000"), closeSoftKeyboard())
+        onView(withId(R.id.searchRadiusText)).perform(typeText("10"), closeSoftKeyboard())
 
         Thread.sleep(5000)
         onView(withId(R.id.create_group_button)).perform(click())
