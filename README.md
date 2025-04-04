@@ -65,3 +65,4 @@ openssl pkcs12 -in cert.pfx -clcerts -nokeys -out server.crt
 - The VM is configured with open inbound access for development
 - For production, restrict the security group rules to specific ports/IPs
 - MongoDB is accessible on port 27017 - secure this for production use
+   
